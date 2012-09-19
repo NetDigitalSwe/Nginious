@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
+	<classpathentry kind="src" path="/nginious-api" exported="true"/>
+	<classpathentry kind="src" path="/nginious-server" exported="true"/>
+	<classpathentry kind="lib" path="/Users/bojanp/.gradle/caches/artifacts-14/filestore/asm/asm/3.3.1/jar/1d5f20b4ea675e6fab6ab79f1cd60ec268ddc015/asm-3.3.1.jar" exported="true"/>
+	<classpathentry kind="lib" path="/Users/bojanp/.gradle/caches/artifacts-14/filestore/org.apache.ant/ant-launcher/1.7.0/jar/e7e30789211e074aa70ef3eaea59bd5b22a7fa7a/ant-launcher-1.7.0.jar" exported="true"/>
+	<classpathentry sourcepath="/Users/bojanp/.gradle/caches/artifacts-14/filestore/org.apache.ant/ant/1.7.0/source/58ec0e378f1d33cb72a92ee3a9442909789090db/ant-1.7.0-sources.jar" kind="lib" path="/Users/bojanp/.gradle/caches/artifacts-14/filestore/org.apache.ant/ant/1.7.0/jar/9746af1a485e50cf18dcb232489032a847067066/ant-1.7.0.jar" exported="true"/>
+</classpath>

@@ -1,0 +1,54 @@
+apply plugin: 'java'	
+
+dependencies {
+   	compile project(':nginious-api')
+   	compile project(':nginious-server')
+   	compile group: 'ant', name: 'ant', version: '1.7.0'
+	compile group: 'asm', name: 'asm', version: '3.3.1'
+}
+
+def serverProject = project(":nginious-server")
+def apiProject = project(":nginious-api")
+
+jar {
+	from("${serverProject.projectDir}/build/classes/main") {
+		include 'com/nginious/http/xsp/**'
+		include 'com/nginious/http/client/HttpClient.class'
+		include 'com/nginious/http/client/HttpClientException.class'
+		include 'com/nginious/http/client/HttpClientRequest.class'
+		include 'com/nginious/http/client/HttpClientResponse.class'
+		include 'com/nginious/http/server/Digest.class'
+		include 'com/nginious/http/common/StringUtils.class'
+		include 'com/nginious/http/upload/ApplicationUploader.class'
+		include 'com/nginious/http/upload/MultipartInpusStream.class'
+		include 'com/nginious/http/upload/ProgressListener.class'
+	}
+	
+	from("${apiProject.projectDir}/build/classes/main") {
+		include 'com/nginious/http/HttpMethod.class'
+		include 'com/nginious/http/HttpStatus.class'
+	}
+	
+	manifest {
+		attributes("Implementation-Title": "Nginious ant plugin", 
+			"Implementation-Version": "${project.version}", 
+			"Class-Path": "nginious-api-${project.version}.jar nginious-server-${project.version}.jar ext/asm-3.3.1.jar")
+	}
+}
+
+task eclipseClean(type: Delete) {
+	delete 'libs'
+}
+
+task eclipse(type: Copy) {
+	destinationDir = new File('libs/ext')
+	
+	configurations.compile.files { dep -> dep.name == 'ant' }.each { file ->
+		from(file) {
+        	into ''
+       	}
+    }
+}
+
+assemble.dependsOn eclipse
+clean.dependsOn eclipseClean
