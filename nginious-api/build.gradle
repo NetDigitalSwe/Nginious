@@ -1,0 +1,15 @@
+apply plugin: 'java'	
+
+jar {
+	manifest {
+		attributes("Implementation-Title": "Nginious API", 
+			"Implementation-Version": "${project.version}")
+	}
+}
+
+
+javadoc {
+	title = 'Nginious API ${project.version}'
+	options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PUBLIC
+	options.author = true	
+}
