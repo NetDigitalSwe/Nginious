@@ -1,0 +1,10 @@
+<html>
+  <head>
+    <xsp:meta name="package" content="com.nginious.http.xsp" />
+    <xsp:meta name="Content-Type" content="text/html; charset=utf-8" />
+    <title>XspOutputTest</title>
+  </head>
+  <body>
+    <h1>XspOutputTest</h1>
+  </body>
+</html>

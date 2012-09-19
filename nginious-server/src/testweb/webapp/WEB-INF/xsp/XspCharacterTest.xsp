@@ -1,0 +1,13 @@
+<html>
+  <head>
+    <xsp:meta name="package" content="com.nginious.http.xsp" />
+    <xsp:meta name="Content-Type" content="text/html; charset=utf-8" />
+    <title>XspParser3</title>
+  </head>
+  <body>
+    <h1>XspParser3</h1>
+    <xsp:if test="${test == 'åäö'}">
+	<h2>Hello world!</h2>
+  </xsp:if>
+  </body>
+</html>

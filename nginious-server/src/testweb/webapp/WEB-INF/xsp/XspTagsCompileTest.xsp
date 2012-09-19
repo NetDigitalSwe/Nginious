@@ -1,0 +1,15 @@
+<html>
+  <head>
+    <xsp:meta name="package" content="com.nginious.http.xsp" />
+    <xsp:meta name="Content-Type" content="text/html; charset=utf-8" />
+    <title>XspTagsCompile</title>
+  </head>
+  <body>
+    <h1>XspTagsCompile</h1>
+    <xsp:if test="${test == 'Hello world!'}">
+      <xsp:forEach set="${testset}" var="var" start="0" end="8" step="2">
+	<h2>${test} ${var}</h2>
+      </xsp:forEach>
+   </xsp:if>
+  </body>
+</html>

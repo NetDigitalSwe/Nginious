@@ -1,0 +1,11 @@
+<html>
+  <head>
+    <xsp:meta name="package" content="com.nginious.http.xsp" />
+    <xsp:meta name="Content-Type" content="text/html; charset=utf-8" />
+    <title>XspParser7</title>
+  </head>
+  <body>
+    <h1>XspParser7</h1>
+    <xsp:message key="test" bundle="test" args="${test}" />
+ </body>
+</html>

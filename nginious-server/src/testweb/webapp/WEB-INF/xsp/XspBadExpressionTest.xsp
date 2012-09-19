@@ -1,0 +1,13 @@
+<html>
+  <head>
+    <xsp:meta name="package" content="com.nginious.http.xsp" />
+    <xsp:meta name="Content-Type" content="text/html; charset=utf-8" />
+    <title>XspBadExpression</title>
+  </head>
+  <body>
+    <h1>XspBadExpression</h1>
+    <xsp:if test="notanexpression">
+      Not an expression
+   </xsp:if>
+  </body>
+</html>

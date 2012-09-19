@@ -1,0 +1,12 @@
+<html>
+  <head>
+    <xsp:meta name="package" content="com.nginious.http.xsp" />
+    <xsp:meta name="Content-Type" content="text/html; charset=utf-8" />
+    <title>XspParser6</title>
+  </head>
+  <body>
+    <h1>XspParser6</h1>
+    <xsp:formatNumber value="${test}" pattern="#,###" />
+    <xsp:formatNumber value="${test}" pattern="#,###" var="test2" />
+ </body>
+</html>

@@ -1,0 +1,12 @@
+<html>
+  <head>
+    <xsp:meta name="package" content="com.nginious.http.xsp" />
+    <xsp:meta name="Content-Type" content="text/html; charset=utf-8" />
+    <title>XspParser5</title>
+  </head>
+  <body>
+    <h1>XspParser5</h1>
+    <xsp:formatDate value="${test}" pattern="yyyy-MM-dd hh:mm:ss Z" timeZone="GMT" />
+    <xsp:formatDate value="${test}" pattern="yyyy-MM-dd hh:mm:ss Z" timeZone="GMT" var="test2" />
+ </body>
+</html>

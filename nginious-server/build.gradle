@@ -1,0 +1,124 @@
+apply plugin: 'java'	
+
+sourceSets {
+    testweb {
+        java {
+            srcDir 'src/testweb/java'
+            output.classesDir 'build/classes/testweb/classes'
+        }
+        resources {
+        	srcDir 'src/testweb/webapp'
+        }    
+    }
+    testload1 {
+    	java {
+    		srcDir 'src/testload1/java'
+    		output.classesDir 'build/classes/testload1/classes'
+    	}
+    	resources {
+    		srcDir 'src/testload1/resources'
+    	}
+    }
+    testload2 {
+    	java {
+    		srcDir 'src/testload2/java'
+    		output.classesDir 'build/classes/testload2/classes'
+    	}
+    	resources {
+    		srcDir 'src/testload2/resources'
+    	}
+    }
+}
+
+dependencies {
+	compile group: 'asm', name: 'asm', version: '3.3.1'
+   	compile project(':nginious-api')
+   	compile files('libs/json.jar')
+   	testCompile group: 'junit', name: 'junit', version: '4.+'
+	testCompile group: 'xmlunit', name: 'xmlunit', version: '1.2'
+	testCompile files('build/classes/testweb/classes')
+	testwebCompile project(':nginious-api')
+	testload1Compile project(':nginious-api')
+	testload2Compile project(':nginious-api')
+	testCompile files('src/testweb/webapp/WEB-INF/xsp/')
+}
+
+task testwebWar(type: War, dependsOn: testwebClasses, description: 'Assembles web archive with test services') {
+	classifier = 'testweb'
+	webInf { from 'build/classes/testweb' }
+	from 'build/resources/testweb'
+	exclude 'static/**'
+}
+
+task testload1Jar(type: Jar, dependsOn: testload1Classes, description: 'Assembles class loader test classes') {
+	classifier = 'testload1'
+	from 'build/classes/testload1/classes'
+	from 'build/resources/testload1'
+}
+
+task testload1War(type: War, dependsOn: testload1Classes, description: 'Assembles web archive with class loader services') {
+	classifier = 'testload1'
+	webInf { from 'build/classes/testload1' }
+	from 'build/resources/testload1'
+}
+
+task testload2Jar(type: Jar, dependsOn: testload2Classes, description: 'Assembles class loader test classes') {
+	classifier = 'testload2'
+	from 'build/classes/testload2/classes'
+	from 'build/resources/testload2'
+}
+
+task testload2War(type: War, dependsOn: testload2Classes, description: 'Assembles web archive with class loader services') {
+	classifier = 'testload2'
+	webInf { from 'build/classes/testload2' }
+	from 'build/resources/testloas2'
+}
+
+task eclipseClean(type: Delete) {
+	delete 'libs/ext'
+}
+
+task eclipse(type: Copy, dependsOn: testwebWar) {
+	destinationDir = new File('libs/ext')
+	
+	configurations.compile.files { dep -> dep.name == 'asm' }.each { file ->
+		from(file) {
+        	into ''
+       	}
+    }
+
+	configurations.testCompile.files { dep -> dep.name == 'junit' }.each { file ->
+		from(file) {
+        	into ''
+       	}
+    }
+    
+	configurations.testCompile.files { dep -> dep.name == 'xmlunit' }.each { file ->
+		from(file) {
+        	into ''
+       	}
+    }
+}
+
+assemble.dependsOn testwebWar, testload1Jar, testload1War, testload2Jar, testload2War, eclipse
+
+clean.dependsOn eclipseClean
+
+test {
+	jvmArgs '-Dfile.encoding=utf-8'
+}
+
+jar {
+	manifest {
+		attributes("Implementation-Title": "Nginious server", 
+			"Implementation-Version": "${project.version}", 
+			"Main-Class": "com.nginious.http.server.Main",
+			"Class-Path": "nginious-api-${project.version}.jar ext/asm-3.3.1.jar ext/json.jar")
+	}
+}
+
+javadoc {
+	title = 'Nginious Server ${project.version}'
+	options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+	options.author = true	
+}
