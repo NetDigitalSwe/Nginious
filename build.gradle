@@ -1,0 +1,98 @@
+configurations {
+	asm
+}
+
+repositories {
+	mavenCentral()
+}
+	
+dependencies {
+	asm group: 'asm', name: 'asm', version: '3.3.1'
+}
+
+subprojects {
+	apply plugin: 'java'
+	
+	repositories {
+		mavenCentral()
+	}
+	
+	tasks.withType(Compile) {
+		options.encoding = 'utf-8'
+	}
+}
+
+configure(rootProject) {
+	
+	task eclipse(type: Copy) {
+		destinationDir = new File('nginious-eclipse/libs')
+		
+		from(configurations.asm.asPath) {
+        	into ''
+        }
+        
+        from('nginious-server/libs/json.jar') {
+        	into ''
+		}
+		
+		subprojects.findAll({ subproject -> subproject.name != "nginious-ant" }).each { subproject ->
+            into ('') {
+                from subproject.jar
+            }
+		}
+	}
+	
+	task dist(type: Tar) {
+		includeEmptyDirs = true
+		group = 'Distribution'
+		compression = Compression.GZIP
+		classifier = 'dist'
+		description = "Builds ${classifier} archive, containing all jars and docs"
+		destinationDir = new File('build/distributions')
+		archiveName = "${project.name}-${project.version}-dist.tgz"
+		
+		ext.baseDir = "${project.name}-${project.version}";
+		
+		mkdir('build/logs/logs');
+		mkdir('build/webapps/webapps');
+			
+		from('build/logs') {
+			into "${baseDir}"
+		}
+		
+		from('build/webapps') {
+			into "${baseDir}"
+		}
+		
+		from('src/dist') {
+            include 'README'
+            include 'LICENSE'
+            into "${baseDir}"
+            expand(copyright: new Date().format('yyyy'), version: project.version)
+        }
+        
+        from(configurations.asm.asPath) {
+        	into "${baseDir}/libs/ext"
+        }
+		
+		from('nginious-server/libs/json.jar') {
+        	into "${baseDir}/libs/ext"
+		}
+				
+		subprojects.findAll({ subproject -> subproject.name == "nginious-api" }).each { subproject ->
+            into ("${baseDir}/doc/api") {
+                from subproject.javadoc
+            }
+		}
+		
+		subprojects.each { subproject ->
+            into ("${baseDir}/libs") {
+                from subproject.jar
+            }
+		}
+        
+        from('bin/start.sh') {
+        	into "${baseDir}/bin"
+        }
+    }
+}
