@@ -1,0 +1,611 @@
+<html>
+	<head>
+		<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>Chapter 4. HTTP server</title>
+		<link type="text/css" rel="stylesheet" href="base.css">
+		<link type="text/css" rel="stylesheet" href="style.css">
+		<link type="text/css" rel="stylesheet" href="userguide.css">
+		<link rel="home" href="index.html" title="Nginious Users Guide">
+		<link rel="up" href="index.html" title="Nginious Users Guide">
+		<link rel="prev" href="index.html" title="Nginious Users Guide">
+		<link rel="prev" href="installing.html" title="Chapter 3. Installing Nginious">
+		<link rel="next" href="webapps.html" title="Chapter 5. Web applications">
+	</head>
+	<body>
+		<div class="navheader">
+			<div>
+				<div class="navbar">
+					<a href="installing.html" title="Chapter 3. Installing">Previous</a>
+					<span>|</span>
+					<a href="index.html" title="Nginious Users Guide">Contents</a>
+					<span>|</span>
+					<a href="webapps.html" title="Chapter 5. Web applications">Next</a>
+				</div>
+			</div>
+		</div>
+		<div class="chapter">
+			<div class="titlepage">
+				<div>
+					<div><h1><a name="installing"></a>Chapter 4. HTTP server</h1>
+				</div>
+			</div>
+		</div>
+		<div class="section">
+			<div class="titlepage">
+				<div>
+					<div><h2 class="title"><a name="features"></a>4.1. Features</h2></div>
+					
+					<p>
+						Nginious is a full featured HTTP server built on top of an asynchronous I/O engine. This makes it
+						scale to many simultaneous connections. It supports all versions of the HTTP protocol from HTTP/0.9
+						to HTTP/1.1. All features of the HTTP/1.1 protocol are supported except for multi range requests.
+						For detailed information about which HTTP protocol features are supported by Nginious see section
+						<a href="httpserver.html#details">4.4 Feature details</a>.
+					</p>
+					
+					<div><h2 class="title"><a name="start"></a>4.2. Starting and stopping</h2></div>
+					
+					<p>
+						The server is started by executing <code>bin/start.sh</code> from the base directory or by
+						executing <code>java -jar libs/nginious-server-1.0.0.jar</code> from the base directory. A list
+						of possible command line options is found below.
+					</p>
+					
+					<p>
+						<table>
+							<thead>
+								<tr>
+									<th class="name">Name</th>
+									<th class="default">Default</th>
+									<th class="description">Description</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="name">--port | -p</td>
+									<td class="default">80</td>
+									<td class="description">Port that server listens to for incoming connections.</td>
+								</tr>
+								<tr>
+									<td class="name">--webappsDir | -d</td>
+									<td class="default">webapps</td>
+									<td class="description">
+										Directory for deployed web applications. Any web applications found in this directory
+										on startup are automatically deployed.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">--session | -s</td>
+									<td class="default">memory</td>
+									<td class="description">
+										Type of HTTP sessions to create (memory|cookie). See chapter 
+										<a href="session.html">9. Session management</a> for detailed information about sessions.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">--interfaces | -i</td>
+									<td class="default">all</td>
+									<td class="description">
+										Comma separated list of network interfaces that the server listens to for incoming
+										connections.
+									</td>
+								</tr>								
+								<tr>
+									<td class="name">--adminPwd | -a</td>
+									<td class="default">admin</td>
+									<td class="description">
+										Password for accessing REST administration services. See chapter
+										<a href="deployment.html">11. Server administration</a> for detailed information
+										about server administration.
+									</td>
+								</tr>								
+							</tbody>
+						</table>
+					</p>
+					
+					<div><h2 class="title"><a name="logging"></a>4.3. Logging</h2></div>
+					
+					<p>
+						Nginous provides two log files which can both be found in the <code>logs</code> subdirectory. The first
+						log is a general log where Nginious logs information about its actions and any errors and warnings that
+						might occur. This log is named <code>server.log</code>. The second log is a HTTP request log where
+						information about each HTTP request is logged in the combined log format. This log is named 
+						<code>access.log</code>. Both logs are rotated on a daily basis. A history of up to 10 days is kept.
+					</p>
+
+					<div><h2 class="title"><a name="details"></a>4.4. Feature details</h2></div>
+					
+					<p>
+						Below is a list with detailed information about all HTTP features supported by Nginous.
+						
+						<p>
+						<table cellpadding="0" cellspacing="0">
+							<thead>
+								<tr>
+									<th class="name">Supported methods</th>
+									<th class="description">Description</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="name">GET</td>
+									<td class="description">
+										Supported for accessing static content as well as for HTTP and REST services. See the 
+										<a href="api/com/nginious/http/HttpService.html">HttpService</a> and
+										<a href="api/com/nginious/http/rest/RestService.hrml">RestService</a> classes for detailed
+										information.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">HEAD</td>
+									<td class="description">
+										Supported for accessing static content as well as for HTTP and REST services. See the 
+										<a href="api/com/nginious/http/HttpService.html">HttpService</a> and
+										<a href="api/com/nginious/http/rest/RestService.hrml">RestService</a> classes for detailed
+										information.
+									</td>
+								<tr>
+									<td class="name">POST</td>
+									<td class="description">
+										Supported by HTTP and REST services. See the 
+										<a href="api/com/nginious/http/HttpService.html">HttpService</a> and
+										<a href="api/com/nginious/http/rest/RestService.hrml">RestService</a> classes for detailed
+										information.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">PUT</td>
+									<td class="description">
+										Supported by HTTP and REST services. See the 
+										<a href="api/com/nginious/http/HttpService.html">HttpService</a> and
+										<a href="api/com/nginious/http/rest/RestService.hrml">RestService</a> classes for detailed
+										information.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">DELETE</td>
+									<td class="description">
+										Supported by HTTP and REST services. See the 
+										<a href="api/com/nginious/http/HttpService.html">HttpService</a> and
+										<a href="api/com/nginious/http/rest/RestService.hrml">RestService</a> classes for detailed
+										information.									
+									</td>
+								</tr>
+								<tr>
+									<td class="name">TRACE</td>
+									<td class="description">
+										Supported.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">OPTIONS</td>
+									<td class="description">
+										Supported for accessing static content as well as for HTTP and REST services. See the 
+										<a href="api/com/nginious/http/HttpService.html">HttpService</a> and
+										<a href="api/com/nginious/http/rest/RestService.hrml">RestService</a> classes for detailed
+										information.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">CONNECT</td>
+									<td class="description">
+										Not supported.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						
+						<p>
+						<table cellpadding="0" cellspacing="0">
+							<thead>
+								<th class="name">General features</th>
+								<th class="description">Description</th>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="name">Persistent connections</td>
+									<td class="description">Supported.</td>
+								</tr>
+								<tr>
+									<td class="name">Pipelining</td>
+									<td class="description">Not supported.</td>
+								</tr>
+								<tr>
+									<td class="name">Content codings</td>
+									<td class="description">
+										Gzip content encoding is supported for static content responses. The server automatically
+										compresses static content with gzip if the client expresses interest in receiving
+										gzip compressed content by setting the <code>Accept-Encoding</code> header.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Transfer codings</td>
+									<td class="description">
+										Chunked encoding is supported for both requests and responses. The server automatically
+										detects requests with chunked encoding when the <code>Transfer-Encoding</code> header is set
+										to <code>chunked</code> in requests. If a HTTP service sets the <code>Transfer-Enoding</code>
+										header to <code>chunked</code> for a response the server automatically encodes the response 
+										accordingly.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Multipart content</td>
+									<td class="description">
+										Nginious has built in support for multipart content. A multipart request with the
+										<code>Multipart</code> header set the content is parsed into parameters and files and
+										made available to HTTP servies through the 
+										<a href="api/com/nginious/http/HttpRequest.html">HttpRequest</a> class.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Date/time formats</td>
+									<td class="description">
+										Supports the date/time formats specified in RFC 1123, RFC 1036 and ANSI C in descending
+										order of preference.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Quality values</td>
+									<td class="description">
+										
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Proxy</td>
+									<td class="description">
+										Not supported. Nginious has no built in functionality for acting as a HTTP proxy.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						</p>
+						
+						<p>
+						<table cellpadding="0" cellspacing="0">
+							<thead>
+								<th class="name">Headers</th>
+								<th class="description">Description</th>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="name">Accept</td>
+									<td class="description">
+										Nginious checks the <code>Accept</code> header in requests for static content to verify that
+										the client accepts the served content.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Accept-Charset</td>
+									<td class="description">
+										Available for HTTP service classes through the
+										<a href="api/com/nginious/http/HttpRequest.html">HttpRequest</a> class.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Accept-Encoding</td>
+									<td class="description">
+										The <code>Accept-Encoding</code> header is checked in requests for static content to
+										determine if the client is willing to accept gzip compressed content.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Accept-Language</td>
+									<td class="description">
+										Available for HTTP service classes through the
+										<a href="api/com/nginious/http/HttpRequest.html">HttpRequest</a> class.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Accept-Ranges</td>
+									<td class="description">
+										Nginious includes a <code>Accept-Ranges</code> header with value <code>bytes</code> when 
+										serving static content to clients to signal its support for byte ranges.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Age</td>
+									<td class="description">
+										Not supported directly by any functionality in the server but can be set by HTTP services
+										in responses.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Allow</td>
+									<td class="description">
+										Set by the server in <code>OPTIONS</code> method requests for static content, HTTP
+										services and REST services.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Authorization</td>
+									<td class="description">
+										Not supported directly by any functionality in the server but can be set by HTTP services
+										in responses.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Cache-Control</td>
+									<td class="description">
+										Not supported directly by any functionality in the server but can be set by HTTP services
+										in responses.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Connection</td>
+									<td class="description">
+										Supported in both requests and response to manage connections. Nginious uses the
+										<code>Connection</code> header in requests to determine if the client wants to keep
+										a persistent connection or if the connection should be closed. Nginious uses the
+										<code>Connection</code> header in responses to signal to clients that the connection
+										will be <code>keep-alive</code> persistent or closed <code>close</code>.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Content-Encoding</td>
+									<td class="description">
+										Set to value <code>gzip</code> in responses for static content when the content has been
+										gzip compressed by the server. The client must signal its interest for gzipped content with 
+										a <code>Accept-Encoding</code> header in the request. 
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Content-Language</td>
+									<td class="description">
+										Not supported directly by any functionality in the server but can be set by HTTP services
+										in responses.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Content-Length</td>
+									<td class="description">
+										Must be set by clients in <code>POST</code> and <code>PUT</code> method requests to
+										inform the server about the length of the content unless chunked encoding is used by
+										the client. The server also sets the <code>Content-Length</code> automatically for
+										all responses unless chunked encoding is used.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Content-Location</td>
+									<td class="description">
+										Not supported directly by any functionality in the server but can be set by HTTP services
+										in responses.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Content-MD5</td>
+									<td class="description">
+										Not supported directly by any functionality in the server but can be set by HTTP services
+										in responses.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Content-Range</td>
+									<td class="description">
+										Set by the server in static content responses to inform clients which byte range of the
+										static content is served. The client must have requested a range request with a
+										<code>Range</code> header in the request.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Content-Type</td>
+									<td class="description">
+										Automatically set by the server for static content responses based on the file extension
+										of the file containing the content.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Date</td>
+									<td class="description">
+										Set by the server for all responses to signal the response time to clients.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">ETag</td>
+									<td class="description">
+										Set by the server for all static content responses.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Expect</td>
+									<td class="description">
+										Supported when sent by clients in requests.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Expires</td>
+									<td class="description">
+										Not supported directly by any functionality in the server but can be set by HTTP services
+										in responses.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">From</td>
+									<td class="description">
+										Not supported directly by any functionality in the server but can be set by HTTP services
+										in responses.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Host</td>
+									<td class="description">
+										The server verifies that all requests contain a <code>Host</code> header and responds
+										with a <code>400 Bad Request</code> when missing.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">If-Match</td>
+									<td class="description">
+										When found in requests for static content the server uses the value to compare the
+										header value with the contents etag. If the content does not match any of the values
+										the server responds with a <code>412 Precondition Failed</code>.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">If-Modified-Since</td>
+									<td class="description">
+										When found in requests for static content the server checks if the content file has
+										changed since the date/time found in the header. The server responds with a
+										<code>304 Not Modified</code> if the content has not changed.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">If-None-Match</td>
+									<td class="description">
+										When found in requests for static content the server checks if the contents etag value 
+										matches any of the values found in the header and returns a <code>304 Not Modified</code>
+										if a match is found.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">If-Range</td>
+									<td class="description">
+										Supported for range requests.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">If-Unmodified-Since</td>
+									<td class="description">
+										When found in requests for static content the server checks that the content file is
+										not modified since the date/time found in the header value. If the content file is modified
+										the server responds with a <code>412 Precondition Failed</code>.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Last-Modified</td>
+									<td class="description">
+										Set by the server in responses to static content requests. The date/time value is based on
+										the last modified timestamp of the contents file.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Location</td>
+									<td class="description">
+										Not supported directly by any functionality in the server but can be set by HTTP services
+										in responses.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Max-Forwards</td>
+									<td class="description">
+										Not supported.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Pragma</td>
+									<td class="description">
+										Not supported directly by any functionality in the server but can be set by HTTP services
+										in responses.									
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Proxy-Authenticate</td>
+									<td class="description">
+										Not supported.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Proxy-Authorization</td>
+									<td class="description">
+										Not supported.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Range</td>
+									<td class="description">
+										The server handles range requests for static content.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Referer</td>
+									<td class="description">
+										The server uses the information in the <code>Referer</code> request header when
+										available to log information in the access log.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Retry-After</td>
+									<td class="description">
+										Not supported directly by any functionality in the server but can be set by HTTP services
+										in responses.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Server</td>
+									<td class="description">
+										Provided in all responses.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">TE</td>
+									<td class="description">
+										Not supported directly by any functionality in the server but can be set by HTTP services
+										in responses.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Trailer</td>
+									<td class="description">
+										Not supported.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Upgrade</td>
+									<td class="description">
+										Nginious supports the <code>Upgrade</code> header in requests to upgrade to the
+										WebSocket protocol.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">User-Agent</td>
+									<td class="description">
+										The server uses the information in the <code>User-Agent</code> request header when
+										available to log information in the access log.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Vary</td>
+									<td class="description">
+										Not supported directly by any functionality in the server but can be set by HTTP services
+										in responses.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Via</td>
+									<td class="description">
+										Not supported directly by any functionality in the server but can be set by HTTP services
+										in responses.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">Warning</td>
+									<td class="description">
+										Not supported directly by any functionality in the server but can be set by HTTP services
+										in responses.
+									</td>
+								</tr>
+								<tr>
+									<td class="name">WWW-Authenticate</td>
+									<td class="description">
+										Not supported directly by any functionality in the server but can be set by HTTP services
+										in responses.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</p>
+				</div>
+			</div>
+        </div>
+		<div class="navfooter">
+			<div>
+				<div class="navbar">
+					<a href="installing.html" title="Chapter 3. Installing">Previous</a>
+					<span>|</span>
+					<a href="index.html" title="Nginious Users Guide">Contents</a>
+					<span>|</span>
+					<a href="webapps.html" title="Chapter 5. Web applications">Next</a>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

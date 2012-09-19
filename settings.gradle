@@ -1,0 +1,6 @@
+rootProject.name = 'nginious'
+
+include 'nginious-api'
+include 'nginious-server'
+include 'nginious-ant'
+

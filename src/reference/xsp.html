@@ -1,0 +1,312 @@
+<html>
+	<head>
+		<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>Chapter 8. XSP</title>
+		<link type="text/css" rel="stylesheet" href="base.css">
+		<link type="text/css" rel="stylesheet" href="style.css">
+		<link type="text/css" rel="stylesheet" href="userguide.css">
+		<link rel="home" href="index.html" title="Nginious Users Guide">
+		<link rel="up" href="index.html" title="Nginious Users Guide">
+		<link rel="prev" href="websocket.html" title="Chapter 7. WebSocket services">
+		<link rel="next" href="session.html" title="Chapter 9. Session management">
+	</head>
+	<body>
+		<div class="navheader">
+			<div>
+				<div class="navbar">
+					<a href="websocket.html" title="Chapter 7. WebSocket services">Previous</a>
+					<span>|</span>
+					<a href="index.html" title="Nginious Users Guide">Contents</a>
+					<span>|</span>
+					<a href="session.html" title="Chapter 9. Session management">Next</a>
+				</div>
+			</div>
+		</div>
+		<div class="chapter">
+			<div class="titlepage">
+				<div>
+					<div><h1><a name="webapps"></a>Chapter 8. XSP</h1>
+				</div>
+			</div>
+		</div>
+		<div class="section">
+			<div class="titlepage">
+				<div>
+					<div><h2 class="title"><a name="features"></a>8.1. Features and concepts</h2></div>
+					
+					<p>
+						XSP is a template language for generating html pages from dynamic data. A XSP template is built up from
+						standard html, XSP tags and expressions. Tags and expressions are used to generate html from attributes set
+						in HTTP services.
+					</p>
+					
+					<p>
+						A compiler is used to compile XSP templates into HTTP service classes. The compiler generates
+						Java bytecode directly from XSP template without involving the standard Javac compiler. This makes the
+						compilation process very fast. XSP template compilation can be done before deployment in web applications or
+						runtime when accessed.
+					</p>
+					
+					<p>
+						Below is an example XSP template with tags and expressions.
+						
+						<div class="example-contents">
+							<pre class="programlisting">
+&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;Example XSP page&lt;/title&gt;
+  &lt;/head&gt;
+  
+  &lt;body&gt;
+    <span class="hl-string">
+    &lt;!-- Prints hello world if the name attribute contains the value Hello world --&gt;
+    &lt;xsp:if test="${name == 'Hello world'}">
+      &lt;span&gt;Hello world!&lt;/span&gt;
+    &lt;/xsp:if&gt;
+    
+    &lt;!-- Prints all items in the items set --&gt;
+    &lt;xsp:forEach set="${items}" var="item" start="0" end="8" step="2"&gt;
+      &lt;span&gt;${item}&lt;/span&gt;
+    &lt;/xsp:forEach&gt;
+    </span>
+  &lt;/body&gt;
+&lt;/html&gt;
+								
+							</pre>
+						</div>
+					</p>
+					
+					<div><h2 class="title"><a name="tags"></a>8.2. Tags</h2></div>
+					
+					<p>
+						Description of all supported tags.
+					</p>
+					
+					<b>xsp:if</b>
+					
+					<p>
+						Evaluates an expression and if the expression evaluates to true the body of the if tag is processed.
+					</p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+                    				<td>Attribute</td>
+                    				<td>Description</td>
+				                </tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>test</td>
+									<td>Expression to evaluate.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					<p>
+						<div class="example-contents">
+							<pre class="programlisting"><span class="hl-string">							
+    &lt;xsp:if test="${name == 'Hello world'}">
+      &lt;span&gt;Hello world!&lt;/span&gt;
+    &lt;/xsp:if&gt;
+							</span></pre>
+						</div>					
+					</p>
+					
+					<b>xsp:forEach</b>
+					
+					<p>
+						Iterates over a collection and processes the body for each iteration.
+					</p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+                    				<td>Attribute</td>
+                    				<td>Description</td>
+				                </tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>set</td>
+									<td>Reference to attribute containing the collection to iterate over.</td>
+								</tr>
+								<tr>
+									<td>start</td>
+									<td>Start collection item index for iteration.</td>
+								</tr>
+								<tr>
+									<td>end</td>
+									<td>End collection item index for iteration.</td>
+								</tr>
+								<tr>
+									<td>step</td>
+									<td>Increment for iteration.</td>
+								</tr>
+								<tr>
+									<td>var</td>
+									<td>Name of attribute to place current iteration item in.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+					<b>xsp:formatDate</b>
+					
+					<p>
+						Formats a date using a pattern and stores the formatted date in another attribute.
+					</p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+                    				<td>Attribute</td>
+                    				<td>Description</td>
+				                </tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>value</td>
+									<td>Reference to attribute containing the datetime to format.</td>
+								</tr>
+								<tr>
+									<td>pattern</td>
+									<td>Datetime format pattern.</td>
+								</tr>
+								<tr>
+									<td>timezone</td>
+									<td>Timezone to use for date format.</td>
+								</tr>
+								<tr>
+									<td>var</td>
+									<td>Name of attribute to place formatted date in.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					<b>xsp:formatNumber</b>
+					
+					<p>
+						Formats a number using a pattern and stores the formatted number in another attribute.
+					</p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+                    				<td>Attribute</td>
+                    				<td>Description</td>
+				                </tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>value</td>
+									<td>Reference to attribute containing the number to format.</td>
+								</tr>
+								<tr>
+									<td>pattern</td>
+									<td>Number format pattern.</td>
+								</tr>
+								<tr>
+									<td>var</td>
+									<td>Name of attribute to place formatted number in.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					<b>xsp:message</b>
+					
+					<p>
+						Reads a text string from a resource bundle file based on a key and places the text string
+						in an attribute. The name of the resource bundle is looked up based on a key and the
+						locale found in the <code>Accept-Language</code> header in the HTTP request.
+					</p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+                    				<td>Attribute</td>
+                    				<td>Description</td>
+				                </tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>key</td>
+									<td>Property key for the message value to format.</td>
+								</tr>
+								<tr>
+									<td>bundle</td>
+									<td>Name of property file where key/value pairs are stored.</td>
+								</tr>
+								<tr>
+									<td>args</td>
+									<td>Message arguments.</td>
+								</tr>
+								<tr>
+									<td>var</td>
+									<td>
+										Name of variable to store formated message in. If this attribute is not present then the 
+										result is printed to the output.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					<b>xsp:meta</b>
+					
+					<p>
+						Provides meta data to the XSP compiler when compiling a XSP template into a HTTP service class.
+					</p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+                    				<td>Attribute</td>
+                    				<td>Description</td>
+				                </tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>name</td>
+									<td>Name of metadata.</td>
+								</tr>
+								<tr>
+									<td>content</td>
+									<td>Metadata value.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					
+					<div><h2 class="title"><a name="expressions"></a>8.3. Expressions</h2></div>
+					
+					<p>
+						
+					</p>
+				</div>
+			</div>
+        </div>
+		<div class="navfooter">
+			<div>
+				<div class="navbar">
+					<a href="websocket.html" title="Chapter 7. WebSocket services">Previous</a>
+					<span>|</span>
+					<a href="index.html" title="Nginious Users Guide">Contents</a>
+					<span>|</span>
+					<a href="session.html" title="Chapter 9. Session management">Next</a>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
