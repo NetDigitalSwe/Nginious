@@ -42,7 +42,7 @@
 					
 					<p>
 						A compiler is used to compile XSP templates into HTTP service classes. The compiler generates
-						Java bytecode directly from XSP template without involving the standard Javac compiler. This makes the
+						Java bytecode directly from XSP templates without involving the standard Javac compiler. This makes the
 						compilation process very fast. XSP template compilation can be done before deployment in web applications or
 						runtime when accessed.
 					</p>
@@ -66,7 +66,7 @@
     &lt;/xsp:if&gt;
     
     &lt;!-- Prints all items in the items set --&gt;
-    &lt;xsp:forEach set="${items}" var="item" start="0" end="8" step="2"&gt;
+    &lt;xsp:forEach set="${items}" var="item" start="0" end="4" step="2"&gt;
       &lt;span&gt;${item}&lt;/span&gt;
     &lt;/xsp:forEach&gt;
     </span>
@@ -77,10 +77,35 @@
 						</div>
 					</p>
 					
-					<div><h2 class="title"><a name="tags"></a>8.2. Tags</h2></div>
+					<div><h2 class="title"><a name="execute"></a>8.2 Executing XSP pages</h2></div>
 					
 					<p>
-						Description of all supported tags.
+						XSP pages are compiled into HTTP service classes which can be executed and dispatched to as normal HTTP 
+						services. Below is an example where a request is dispatched from a HTTP service to a XSP page with name
+						<code>test.xsp</code>. The HTTP service sets two attributes <code>name</code> and <code>items</code> which
+						can be accessed through expressions in the XSP page. See XSP page example above.
+					</p>
+					
+					<div class="example-contents">
+						<pre class="programlisting"><span class="hl-string">							
+public HttpServiceResult doGet(HttpRequest req, HttpResponse resp) throws HttpServiceException, IOException {
+  List&lt;String&gt; items = new ArrayList&lt;String&gt;();
+  items.add("One");
+  items.add("Two");
+  items.add("Three");
+  items.add("Four");
+  req.setAttribute("items", items);
+  req.setAttribute("name", "Hello world");
+  req.dispatch("/test.xsp");
+}
+						</span></pre>
+					</div>
+										
+					<div><h2 class="title"><a name="tags"></a>8.3. Tags</h2></div>
+					
+					<p>
+						Tags are used in XSP to generate dynamic content from attributes set in HTTP services. Below is a
+						descripton of all supported tags.
 					</p>
 					
 					<b>xsp:if</b>
@@ -286,14 +311,347 @@
 								</tr>
 							</tbody>
 						</table>
-					</div>
+					</div>					
 					
-					
-					<div><h2 class="title"><a name="expressions"></a>8.3. Expressions</h2></div>
+					<div><h2 class="title"><a name="expressions"></a>8.4. Expressions</h2></div>
 					
 					<p>
-						
+						Expressions can be used as test statements in if tags as well as in standalone in XSP pages to calculate
+						values. Expressions are placed inside <code>${}</code> brackets. Below are a few examples that show how
+						expressions can be used in XSP pages. 
 					</p>
+					
+					<p>
+						<div class="example-contents">
+							<pre class="programlisting"><span class="hl-string">							
+&lt;xsp:if test="${value == 2}">
+  &lt;span&gt;The value is ${value}&lt;/span&gt;
+&lt;/xsp:if&gt;
+							</span></pre>
+						</div>					
+					</p>
+					
+					<b>Attribute access</b>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td>Reference</td>
+									<td>Description</td>	
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>${name}</td>
+									<td>Reference to attribute with name.</td>
+								</tr>
+								<tr>
+									<td>${bean.property}</td>
+									<td>
+										Reference to property in bean attribute. The bean must have a get method with the
+										same name as the property.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					<b>Parenthesis</b>
+					
+					<p>
+						Parenthesis can be used to group parts of an expression and define in which order an expression should be
+						evaluated just as in any other programming language. Operators have the same precedence as in the Java
+						programming language.
+					</p>
+					
+					<b>Arithmetic operators</b>
+
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td>Operator</td>
+									<td class="nowrap">Example</td>
+									<td>Description</td>	
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>*</td>
+									<td>2 * 2 == 4</td>
+									<td>Multiplication operator which multiplies the first argument value with the second.</td>
+								</tr>
+								<tr>
+									<td>/</td>
+									<td>4 / 2 == 2</td>
+									<td>Division operator divides the first argument with the second.</td>
+								</tr>
+								<tr>
+									<td>%</td>
+									<td>7 % 3 == 1</td>
+									<td>The modulo operator calculates the remainder.</td>
+								</tr>
+								<tr>
+									<td>+</td>
+									<td>2 + 2 == 4</td>
+									<td>The addition operator calculates the sum of two values.</td>
+								</tr>
+								<tr>
+									<td>-</td>
+									<td>4 - 2 == 2</td>
+									<td>The subtraction operator subtracts the second argument from the first.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					<b>Boolean operators</b>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td>Operator</td>
+									<td class="nowrap">Example</td>
+									<td>Description</td>	
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>&&</td>
+									<td class="nowrap">
+										2 == 2 && 3 == 3 (true)<br />
+										2 == 2 && 3 != 3 (false)<br />
+									</td>
+									<td>Evaluates to <code>true</code> if both expressions evaluate to <code>true</code></td>
+								</tr>
+								<tr>
+									<td>||</td>
+									<td class="nowrap">
+										2 == 2 || 3 == 3 (true)<br />
+										2 == 2 || 3 != 3 (true)<br />
+									</td>
+									<td>Evaluates to <code>true</code> if at least one of the expressions evaluate to <code>true</code></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+													
+ 					<b>Comparison operators</b>
+
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td>Operator</td>
+									<td class="nowrap">Example</td>
+									<td>Description</td>	
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>==</td>
+									<td class="nowrap">
+										2 == 2 (true)<br />
+										3 == 1 (false)<br />
+										'Hello' == 'World' (false)
+									</td>
+									<td>Compares two values for equality. Two equal values results in <code>true</code></td>
+								</tr>
+								<tr>
+									<td>!=</td>
+									<td class="nowrap">
+										2 != 2 (false)<br />
+										3 != 1 (true)<br />
+										'Hello' != 'World' (true)
+									</td>
+									<td>Compares two values for equality. Two not equal values results in <code>true</code></td>
+								</tr>
+								<tr>
+									<td>&lt;</td>
+									<td class="nowrap">
+										2 &lt; 3 (true)<br />
+										3 &lt; 2 (false)
+									</td>
+									<td>Results in <code>true</code> if the left side value is less than the right side value.</td>
+								</tr>
+								<tr>
+									<td>&lt;=</td>
+									<td class="nowrap">
+										3 &lt;= 3 (true)<br />
+										3 &lt;= 2 (false)
+									</td>
+									<td>Results in <code>true</code> if the left side value is less than or equal to the right side value.</td>
+								</tr>
+								<tr>
+									<td>&gt;</td>
+									<td class="nowrap">
+										3 &gt; 2 (true)<br />
+										2 &gt; 3 (false)
+									</td>
+									<td>Results in <code>true</code> if the left side values is greater than the right side value.</td>
+								</tr>
+								<tr>
+									<td>&gt;=</td>
+									<td class="nowrap">
+										3 &gt;= 2 (true)<br />
+										3 &gt;= 4 (false)
+									</td>
+									<td>Result in <code>true</code> if the left side value is greater than or equal to the right side value.</td>
+								</tr>								
+							</tbody>
+						</table>
+					</div>
+										
+					<b>Functions</b>
+
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+                    				<td>Function</td>
+                    				<td class="nowrap">Example</td>
+                    				<td>Description</td>
+				                </tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>abs</td>
+									<td class="nowrap">abs(-2) == 2</td>
+									<td>Calculates the absolute value of an argument value.</td>
+								</tr>
+								<tr>
+									<td>acos</td>
+									<td class="nowrap">acos(0.9) == 25.84193276316699</td>
+									<td>Calculates the arc cosine of an argument value.</td>
+								</tr>
+								<tr>
+									<td>asin</td>
+									<td class="nowrap">asin(0.9) == 64.15806723683091</td>
+									<td>Calculate the arc sine of a argument value.</td>
+								</tr>
+								<tr>
+									<td>atan</td>
+									<td class="nowrap">atan(45) == 88.72696997994458</td>
+									<td>Calculates the arc tangent of an argument value.</td>
+								</tr>
+								<tr>
+									<td>ceil</td>
+									<td class="nowrap">ceil(2.5) == 3</td>
+									<td>
+										A function which takes one argument value and rounds in to the nearest
+										higher integer value.
+									</td>
+								</tr>
+								<tr>
+									<td>cos</td>
+									<td class="nowrap">cos(45) == 0.70710678118655</td>
+									<td>Calculates the trigonometric cosine of an argument value.</td>
+								</tr>
+								<tr>
+									<td>exp</td>
+									<td class="nowrap">exp(2) == 7.38905609893065</td>
+									<td>Returns Euler's number e raised to the power of an argument value.</td>
+								</tr>
+								<tr>
+									<td>floor</td>
+									<td class="nowrap">floor(2.5) == 2</td>
+									<td>
+										A function which takes one argument value and rounds in to the nearest
+ 										lower integer value.									
+									</td>
+								</tr>
+								<tr>
+									<td>left</td>
+									<td class="nowrap">left('Test', 3) == 'Tes'</td>
+									<td>
+										A left string function which takes a string and an integer as arguments producing a
+ 										substring starting from position 0 in the string.
+									</td>
+								</tr>
+								<tr>
+									<td>length</td>
+									<td class="nowrap">length('Test') == 4</td>
+									<td>
+										A function which takes on value argument and returns the length of a string when evaluated.
+									</td>
+								</tr>
+								<tr>
+									<td>log</td>
+									<td class="nowrap">log(2) == 0.30102999566398</td>
+									<td>
+										Calculates the natural logarithm (base e) of an argument value.
+									</td>
+								</tr>
+								<tr>
+									<td>max</td>
+									<td class="nowrap">max(2, 3) == 3</td>
+									<td>A math function which returns the highest of two values.</td>
+								</tr>
+								<tr>
+									<td>min</td>
+									<td class="nowrap">min(2, 3) == 2</td>
+									<td>
+										A math function which returns the lowest of two value arguments.
+									</td>
+								</tr>
+								<tr>
+									<td>pow</td>
+									<td class="nowrap">pow(2, 3) == 8</td>
+									<td>
+										Calculates the power of the first argument value raised to the power of the
+ 										second argument value.
+									</td>
+								</tr>
+								<tr>
+									<td>right</td>
+									<td class="nowrap">right('Test', 3) = 'est'</td>
+									<td>
+										A right string function which takes a string and an integer as arguments producing a
+										substring starting from the rightmost position in the string.
+									</td>
+								</tr>
+								<tr>
+									<td>rint</td>
+									<td class="nowrap">rint(2.123) == 2</td>
+									<td>
+										Finds the mathematical integer value that is closest to an argument value.
+									</td>
+								</tr>
+								<tr>
+									<td>sin</td>
+									<td class="nowrap">sin(45) == 0.70710678118655</td>
+									<td>
+										Calculate the trigonometric sine of a argument value.
+									</td>
+								</tr>
+								<tr>
+									<td>sqrt</td>
+									<td class="nowrap">sqrt(16) == 4</td>
+									<td>
+										Calulcates the square root of an argument value.
+									</td>
+								</tr>
+								<tr>
+									<td>substr</td>
+									<td class="nowrap">substr('Test', 0, 3) == 'Tes'
+									<td>
+										A substring function which takes a string and two integers as arguments producing a
+ 										substring starting from the lefttmost position in the string.
+									</td>
+								</tr>
+								<tr>
+									<td>tan</td>
+									<td class="nowrap">tan(43) == 0.93251508613766</td>
+									<td>
+										Calculates the trigonometric tangent of an argument value.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
 				</div>
 			</div>
         </div>

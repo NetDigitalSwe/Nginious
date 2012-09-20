@@ -32,23 +32,52 @@
 		<div class="section">
 			<div class="titlepage">
 				<div>
-					<div><h2 class="title"><a name="features"></a>9.1. Features</h2></div>
+					<div><h2 class="title"><a name="overview"></a>9.1. Overview</h2></div>
 					
 					<p>
+						HTTP is a stateless protocol where any state information disappears when a response has been sent
+						for a request. Nginious provides sessions as a way to store information across several requests.
+						Session can be stored in memory on the server or serialized as cookies. See section
+						<a href="httpserver.html#start">4.2 Starting and stopping</a> for how to configure
+						Nginious for session management.
 						
 					</p>
+					
 					
 					<div><h2 class="title"><a name="inmemory"></a>9.2. In memory sessions</h2></div>
 					
 					<p>
-						
+						With in memory sessions the server stores sessions in a memory map. A unique key is generated
+						for each created session. The key is set as a cookie which is sent to the client. The client
+						sends the cookie in later requests which the server uses to lookup the clients session from
+						the map.
 					</p>
 					
 					<div><h2 class="title"><a name="cookie"></a>9.3. Cookie sessions</h2></div>
 					
 					<p>
-						
+						With cookie sessions the server serializes, encrypts and base64 encodes sessions and stored
+						them in one or more cookies sent to the client. When the client sends a request to the server
+						the cookies are part of the request and can be deserialized by the server to retrieve state
+						information from the session.
 					</p>
+					
+					<p>
+						Cookie sessions require more processing from the server since sessions have to serialized
+						in responses and deserialized on requests. On the other hand session information is not
+						stored in server memory and therefore survive a server restart. Sessions also become available
+						on all servers in a multi server setup without the need to persist sessions in a shared database
+						or similar.
+					</p>
+					
+					<div><h2 class="title"><a name="refs"></a>9.4. References</h2></div>
+					
+					<dl>
+						<dt>
+							- <a href="api/com/nginious/http/HttpSession.html">HTTPSession</a> class documentation
+						</dt>
+					</dl>
+					
 				</div>
 			</div>
         </div>
