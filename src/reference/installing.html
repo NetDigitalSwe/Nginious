@@ -2,12 +2,9 @@
 	<head>
 		<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<title>Chapter 3. Installing</title>
-		<link type="text/css" rel="stylesheet" href="base.css">
-		<link type="text/css" rel="stylesheet" href="style.css">
-		<link type="text/css" rel="stylesheet" href="userguide.css">
+		<link type="text/css" rel="stylesheet" href="css/main.css">
 		<link rel="home" href="index.html" title="Nginious Users Guide">
 		<link rel="up" href="index.html" title="Nginious Users Guide">
-		<link rel="prev" href="index.html" title="Nginious Users Guide">
 		<link rel="prev" href="index.html" title="Nginious Users Guide">
 		<link rel="next" href="overview.html" title="Chapter 2. Overview">
 	</head>
@@ -63,7 +60,59 @@
 						
 					</p>
 					
-					<div><h2 class="title"><a name="eclipse"></a>3.4. Eclipse plugin</h2></div>
+					<div><h2 class="title"><a name="dirs"></a>3.4. Directory structure</h2></div>
+					
+					<p>
+						The following directories exist for an unpacked Nginious server installation.
+					</p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td class="nowrap">Name</td>
+									<td>Description</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="nowrap">/bin</td>
+									<td>
+										Contains start scripts for starting the Nginious server.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">/doc</td>
+									<td>
+										Contains this reference manual and API documentation.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">/libs</td>
+									<td>
+										All jar libraries needed by Nginious, both internal and external.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">/logs</td>
+									<td>
+										Nginious access and server logs are placed in this directory.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">/webapps</td>
+									<td>
+										Contains all published web applications unless set to a different location with the
+										<code>--webapps=#</code> command line option. 
+										See section <a href="httpserver.html#start">4.2 Starting and stopping</a> for information
+										about all command line options.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					<div><h2 class="title"><a name="eclipse"></a>3.5. Eclipse plugin</h2></div>
 					
 					<p>
 						You can install the Nginious plugin using the Eclipse update manager. The

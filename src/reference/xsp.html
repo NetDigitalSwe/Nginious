@@ -55,6 +55,8 @@
 &lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"&gt;
 &lt;html&gt;
   &lt;head&gt;
+    <span class="hl-string">&lt;xsp:meta name="package" content="com.nginious.http.xsp" /&gt;
+    &lt;xsp:meta name="Content-Type" content="text/html; charset=utf-8" /&gt;</span>
     &lt;title&gt;Example XSP page&lt;/title&gt;
   &lt;/head&gt;
   
@@ -289,8 +291,30 @@ public HttpServiceResult doGet(HttpRequest req, HttpResponse resp) throws HttpSe
 					<b>xsp:meta</b>
 					
 					<p>
-						Provides meta data to the XSP compiler when compiling a XSP template into a HTTP service class.
+						Provides meta data to the XSP compiler when compiling a XSP template into a HTTP service class. Two meta
+						tags are currently supported. See table below
 					</p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+                    				<td>Name</td>
+                    				<td>Description</td>
+				                </tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>package</td>
+									<td>Name of package where compiled HTTP services compiled from XSP template should be placed.</td>
+								</tr>
+								<tr>
+									<td>Content-Type</td>
+									<td>Value of content type header.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>					
 					
 					<div class="table">
 						<table>

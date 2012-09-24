@@ -1,10 +1,8 @@
 <html>
 	<head>
 		<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
-		<title>Chapter 4. HTTP server</title>
-		<link type="text/css" rel="stylesheet" href="base.css">
-		<link type="text/css" rel="stylesheet" href="style.css">
-		<link type="text/css" rel="stylesheet" href="userguide.css">
+		<title>Chapter 13. Statistics</title>
+		<link type="text/css" rel="stylesheet" href="css/main.css">
 		<link rel="home" href="index.html" title="Nginious Users Guide">
 		<link rel="up" href="index.html" title="Nginious Users Guide">
 		<link rel="prev" href="ant.html" title="Chapter 12. Ant integration">
@@ -32,29 +30,234 @@
 		<div class="section">
 			<div class="titlepage">
 				<div>
-					<div><h2 class="title"><a name="features"></a>13.1. Features</h2></div>
+					<div><h2 class="title"><a name="overview"></a>13.1. Overview</h2></div>
 					
 					<p>
-						
+						Nginious keeps track of several metrics while its running. These are aggregated per minute and made
+						available through a REST based interface.
 					</p>
 					
 					<div><h2 class="title"><a name="httpreq"></a>13.2. HTTP request statistics</h2></div>
 					
 					<p>
-						
+						The following metrics are available for HTTP requests.
 					</p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td class="nowrap">Name</td>
+									<td>Description</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>numSuccessRequests</td>
+									<td>
+										Number of successful requests during time period. A successful request is a request that
+										receives a response with a 2xx class status code.
+									</td>
+								</tr>
+								<tr>
+									<td>numClientErrorRequests</td>
+									<td>
+										Number of requests during time period that have received a response with a 4xx class status
+										code.
+									</td>
+								</tr>
+								<tr>
+									<td>numServerErrorRequests</td>
+									<td>
+										Number of requests during time period that have received a response with a 5xx class status
+										code.
+									</td>
+								</tr>
+								<tr>
+									<td>sumRequestsDuration</td>
+									<td>
+										The sum of request duration for all requests that have received a response during time period.
+									</td>
+								</tr>
+								<tr>
+									<td>sumResponseBytes</td>
+									<td>
+										The sum of all response bytes sent for all finished requests during time period.
+									</td>
+								</tr>								
+							</tbody>
+						</table>
+					</div>
 					
 					<div><h2 class="title"><a name="websocket"></a>13.3. WebSocket statistics</h2></div>
 					
 					<p>
-						
+						The following metrics are available for web socket sessions.
 					</p>
 					
-					<div><h2 class="title"><a name="access"></a>13.4. Access</h2></div>
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td class="nowrap">Name</td>
+									<td>Description</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>numNewSessions</td>
+									<td>
+										Number of new web socket sessions during time period.
+									</td>
+								</tr>
+								<tr>
+									<td>numClosesSessions</td>
+									<td>
+										Number of closed web socket sessions during time period.
+									</td>
+								</tr>
+								<tr>
+									<td>numIncomingMessages</td>
+									<td>
+										Number of incoming messages during time period.
+									</td>
+								</tr>
+								<tr>
+									<td>numOutgoingMessages</td>
+									<td>
+										Number of outgoing messages during time period.
+									</td>
+								</tr>
+								<tr>
+									<td>sumIncomingBytes</td>
+									<td>
+										Sum of bytes in all incoming messages during time period.
+									</td>
+								</tr>
+								<tr>
+									<td>sumOutgoingBytes</td>
+									<td>
+										Sum of bytes in all outgoing messages during time period.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+					<div><h2 class="title"><a name="rest"></a>13.4. REST interface</h2></div>
 					
 					<p>
-						
+						Statistics are available through a REST based interface in the server administration.
+						The following methods exist. The server supports encoding of statistics in <code>JSON</code>
+						and <code>XML</code> format. A client can request data in a specific format by setting the
+						<code>Accept</code> header to either <code>application/json</code> or <code>application/xml</code>.
 					</p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+                    				<td>Service</td>
+                    				<td>Request</td>
+                    				<td>Parameters</td>
+                    				<td>Description</td>
+				                </tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>Http request statistics.</td>
+									<td class="nowrap">GET /admin/httpstats</td>
+									<td class="nowrap">
+										startTime - start time in yyyy-MM-dd'T'HH:mm:ssZ format.<br/>
+										endTime - end time in yyyy-MM-dd'T'HH:mm:ssZ format.
+									</td>
+									<td>
+										Returns a list HTTP request statistics items for each minute within the requested time period.
+									</td>
+								</tr>
+								<tr>
+									<td>Web socket session statistics.</td>
+									<td class="nowrap">GET /admin/wsstats</td>
+									<td class="nowrap">
+										startTime - start time in yyyy-MM-dd'T'HH:mm:ssZ format.<br/>
+										endTime - end time in yyyy-MM-dd'T'HH:mm:ssZ format.
+									</td>
+									<td>
+										Returns a list web socket session statistics items for each minute within the requested time period.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					<b>HTTP statistics example</b>
+					
+					<p>
+						Below is an example response in XML format.
+					</p>
+					
+					<p>
+						<div class="example-contents">
+							<pre class="programlisting">
+<span class="hl-string">&lt;http-request-statistics-info&gt;
+  &lt;items&gt;
+    &lt;http-request-statistics-item&gt;
+      &lt;minute&gt;2012-09-20T01:00:00+01:00&lt;/minute&gt;
+      &lt;num-success-requests&gt;245&lt;/num-success-requests&gt;
+      &lt;num-client-error-requests&gt;2&lt;/num-client-error-requests&gt;
+      &lt;num-server-error-requests&gt;0&lt;/num-server-error-requests&gt;
+      &lt;sum-requests-duration&gt;34&lt;/sum-requests-duration&gt;
+      &lt;sum-response-bytes&gt;6532&lt;/sum-response-bytes&gt;
+    &lt;/http-request-statistics-item&gt;
+    &lt;http-request-statistics-item&gt;
+      &lt;minute&gt;2012-09-20T01:01:00+01:00&lt;/minute&gt;
+      &lt;num-success-requests&gt;201&lt;/num-success-requests&gt;
+      &lt;num-client-error-requests&gt;1&lt;/num-client-error-requests&gt;
+      &lt;num-server-error-requests&gt;0&lt;/num-server-error-requests&gt;
+      &lt;sum-requests-duration&gt;21&lt;/sum-requests-duration&gt;
+      &lt;sum-response-bytes&gt;4321&lt;/sum-response-bytes&gt;
+    &lt;/http-request-statistics-item&gt;
+    ...
+  &lt;/items&gt;
+&lt;/http-request-statistics-info&gt;</span></pre>
+						</div>					
+					</p>
+					
+					<b>Web socket statistics example</b>
+					
+					<p>
+						Below is an example response in XML format.
+					</p>
+					
+					<p>
+						<div class="example-contents">
+							<pre class="programlisting">
+<span class="hl-string">&lt;web-socket-session-statistics-info&gt;
+  &lt;items&gt;
+    &lt;web-socket-session-statistics-item&gt;
+      &lt;minute&gt;2012-09-20T01:00:00+01:00&lt;/minute&gt;
+      &lt;num-new-sessions&gt;9&lt;/num-new-sessions&gt;
+      &lt;num-closed-sessions&gt;8&lt;/num-closed-sessions&gt;
+      &lt;num-incoming-messages&gt;123&lt;/num-incoming-messages&gt;
+      &lt;num-outgoing-messages&gt;345&lt;/num-outgoing-messages&gt;
+      &lt;sum-incoming-bytes&gt;3412&lt;/sum-incoming-bytes&gt;
+      &lt;sum-outgoing-bytes&gt;4121&lt;/sum-outgoing-bytes&gt;
+    &lt;/web-socket-session-statistics-item&gt;
+    &lt;web-socket-session-statistics-item&gt;
+      &lt;minute&gt;2012-09-20T01:01:00+01:00&lt;/minute&gt;
+      &lt;num-new-sessions&gt;12&lt;/num-new-sessions&gt;
+      &lt;num-closed-sessions&gt;1&lt;/num-closed-sessions&gt;
+      &lt;num-incoming-messages&gt;312&lt;/num-incoming-messages&gt;
+      &lt;num-outgoing-messages&gt;567&lt;/num-outgoing-messages&gt;
+      &lt;sum-incoming-bytes&gt;7145&lt;/sum-incoming-bytes&gt;
+      &lt;sum-outgoing-bytes&gt;3231&lt;/sum-outgoing-bytes&gt;
+    &lt;/web-socket-session-statistics-item&gt;
+    ...
+  &lt;/items&gt;
+&lt;/web-socket-session-statistics-info&gt;</span></pre>
+						</div>					
+					</p>
+					
 				</div>
 			</div>
         </div>

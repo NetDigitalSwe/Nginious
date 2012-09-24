@@ -1,10 +1,8 @@
 <html>
 	<head>
 		<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
-		<title>Chapter 4. HTTP server</title>
-		<link type="text/css" rel="stylesheet" href="base.css">
-		<link type="text/css" rel="stylesheet" href="style.css">
-		<link type="text/css" rel="stylesheet" href="userguide.css">
+		<title>Chapter 14. Eclipse plugin</title>
+		<link type="text/css" rel="stylesheet" href="css/main.css">
 		<link rel="home" href="index.html" title="Nginious Users Guide">
 		<link rel="up" href="index.html" title="Nginious Users Guide">
 		<link rel="prev" href="statistics.html" title="Chapter 13. Statistics">
@@ -25,7 +23,7 @@
 		<div class="chapter">
 			<div class="titlepage">
 				<div>
-					<div><h1><a name="eclipse"></a>Chapter 14. Eclipse plugin</h1>
+					<div><h1><a name="eclipse"></a>Chapter 14. Eclipse plugin</h1></div>
 				</div>
 			</div>
 		</div>
@@ -35,31 +33,137 @@
 					<div><h2 class="title"><a name="overview"></a>14.1. Overview</h2></div>
 					
 					<p>
-						
+						Nginious provides an Eclipse plugin which integrates the Nginious server into the development environment
+						of Eclipse. With the plugin its possible to create Java projects with a layout specifically tailored for
+						Nginious.
 					</p>
 					
-					<div><h2 class="title"><a name="newproject"></a>14.2. Creating a new project</h2></div>
-					
 					<p>
-						
+						A server is run inside Eclipse for each open Nginious project. Any changes to resources or recompiled
+						Java classes are instantly available in the server. Changes to HTTP services or XSP file are visible 
+						immediately when a browser is reloaded, without the need to redeploy or restart.
 					</p>
 					
-					<div><h2 class="title"><a name="properties"></a>14.3. Setting project properties</h2></div>
-					
 					<p>
-						
+						Deployment functions are also available making it possible to deploy a Nginious project to a remote
+						server with a simple menu command.
 					</p>
 					
-					<div><h2 class="title"><a name="deploying"></a>14.4. Deploying</h2></div>
+					<div><h2 class="title"><a name="layout"></a>14.2. Project layout</h2></div>
 					
 					<p>
-						
+						Below is a table describing the layout of a Nginious project in Eclipse.
+					</p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td class="nowrap">Name</td>
+									<td>Description</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>src</td>
+									<td>
+										Directory where all Java source files are located.
+									</td>
+								</tr>
+								<tr>
+									<td>WebContent</td>
+									<td>
+										Root directory of web application being developed.
+									</td>
+								</tr>
+								<tr>
+									<td>WebContent/WEB-INF/classes</td>
+									<td>
+										Directory compiled Java classes. All Java source files found in the <code>src</code>
+										directory are compiled into this directory.
+									</td>
+								</tr>
+								<tr>
+									<td>WebContent/WEB-INF/lib</td>
+									<td>
+										External jar libraries are placed into this directory when added to the project.
+									</td>
+								</tr>
+								<tr>
+									<td>WebContent/WEB-INF/xsp</td>
+									<td>
+										Location of XSP templates.
+									</td>
+								</tr>
+								<tr>
+									<td>WebContent/*</td>
+									<td>
+										Any other directories created within the <code>WebContent</code> directory are regarded
+										as static content and served as static content by the server.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					<div><h2 class="title"><a name="newproject"></a>14.3. Creating a new project</h2></div>
+					
+					<p>
+						To create a new Nginious project select the <code>Nginious project</code> wizard from the 
+						<code>File ->New</code> menu. See image below.
+					</p>
+					
+					<p class="image">
+						<img src="images/wizard1.png" />
+					</p>
+					
+					<p>
+						Enter project information in the <code>New Nginious project</code> wizard.
+					</p>
+					
+					<ul>
+						<li>Project name - enter a name for the project.</li>
+						<li>Listen port - Listen port for embedded Nginious server.</li>
+						<li>Publish URL - URL of remote Nginious server for publishing web applications built from project.</li>
+						<li>Username - Admin username of remote Nginious server.</li>
+						<li>Password - Admin password of remote Nginious server.</li>
+					</ul>
+					
+					<p class="image">
+						<img src="images/wizard2.png" />
+					</p>
+					
+					<div><h2 class="title"><a name="properties"></a>14.4. Setting project properties</h2></div>
+					
+					<p>
+						To set properties for a Nginous project, select the <code>Project -> Properties</code> menu item or
+						right click on the project and select <code>Properties</code> from the menu. The same project properties
+						can be set as in the new project wizard.
+					</p>
+					
+					<p class="image">
+						<img src="images/properties.png" />						
+					</p>
+					
+					<div><h2 class="title"><a name="publish"></a>14.4. Publishing</h2></div>
+					
+					<p>
+						To publish a project to the configured remote Nginious server select the 
+						<code>Project -> Nginious -> Publish</code> menu item or right click on the project and select
+						<code>Nginious -> Publish</code>. A progress bar is displayed that shows the progress of the publish 
+						operation.
+					</p>
+					
+					<p class="image">
+						<img src="images/publish.png" />"
 					</p>
 					
 					<div><h2 class="title"><a name="rollback"></a>14.5. Rollback</h2></div>
 					
 					<p>
-						
+						A published version of the project can be rolled back to the previous version if problems or errors are
+						discovered. Select the <code>Project -> Nginious -> Publish</code> menu item or right click on the project
+						and select <code>Nginious -> Publish</code> item.
 					</p>
 				</div>
 			</div>

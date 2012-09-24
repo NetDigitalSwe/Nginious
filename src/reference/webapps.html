@@ -1,10 +1,8 @@
 <html>
 	<head>
 		<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
-		<title>Chapter 4. HTTP server</title>
-		<link type="text/css" rel="stylesheet" href="base.css">
-		<link type="text/css" rel="stylesheet" href="style.css">
-		<link type="text/css" rel="stylesheet" href="userguide.css">
+		<title>Chapter 5. Web applications</title>
+		<link type="text/css" rel="stylesheet" href="css/main.css">
 		<link rel="home" href="index.html" title="Nginious Users Guide">
 		<link rel="up" href="index.html" title="Nginious Users Guide">
 		<link rel="prev" href="httpserver.html" title="Chapter 4. HTTP server">
@@ -25,66 +23,275 @@
 		<div class="chapter">
 			<div class="titlepage">
 				<div>
-					<div><h1><a name="webapps"></a>Chapter 5. Web applications</h1>
+					<div><h1><a name="webapps"></a>Chapter 5. Web applications</h1></div>
 				</div>
 			</div>
 		</div>
 		<div class="section">
 			<div class="titlepage">
 				<div>
-					<div><h2 class="title"><a name="features"></a>5.1. Features</h2></div>
+					<div><h2 class="title"><a name="overview"></a>5.1. Overview</h2></div>
 					
 					<p>
-						
+						Nginious implements the concept of web applications. A web application groups all files necessary for a web
+						application to function. This includes Java class files, XSP template pages and all static content like 
+						html, css and image files. A web application is bound to a base path so that any requests to a sub path
+						of the base path is served by the web applications Java classes as dynamic content or from files as static
+						content.
 					</p>
 					
-					<div><h2 class="title"><a name="filestructure"></a>5.2. File structure</h2></div>
+					<div><h2 class="title"><a name="layout"></a>5.2. Layout</h2></div>
 					
 					<p>
-						
+						A web application has a predefined directory structure which makes it possible for the server to
+						distinguish between files and assign functionality to specific directories. The table below describes the 
+						web application layout.
 					</p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td class="nowrap">Name</td>
+									<td>Description</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>WEB-INF/classes</td>
+									<td>
+										Contains compiled classes.
+									</td>
+								</tr>
+								<tr>
+									<td>WebContent/WEB-INF/lib</td>
+									<td>
+										Contains jar libraries with compiled classes.
+									</td>
+								</tr>
+								<tr>
+									<td>WEB-INF/xsp</td>
+									<td>
+										XSP templates.
+									</td>
+								</tr>
+								<tr>
+									<td>WebContent/*</td>
+									<td>
+										Any other directories created within the web application are regarded as static content and 
+										served as static content by the server.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
 					
 					<div><h2 class="title"><a name="importantclasses"></a>5.3. Important classes</h2></div>
 					
 					<p>
-						
+						The table below includes the most important classes needed for developing dynamic functionality for
+						web applications.
 					</p>
 					
-					<div><h2 class="title"><a name="classreloading"></a>5.4. Class reloading</h2></div>
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td class="nowrap">Name</td>
+									<td>Description</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td><a href="api/com/nginious/http/HttpService.html">HTTPService</a></td>
+									<td>
+										Base class for implementing dynamic functionality in web applications. See section
+										<a href="#httpservices">5.5 HTTP services</a> for more information.
+									</td>
+								</tr>
+								<tr>
+									<td><a href="api/com/nginious/http/HttpRequest.html">HTTPRequest</a></td>
+									<td>
+										Encapsulates all parts of a HTTP request.
+									</td>
+								</tr>
+								<tr>
+									<td><a href="api/com/nginious/http/HttpResponse.html">HTTPResponse</a></td>
+									<td>
+										Used to set all parts of a HTTP response to be sent to a client.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					<div><h2 class="title"><a name="reloading"></a>5.4. Reloading</h2></div>
 					
 					<p>
+						Nginious implements several mechanisms to detect class and resource changes in order to reload them. The
+						main part of this functionality is a flexible class loader which reloads classes and jar files as soon as
+						changes are detected. The server assigns a class loader to each published web application. The class loader
+						is responsible for loading classes and resources from the web applications archive or directory structure.
+					</p> 
 						
+					<p>
+						The following table describes the actions taken by Nginious when changes are detected for resources.
 					</p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td class="nowrap">Name</td>
+									<td>Description</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="nowrap">HTTP service</td>
+									<td>
+										A HTTP service class is reloaded on the first request to the service if the class file
+										has been modified.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">REST service</td>
+									<td>
+										A REST service class is reloaded on the first request to the service if the class file
+										has been modified. Any serializer and deserializer classes used by the service are
+										discarded and recreated. See the <a href="rest.html">6. RESTful services</a> chapter for more
+										information about serializer and deserializer classes.										
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">Web socket service</td>
+									<td>
+										A web sockset service class is reloaded on the first new connection to the service if the
+										class file has been modified. See the <a href="websocket.html">7. WebSocket services</a> 
+										chapter for more information about web socket services.	
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">Java classes</td>
+									<td>
+										Java classes are reloaded by the class loader on the next creation of an instance of the
+										class and the class file has been modified.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">Jar libraries</td>
+									<td>
+										A jar library is reloaded by the class loader on the next creation of an instance of a
+										class in  the Jar library of the Jar file has been modified.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">XSP templates</td>
+									<td>
+										If a XSP template file is modified it is parsed and recompiled by the server the next
+										time it is invoked.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
 					
 					<div><h2 class="title"><a name="httpservices"></a>5.5. HTTP services</h2></div>
 					
 					<p>
-						
+						HTTPService
 					</p>
 					
 					<div><h2 class="title"><a name="restservices"></a>5.6. REST services</h2></div>
 					
 					<p>
-						
+						A REST service is a HTTP service with extensions to handle REST semantics. See the 
+						<a href="rest.html">6. RESTful services</a> chapter for more information about REST services.
 					</p>
 					
 					<div><h2 class="title"><a name="wsservices"></a>5.7. WebSocket services</h2></div>
 					
 					<p>
-						
+						A web socket service is a HTTP service extended to handle web socket sessions. See the
+						<a href="websocket.html">7. WebSocket services</a> chapter for more information about web socket services.
 					</p>
 					
 					<div><h2 class="title"><a name="naming"></a>5.8. Naming</h2></div>
 					
 					<p>
-						
+						Web applications get the same name and base path as the web application archive file name or directory
+						once published. The exception to this rule are web application archives with name <code>root.war</code>
+						or web application directories with name <code>root/</code>. These are mapped to the root base path. The
+						table below provides some examples of names and base paths.
 					</p>
 					
-					<div><h2 class="title"><a name="deploying"></a>5.9. Deploying</h2></div>
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td class="nowrap">File/directory name</td>
+									<td class="nowrap">Name</td>
+									<td class="nowrap">Base path</td>
+									<td>Description</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="nowrap">test.war</td>
+									<td class="nowrap">test</td>
+									<td class="nowrap">/test</td>
+									<td>
+										A web application archive with file name <code>test.war</code> is named test and mapped to
+										the <code>/test</code> base path.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">example/</td>
+									<td class="nowrap">example</td>
+									<td class="nowrap">/example</td>
+									<td>
+										A web application directory with name <code>example/</code> is named example and mapped to
+										the <code>/example</code> base path.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">root.war</td>
+									<td class="nowrap">root</td>
+									<td class="nowrap">/</td>
+									<td>
+										A web application archive with file name <code>root.war</code> is named root and mapped to
+										the <code>/</code> base path.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					
+					<div><h2 class="title"><a name="publish"></a>5.9. Publishing</h2></div>
 					
 					<p>
-						
+						There are several ways in which a web application can be published.
 					</p>
+					
+					<ul>
+						<li>
+							Placing a war (web application archive) file in the servers webapps directory. The server must be
+							restarted once the file is placed in the directory. See section
+							<a href="installing.html#dirs">3.4. Directory structure</a> for information about the
+							directory structure.
+						</li>
+						<li>
+							Placing an unpacked web application directory in the servers webapps directory. The server must be
+							restarted once the web application directory is placed in the webapps directory.
+						</li>
+						<li>
+							Using the server REST based administration services to publish a web application archive. See
+							chapter <a href="admin.html">11. Server administration</a> for information on how to publish a web 
+							application through the administration interface. The server does not have to be restarted when
+							publishing web applications through the REST based administration service.
+						</li>
+					</ul>
 				</div>
 			</div>
         </div>

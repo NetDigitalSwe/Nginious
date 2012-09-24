@@ -1,10 +1,8 @@
 <html>
 	<head>
 		<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
-		<title>Chapter 4. HTTP server</title>
-		<link type="text/css" rel="stylesheet" href="base.css">
-		<link type="text/css" rel="stylesheet" href="style.css">
-		<link type="text/css" rel="stylesheet" href="userguide.css">
+		<title>Chapter 7. WebSocket services</title>
+		<link type="text/css" rel="stylesheet" href="css/main.css">
 		<link rel="home" href="index.html" title="Nginious Users Guide">
 		<link rel="up" href="index.html" title="Nginious Users Guide">
 		<link rel="prev" href="rest.html" title="Chapter 6. RESTful services">
@@ -25,24 +23,121 @@
 		<div class="chapter">
 			<div class="titlepage">
 				<div>
-					<div><h1><a name="webapps"></a>Chapter 7. WebSocket services</h1>
+					<div><h1><a name="webapps"></a>Chapter 7. WebSocket services</h1></div>
 				</div>
 			</div>
 		</div>
 		<div class="section">
 			<div class="titlepage">
 				<div>
-					<div><h2 class="title"><a name="features"></a>7.1. Features</h2></div>
+					<div><h2 class="title"><a name="features"></a>7.1. Overview</h2></div>
 					
 					<p>
-						
+						Web socket services provides functionality for handling messages for a specific web socket connection
+						session. A web socket service is bound to a URI path using annotations. When a client does a web socket
+						handshake to the URI path an instance of the web socket class is bound to the connection for handling
+						messages.
 					</p>
 					
 					<div><h2 class="title"><a name="services"></a>7.2. WebSocket services</h2></div>
 					
 					<p>
-						
+						A web socket service is a subclass of 
+						<a href="api/com/nginious/http/websocket/WebSocketService.html">WebSocketService</a>. Below is a description 
+						of each method that must be implemented for a web socket service.
 					</p>
+					
+					<b>executeOpen(HttpRequest request, HttpResponse response, WebSocketSession session)</b>
+					
+					<p>
+						Called when a new client makes a web socket handshake to the web socket services path. This informs the
+						web socket service that a new web socket session has been opened. The web socket service may use the
+						web socket session to send messages to the client.
+					</p>
+					
+					<b>executeBinaryMessage(WebSocketBinaryMessage message, WebSocketSession session)</b>
+					
+					<p>
+						Called when a binary message is received from a client bound to a web socket session.
+					</p>
+					
+					<b>executeTextMessage(WebSocketTextMessage message, WebSocketSession session)</b>
+					
+					<p>
+						Called when a text message is received from a client bound to a web socket session.
+					</p>
+					
+					<b>executeClose(WebSocketSession session)</b>
+					
+					<p>
+						Called when a session with a client is closed. The close may have been initiated by the client or
+						the service itself.
+					</p>
+					
+					<div><h2 class="title"><a name="example"></a>7.3. Example service</h2></div>
+					
+					<p>
+					  Below is an example implementation of a simple service which echoes all received messages back to
+					  the client. The service is mapped to the URI path <code>/example/echo</code>. The service is associated with
+					  all clients making a websocket handshake to the URI. Any subsequent binary or text message will be handled
+					  by the service for as long as the websocket session is open.
+					<p>
+					
+					<p>
+						<div class="example-contents">
+							<pre class="programlisting">
+<span class="hl-string">
+@Service(path = "/example/echo")
+public class EchoWebSocketService extends WebSocketService {
+  
+  private HashSet&lt;WebSocketSession&gt;();
+  
+  public EchoWebSocketService() {
+    super();
+    this.sessions = new HashSet&lt;WebSocketSession&gt;();
+  }
+  
+  public void executeOpen(HttpRequest req, HttpResponse resp, WebSocketSession session) throws HttpException, IOException {
+    synchronized(this) {
+      sessions.add(session);
+    }
+  }
+  
+  public void executeBinaryMessage(WebSocketBinaryMessage message, WebSocketSession session) throws WebSocketException, IOException {
+    byte[] messagePayload = message.getMessage();
+    session.sendBinaryData(messagePayload);
+  }
+  
+  public void executeTextMessage(WebSocketTextMessage message, WebSocketSession session) throws WebSocketException, IOException {
+    String messagePayload = message.getMessage();
+    session.sendTextData(messagePayload);
+  }
+  
+  public void executeClose(WebSocketSession session) throws WebSocketException {
+    synchronized(this) {
+      sessions.remove(session);
+    }
+  }
+}
+</span>
+							</pre>
+						</div>
+					</p>
+					
+					<div><h2 class="title"><a name="refs"></a>7.4. References</h2></div>
+					
+					<dl>
+						<dt>
+							- <a href="api/com/nginious/http/websocket/WebSocketService.html">WebSocketService</a> class.
+						</dt>
+						<dt>
+							- <a href="api/com/nginious/http/websocket/WebSocketSession.html">WebSocketSession</a> classes.
+						</dt>
+						<dt>
+							- <a href="api/com/nginious/http/application/Service.html">Service</a> annotation.
+						</dt>
+					</dl>					
+					
 				</div>
 			</div>
         </div>

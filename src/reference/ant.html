@@ -1,10 +1,8 @@
 <html>
 	<head>
 		<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
-		<title>Chapter 4. HTTP server</title>
-		<link type="text/css" rel="stylesheet" href="base.css">
-		<link type="text/css" rel="stylesheet" href="style.css">
-		<link type="text/css" rel="stylesheet" href="userguide.css">
+		<title>Chapter 12. Ant integration</title>
+		<link type="text/css" rel="stylesheet" href="css/main.css">
 		<link rel="home" href="index.html" title="Nginious Users Guide">
 		<link rel="up" href="index.html" title="Nginious Users Guide">
 		<link rel="prev" href="admin.html" title="Chapter 11. Server administration">
@@ -32,17 +30,101 @@
 		<div class="section">
 			<div class="titlepage">
 				<div>
-					<div><h2 class="title"><a name="xsp"></a>12.1. Compiling XSP pages</h2></div>
+					<div><h2 class="title"><a name="xsp"></a>12.1. Compiling XSP templates</h2></div>
 					
 					<p>
-						
+						The xspc ant task is used for precompiling XSP templates into HTTP services for inclusion into web applications.
+						It works in a similar way as the <code>javac</code> task for compiling java classes. Below is an example
+						that compiles a set of XSP templates into HTTP services. Note that the jar file <code>nginious-ant-1.0.0.jar</code>
+						that includes has to be included in the classpath.
 					</p>
+					
+					<div class="example-contents">
+						<pre class="programlisting"><span class="hl-string">
+&lt;taskdef name="xspc" classname="com.nginious.http.ant.XspcTask" /&gt;
+						
+&lt;xspc srcdir="src/main/resources/xsp" destdir="build/webapp/WEB-INF/classes" /&gt;
+						</span></pre>
+					</div>					
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td>Attribute</td>
+									<td>Description</td>	
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>srcdir</td>
+									<td>Location where XSP templates are found</td>
+								</tr>
+								<tr>
+									<td>destdir</td>
+									<td>
+										Location where compiles HTTP service classes should be placed.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
 					
 					<div><h2 class="title"><a name="deploying"></a>12.2. Deploying</h2></div>
 					
 					<p>
-						
+						The deploy task deploys a web application archive to a remote Nginious server. The jar file 
+						<code>nginious-ant-1.0.0.jar</code> that includes has to be included in the classpath.
 					</p>
+
+					<div class="example-contents">
+						<pre class="programlisting"><span class="hl-string">
+&lt;taskdef name="deploy" classname="com.nginious.http.ant.DeployTask" /&gt;
+						
+&lt;deploy url="http://www.nginious.com/admin/application/test"
+    file="build/libs/test.war"
+    username="admin"
+    password="admin" /&gt;
+						</span></pre>
+					</div>					
+
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td>Attribute</td>
+									<td>Description</td>	
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>url</td>
+									<td>
+										URL of Nginious REST admin service for deploying web applications. The last path element
+										of the URL matches the name of the web application being deployed.
+									</td>
+								</tr>
+								<tr>
+									<td>file</td>
+									<td>
+										The web application archive to deploy.
+									</td>
+								</tr>
+								<tr>
+									<td>username</td>
+									<td>
+										Username for accessing remote Nginious server admin service.
+									</td>
+								</tr>
+								<tr>
+									<td>password</td>
+									<td>
+										Password for accessing remote Nginious server admin service.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</div>
         </div>

@@ -1,10 +1,8 @@
 <html>
 	<head>
 		<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
-		<title>Chapter 4. HTTP server</title>
-		<link type="text/css" rel="stylesheet" href="base.css">
-		<link type="text/css" rel="stylesheet" href="style.css">
-		<link type="text/css" rel="stylesheet" href="userguide.css">
+		<title>Chapter 11. Server administration</title>
+		<link type="text/css" rel="stylesheet" href="css/main.css">
 		<link rel="home" href="index.html" title="Nginious Users Guide">
 		<link rel="up" href="index.html" title="Nginious Users Guide">
 		<link rel="prev" href="multipart.html" title="Chapter 10. Multipart content">
@@ -32,29 +30,198 @@
 		<div class="section">
 			<div class="titlepage">
 				<div>
-					<div><h2 class="title"><a name="features"></a>11.1. Features</h2></div>
+					<div><h2 class="title"><a name="overview"></a>11.1. Overview</h2></div>
 					
 					<p>
-						
+						Nginious provides a set of REST based services for administering web applications for a server instance.
+						Using the REST services it's possible to deploy, redeploy, rollback, delete and list web applications.
 					</p>
 					
 					<div><h2 class="title"><a name="services"></a>11.2. Services</h2></div>
 					
 					<p>
-						
+						The table below defines how to call the respective services.
 					</p>
 					
-					<div><h2 class="title"><a name="deploying"></a>11.3. Deploying</h2></div>
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+                    				<td>Service</td>
+                    				<td>Request</td>
+                    				<td>Description</td>
+				                </tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>List all web applications.</td>
+									<td>GET /admin/applications</td>
+									<td>
+										Returns a <code>applications-info</code> structure with information about all deployed 
+										web applications
+									</td>
+								</tr>
+								<tr>
+									<td>Get information about one web application.</td>
+									<td>GET /admin/application/[name]</td>
+									<td>
+										Returns a <code>application-info</code> structure with information about one web application.
+										The information includes a list with information about the last 10 deployed versions. The last 
+										path element of the URL must contain the web application name.
+									</td>
+								</tr>
+								<tr>
+									<td>Deploy a web application for the first time.</td>
+									<td>PUT /admin/application/[name]</td>
+									<td>
+										Deploys a new web application. The body of the PUT request must include a web application
+										archive file coded as multipart content. Returns a <code>application-info</code> structure
+										with information about the deployed web application in the request.
+									</td>
+								</tr>
+								<tr>
+									<td>Redeploying a web application.</td>
+									<td>POST /admin/application/[name]</td>
+									<td>
+										Deploys a new web application. The body of the POST request must include a web application
+										archive file coded as multipart content. Returns a <code>application-info</code> structure
+										with information about the deployed web application and information about up to 10 previous 
+										versions.
+									</td>
+								</tr>
+								<tr>
+									<td>Rollback a web application to the previous version.</td>
+									<td>POST /admin/application/[name]</td>
+									<td>
+										Rolls back a web application to the previously deployed version. The body of the request
+										must be empty. Returns a <code>application-info</code> structure with information about the 
+										deployed web application and information about up to 10 previous versions.
+									</td>
+								</tr>
+								<tr>
+									<td>Deletes a web application.</td>
+									<td>DELETE /admin/application/[name]</td>
+									<td>
+										Deletes a web application and all its previously deployed versions. The last path element
+										of the URL must contain the web application name.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					
+					<div><h2 class="title"><a name="formats"></a>11.3. Data formats</h2></div>
 					
 					<p>
-						
+						The REST based admin services supports responses in two formats, JSON and XML. A client signals which
+						format it prefers the response data in using the <code>Accept</code> header. A request with an accept
+						header with value <code>application/json</code> informs the server that the client prefers the response
+						to be encoded in JSON format.
 					</p>
 					
-					<div><h2 class="title"><a name="rollback"></a>11.4. Rollback</h2></div>
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+                    				<td>Format</td>
+                    				<td>Mime type</td>
+                    				<td>Description</td>
+				                </tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>JSON</td>
+									<td>application/json</td>
+									<td>Data is formatted in JSON format.</td>
+								</tr>
+								<tr>
+									<td>XML</td>
+									<td>application/xml</td>
+									<td>Data is formatted in XML format.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					<div><h2 class="title"><a name="data"></a>11.4. Response data</h2></div>
 					
 					<p>
-						
+						Below are examples of response data returned by the admin REST services. The examples are in XML format
+						but the JSON formatted responses have the same structure.
 					</p>
+					
+					<b>Applications list</b>
+					
+					<p>
+					  Information about all deployed web applications and their versions.
+					</p>
+
+					<p>
+						<div class="example-contents">
+							<pre class="programlisting"><span class="hl-string">
+&lt;applications-info&gt;
+  &lt;applications&gt;
+    &lt;application-info&gt;
+      &lt;name&gt;test&lt;/name&gt;
+      &lt;versions&gt;
+        &lt;application-version&gt;
+          &lt;version-number&gt;1&lt;/version-number&gt;
+          &lt;publish-time&gt;2012-09-21T19:12:34+01:00&lt;/publish-time&gt;
+        &lt;/application-version&gt;
+        &lt;application-version&gt;
+          &lt;version-number&gt;2&lt;/version-number&gt;
+          &lt;publish-time&gt;2012-09-20T08:45:12+01:00&lt;/publish-time&gt;
+        &lt;/application-version&gt;
+      &lt;/version&gt;
+    &lt;/application-info&gt;
+    &lt;application-info&gt;
+     &lt;name&gt;site&lt;/name&gt;
+      &lt;versions&gt;
+        &lt;application-version&gt;
+          &lt;version-number&gt;1&lt;/version-number&gt;
+          &lt;publish-time&gt;2012-08-10T13:10:12+01:00&lt;/publish-time&gt;
+        &lt;/application-version&gt;
+        &lt;application-version&gt;
+          &lt;version-number&gt;2&lt;/version-number&gt;
+          &lt;publish-time&gt;2012-07-01T16:12:34+01:00&lt;/publish-time&gt;
+        &lt;/application-version&gt;
+      &lt;/version&gt;    
+    &lt;/application-info&gt;
+  &lt;/applications&gt;
+&lt;/applications-info&gt;
+							</span></pre>
+						</div>
+					</p>
+					
+					<b>Application info</b>
+					
+					<p>
+					  Information about one deployed web application and up to 10 previously deployed versions of the same
+					  web application,
+					</p>
+					
+					<p>
+						<div class="example-contents">
+							<pre class="programlisting"><span class="hl-string">
+&lt;application-info&gt;
+  &lt;name&gt;site&lt;/name&gt;
+  &lt;versions&gt;
+    &lt;application-version&gt;
+      &lt;version-number&gt;1&lt;/version-number&gt;
+      &lt;publish-time&gt;2012-08-10T13:10:12+01:00&lt;/publish-time&gt;
+    &lt;/application-version&gt;
+    &lt;application-version&gt;
+      &lt;version-number&gt;2&lt;/version-number&gt;
+      &lt;publish-time&gt;2012-07-01T16:12:34+01:00&lt;/publish-time&gt;
+    &lt;/application-version&gt;
+  &lt;/version&gt;    
+&lt;/application-info&gt;
+							</span></pre>
+						</div>
+					
+					</p>
+					
 				</div>
 			</div>
         </div>
