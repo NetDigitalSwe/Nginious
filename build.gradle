@@ -75,6 +75,10 @@ configure(rootProject) {
         	into "${baseDir}/libs/ext"
         }
 		
+		from('src/reference') {
+			into "${baseDir}/doc"
+		}
+		
 		from('nginious-server/libs/json.jar') {
         	into "${baseDir}/libs/ext"
 		}

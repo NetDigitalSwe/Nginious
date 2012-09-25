@@ -1,5 +1,5 @@
 ## Nginous application server
-The Nginious Application Server provides a platform for that focuses on making
+The Nginious Application Server provides a platform that focuses on making
 development of web applications easy. At the heart of Nginious is a flexible
 reloading system where source code and resource changes are update immediately.
 An Ecplise plugin is also provided which integrates Nginious into the Eclipse
