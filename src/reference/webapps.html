@@ -33,11 +33,10 @@
 					<div><h2 class="title"><a name="overview"></a>5.1. Overview</h2></div>
 					
 					<p>
-						Nginious implements the concept of web applications. A web application groups all files necessary for a web
-						application to function. This includes Java class files, XSP template pages and all static content like 
+						A web application is a collection of all resources needed for an application to run in Nginious. This
+						includes Java class files for generating dynamic content, XSP template pages and all static content like
 						html, css and image files. A web application is bound to a base path so that any requests to a sub path
-						of the base path is served by the web applications Java classes as dynamic content or from files as static
-						content.
+						of the base path is served by the web application. 
 					</p>
 					
 					<div><h2 class="title"><a name="layout"></a>5.2. Layout</h2></div>
@@ -199,7 +198,57 @@
 					<div><h2 class="title"><a name="httpservices"></a>5.5. HTTP services</h2></div>
 					
 					<p>
-						HTTPService
+						A HTTP service class is the main building block for handling dynamic content in web applications.
+						It is mapped to a path and handles all requests from HTTP clients to the mapped path. This includes
+						all the main HTTP methods, <code>GET</code>, <code>POST</code>, <code>PUT</code> and <code>DELETE</code>.
+						Below is an example HTTP service subclass which overrides the <code>executeGet</code> method to handle
+						<code>HTTP GET</code> method requests from clients.  
+					</p>
+					
+					<p>
+						<div class="example-contents">
+							<pre class="programlisting">
+<span class="hl-string">@Service(path = "/example/service")
+public class ExampleService extends HttpService {
+  
+  public HttpServiceResult executeGet(HttpRequest req, HttpResponse; resp) throws HttpException, IOException {
+    resp.setContentType("text/plain");
+    resp.setCharacterEncoding("utf-8");
+    resp.setContentLength(13);
+    PrintWriter writer = resp.getWriter();
+    writer.println("Hello world!");
+    return HttpServiceResult.DONE;
+  }
+}</span></pre>
+						</div>
+					</p>
+					
+					<p>
+						Below is a description of each method that may be implemented for a HTTP service.
+					</p>
+					
+					<b>HttpServiceResult executeGet(HttpRequest req, HttpResponse resp)</b>
+					
+					<p>
+						Called when a <code>GET</code> method request is done to the URI path bound to the HTTP service.
+					</p>
+					
+					<b>HttpServiceResult executePost(HttpRequest req, HttpResponse resp)</b>
+					
+					<p>
+						Called when a <code>POST</code> method request is done to the URI path bound to the HTTP service.
+					</p>
+					
+					<b>HttpServiceResult executePut(HttpRequest req, HttpResponse resp)</b>
+					
+					<p>
+						Called when a <code>PUT</code> method request is done to the URI path bound to the HTTP service.					
+					</p>
+					
+					<b>HttpServiceResult executeDelete(HttpRequest req, HttpResponse resp)</b>
+					
+					<p>
+						Called when a <code>DELETE</code> method request is done to the URI path bound to the HTTP service.					
 					</p>
 					
 					<div><h2 class="title"><a name="restservices"></a>5.6. REST services</h2></div>

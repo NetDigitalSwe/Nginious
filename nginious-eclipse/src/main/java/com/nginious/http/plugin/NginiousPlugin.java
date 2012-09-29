@@ -77,7 +77,7 @@ public class NginiousPlugin extends AbstractUIPlugin {
 	}
 	
 	public static URL getApiJar() throws IOException {
-		URL url = FileLocator.find(plugin.getBundle(), new Path("lib/nginious-api.jar"), null);
+		URL url = FileLocator.find(plugin.getBundle(), new Path("libs/nginious-api.jar"), null);
 		
 		if(url != null) {
 			return FileLocator.toFileURL(url);

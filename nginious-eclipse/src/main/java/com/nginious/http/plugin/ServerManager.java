@@ -163,7 +163,8 @@ class ServerManager implements IResourceChangeListener {
 			config.setWebappsDir(null);
 			IPath projectPath = project.getLocation();
 			IPath webappsPath = projectPath.append("WebContent");
-			HttpServer server = HttpServerFactory.create(config);
+			HttpServerFactory factory = HttpServerFactory.getInstance();
+			HttpServer server = factory.create(config);
 			LogViewConsumer accessLogConsumer = new LogViewConsumer(new Document());
 			LogViewConsumer messageLogConsumer = new LogViewConsumer(new Document());
 			server.setAccessLogConsumer(accessLogConsumer);

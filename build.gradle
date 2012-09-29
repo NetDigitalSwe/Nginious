@@ -27,6 +27,7 @@ configure(rootProject) {
 	task eclipse(type: Copy) {
 		destinationDir = new File('nginious-eclipse/libs')
 		
+		
 		from(configurations.asm.asPath) {
         	into ''
         }
@@ -35,10 +36,17 @@ configure(rootProject) {
         	into ''
 		}
 		
-		subprojects.findAll({ subproject -> subproject.name != "nginious-ant" }).each { subproject ->
-            into ('') {
-                from subproject.jar
-            }
+		from('nginious-api/build/libs') {
+			into ''
+			include 'nginious-api-*.jar'
+			rename '(.*)', 'nginious-api.jar'
+		}
+		
+		from('nginious-server/build/libs') {
+			into ''
+			include 'nginious-server-*.jar'
+			rename '(.*)', 'nginious-server.jar'
+			exclude '*testload*'
 		}
 	}
 	
