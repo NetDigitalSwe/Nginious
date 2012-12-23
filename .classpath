@@ -10,8 +10,8 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="nginious-server/libs/json.jar"/>
 	<classpathentry kind="lib" path="nginious-server/libs/ext/asm-3.3.1.jar"/>
-	<classpathentry kind="lib" path="nginious-server/libs/ext/junit-4.10.jar"/>
 	<classpathentry kind="lib" path="nginious-server/libs/ext/xmlunit-1.2.jar"/>
 	<classpathentry kind="lib" path="nginious-ant/libs/ext/ant-1.7.0.jar"/>
+	<classpathentry kind="lib" path="nginious-server/libs/ext/junit-4.11.jar"/>
 	<classpathentry kind="output" path="nginious-server/build/classes/testweb/classes"/>
 </classpath>
