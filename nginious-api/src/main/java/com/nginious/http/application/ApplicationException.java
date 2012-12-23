@@ -19,7 +19,7 @@ package com.nginious.http.application;
 /**
  * Thrown to indicate a problem with an application.
  * 
- * @author Bojan Pisle, NetDigital Sweden AB
+ * @author Bojan Pisler, NetDigital Sweden AB
  *
  */
 public class ApplicationException extends Exception {
