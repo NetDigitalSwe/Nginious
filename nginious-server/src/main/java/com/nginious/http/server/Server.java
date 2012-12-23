@@ -108,29 +108,41 @@ public abstract class Server implements Runnable {
 	 * @throws IOException if unable to start server
 	 */
 	public boolean start() throws IOException {
-		log.open();
-		log.info(this.name, "starting...");
+		boolean done = false;
 		
-		if(this.started) {
-			return false;
+		try {
+			log.open();
+			log.info(this.name, "starting...");
+			
+			if(this.started) {
+				return false;
+			}
+			
+			int numThreads = Runtime.getRuntime().availableProcessors();
+			this.executor = new ThreadPoolExecutor(numThreads, numThreads, 0, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+			this.events = new ConcurrentLinkedQueue<OperationEvent>();
+			
+			this.channel = ServerSocketChannel.open();
+			InetSocketAddress address = new InetSocketAddress(port);
+			channel.socket().bind(address);
+			channel.configureBlocking(false);
+			log.info("Http", "listening " + address.getAddress().getHostAddress() + ":" + address.getPort());
+			
+			this.started = true;
+			this.thread = new Thread(this);
+			thread.start();
+			
+			log.info(this.name, "started, ready for connections");
+			done = true;
+			return true;
+		} catch(IOException e) {
+			log.error("Http", e);
+			throw e;
+		} finally {
+			if(!done) {
+				log.close();
+			}
 		}
-		
-		int numThreads = Runtime.getRuntime().availableProcessors();
-		this.executor = new ThreadPoolExecutor(numThreads, numThreads, 0, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
-		this.events = new ConcurrentLinkedQueue<OperationEvent>();
-		
-		this.channel = ServerSocketChannel.open();
-		InetSocketAddress address = new InetSocketAddress(port);
-		channel.socket().bind(address);
-		channel.configureBlocking(false);
-		log.info("Http", "listening " + address.getAddress().getHostAddress() + ":" + address.getPort());
-		
-		this.started = true;
-		this.thread = new Thread(this);
-		thread.start();
-		
-		log.info(this.name, "started, ready for connections");
-		return true;
 	}
 	
 	/**

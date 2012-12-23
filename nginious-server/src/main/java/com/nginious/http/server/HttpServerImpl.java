@@ -134,6 +134,15 @@ public class HttpServerImpl extends Server implements HttpServer {
 	}
 	
 	/**
+	 * Returns log for this HTTP server
+	 * 
+	 * @return the log
+	 */
+	MessageLog getMessageLog() {
+		return this.log;
+	}
+	
+	/**
 	 * Returns application manager for this HTTP server.
 	 * 
 	 * @return the application context manager
@@ -230,20 +239,31 @@ public class HttpServerImpl extends Server implements HttpServer {
 			return false;
 		}
 		
-		this.hostnames = getHostnames();
-		sessionManager.start();
-		manager.start();
+		boolean done = false;
 		
-		if(this.accessLogConsumer != null) {
-			accessLog.setConsumer(this.accessLogConsumer);
+		try {
+			this.hostnames = getHostnames();
+			sessionManager.start();
+			manager.start();
+			
+			if(this.accessLogConsumer != null) {
+				accessLog.setConsumer(this.accessLogConsumer);
+			}
+			
+			if(this.messageLogConsumer != null) {
+				log.setConsumer(this.messageLogConsumer);
+			}
+			
+			accessLog.open();
+			done = super.start();
+			return done;
+		} finally {
+			if(!done) {
+				sessionManager.stop();
+				manager.stop();
+				accessLog.close();
+			}
 		}
-		
-		if(this.messageLogConsumer != null) {
-			log.setConsumer(this.messageLogConsumer);
-		}
-		
-		accessLog.open();
-		return super.start();
 	}
 	
 	/**

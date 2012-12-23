@@ -21,9 +21,6 @@ import java.io.PrintWriter;
 
 import com.nginious.http.cmd.CommandLineArguments;
 import com.nginious.http.cmd.CommandLineException;
-import com.nginious.http.server.HttpServer;
-import com.nginious.http.server.HttpServerConfiguration;
-import com.nginious.http.server.HttpServerFactory;
 
 /**
  * Main start class for HTTP server. Parses command line parameters, configures and starts
@@ -54,48 +51,21 @@ public class Main {
 	public static void main(String[] argv) {
 		HttpServerConfiguration config = new HttpServerConfiguration();
 		CommandLineArguments args = CommandLineArguments.createInstance(config);
+		HttpServerImpl server = null;
 		
 		try {
 			args.parse(argv);
 			
 			HttpServerFactory factory = HttpServerFactory.getInstance();
-			final HttpServer server = factory.create(config);
+			server = (HttpServerImpl)factory.create(config);
 			server.start();
 			
-			Thread shutdownThread = new Thread() {
-				
-				public void run() {
-					try {
-						server.stop();
-					} catch(IOException e) {
-						e.printStackTrace(System.err);
-					}					
-				}
-			};
-			
-			Runtime.getRuntime().addShutdownHook(shutdownThread);
+			ShutdownHook hook = new ShutdownHook(server);
+			Runtime.getRuntime().addShutdownHook(new Thread(hook));
 		} catch(CommandLineException e) {
-			System.out.println(e.getMessage());
 			args.help(new PrintWriter(System.out));
 		} catch(IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	class ShutdownHook implements Runnable {
-		
-		private HttpServerImpl server;
-		
-		private ShutdownHook(HttpServerImpl server) {
-			this.server = server;
-		}
-		
-		public void run() {
-			try {
-				server.stop();
-			} catch(IOException e) {
-				e.printStackTrace(System.err);
-			}
+			System.out.println("Unable to start server, see logs/server.log for more information");
 		}
 	}
 }
