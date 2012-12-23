@@ -37,14 +37,19 @@ abstract class Statistics<T extends StatisticsEntry> {
 	protected CopyOnWriteArrayList<T[][]> dates;
 	
 	Statistics() {
+		this(System.currentTimeMillis());
+	}
+	
+	Statistics(long startTimeMillis) {
 		super();
-		this.startTimeMillis = System.currentTimeMillis();
+		this.startTimeMillis = startTimeMillis;
 		this.endTimeDeltaMinutes = 0;
 		this.currentHourBaseTimeMillis = this.startTimeMillis - (this.startTimeMillis % 3600000L);
 		this.dates = new CopyOnWriteArrayList<T[][]>();
-		setupNewHour(this.currentHourBaseTimeMillis, this.startTimeMillis);
+		setupHours(this.currentHourBaseTimeMillis, this.startTimeMillis);
 		this.startTimeMillis -= this.startTimeMillis % 60000L;
 		this.currentHourBaseTimeMillis -= 3600000L;
+		
 	}
 	
 	/**
@@ -114,7 +119,7 @@ abstract class Statistics<T extends StatisticsEntry> {
 		}
 		
 		int startDateIndex = (int)((startTimeMillis - startRangeTimeMillis) / 86400000L);
-		int endDateIndex = (int)((endTimeMillis - endRangeTimeMillis) / 86400000L);
+		int endDateIndex = (int)((endTimeMillis - this.startTimeMillis) / 86400000L);
 		int startHourIndex = (int)((startTimeMillis % 86400000L) / 3600000L);
 		int endHourIndex = (int)((endTimeMillis % 86400000L) / 3600000L);
 		int startMinuteIndex = (int)((startTimeMillis % 3600000L) / 60000L);
@@ -163,24 +168,30 @@ abstract class Statistics<T extends StatisticsEntry> {
 	 */
 	protected T getEntry() {
 		long curTimeMillis = System.currentTimeMillis();
-		this.endTimeDeltaMinutes = (int)((curTimeMillis - this.startTimeMillis) / 60000L);
 		int slot = (int)((curTimeMillis - this.currentHourBaseTimeMillis) / 60000L);
 		
 		if(slot >= 60) {
-			setupNewHour(this.currentHourBaseTimeMillis, curTimeMillis);
-			slot -= 60;			
+			setupHours(this.currentHourBaseTimeMillis, curTimeMillis);
+			this.currentHourBaseTimeMillis -= 3600000L;
+			slot = (int)((curTimeMillis - this.currentHourBaseTimeMillis) / 60000L);
 		}
 		
+		this.endTimeDeltaMinutes = (int)((curTimeMillis - this.startTimeMillis) / 60000L);
 		return curHour[slot];
 	}
 	
 	/*
-	 * Creates statisticd entries for the hour starting at the specified hour
+	 * Creates statistics entries for the hour starting at the specified hour
 	 * base time.
 	 */
-	private void setupNewHour(long hourBaseTimeMillis, long timeMillis) {
+	private void setupHours(long hourBaseTimeMillis, long curTimeMillis) {
 		synchronized(this) {
-			if(hourBaseTimeMillis == this.currentHourBaseTimeMillis) {
+			// Another thread already updated while we where waiting for the lock
+			if(hourBaseTimeMillis != this.currentHourBaseTimeMillis) {
+				return;
+			}
+			
+			while(hourBaseTimeMillis < curTimeMillis) {
 				long minuteMillis = hourBaseTimeMillis;
 				T[] entries = createArray(60);
 				
@@ -189,15 +200,15 @@ abstract class Statistics<T extends StatisticsEntry> {
 					minuteMillis += 60000L;
 				}
 				
-				if(curHour != null) {
+				if(this.curHour != null) {
 					for(int i = 0; i < curHour.length; i++) {
 						curHour[i].setCurrent(false);
 					}
 				}
-				
+					
 				this.curHour = entries;
-				this.currentHourBaseTimeMillis += 3600000L;
-				int hourSlot = (int)((timeMillis % 86400000L) / 3600000L);
+				int hourSlot = (int)((hourBaseTimeMillis % 86400000L) / 3600000L);
+				hourBaseTimeMillis += 3600000L;
 				
 				if(hourSlot == 0 || this.curDate == null) {
 					this.curDate = create2Array(24);
@@ -205,11 +216,14 @@ abstract class Statistics<T extends StatisticsEntry> {
 					
 					if(dates.size() > 100) {
 						dates.remove(0);
+						this.startTimeMillis += 86400000L;
 					}
 				}
 				
-				curDate[hourSlot] = entries;				
+				curDate[hourSlot] = entries;
 			}
+			
+			this.currentHourBaseTimeMillis = hourBaseTimeMillis;
 		}
 	}
 	

@@ -26,6 +26,13 @@ package com.nginious.http.stats;
 public class HttpRequestStatistics extends Statistics<HttpRequestStatisticsEntry> {
 	
 	/**
+	 * Constructs a new HTTP request statistics starting at the specified time.
+	 */
+	public HttpRequestStatistics(long startTimeMillis) {
+		super(startTimeMillis);
+	}
+	
+	/**
 	 * Constructs a new HTTP request statistics.
 	 */
 	public HttpRequestStatistics() {
