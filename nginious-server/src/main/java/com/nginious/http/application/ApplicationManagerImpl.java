@@ -182,11 +182,15 @@ public class ApplicationManagerImpl implements ApplicationManager {
 		ApplicationImpl application = applications.get(possibleAppName);
 		
 		if(application == null) {
+			localPath = request.getPath();
 			application = applications.get(ROOT_APP);
 		}
-		
+				
 		if(application != null) {
 			result = application.execute(localPath, request, response);
+		} else if(possibleAppName.equals("favicon.ico")) {
+			// Server empty favicon if none exists
+			ApplicationImpl.sendEmptyFavicon(response);
 		} else {
 			throw new HttpException(HttpStatus.NOT_FOUND, localPath);
 		}
