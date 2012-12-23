@@ -248,8 +248,10 @@ class ApplicationConfigurator {
 							application.addHttpService(service);
 						}
 					}
+				} catch(NoClassDefFoundError e) {
+					
 				} catch(ClassNotFoundException e) {
-					throw new IOException("Unable to load class", e);
+					
 				}
 			}
 		} catch(Exception e) {
