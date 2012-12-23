@@ -50,7 +50,7 @@ configure(rootProject) {
 		}
 	}
 	
-	task dist(type: Tar) {
+	task tarDist(type: Tar) {
 		includeEmptyDirs = true
 		group = 'Distribution'
 		compression = Compression.GZIP
@@ -107,4 +107,65 @@ configure(rootProject) {
         	into "${baseDir}/bin"
         }
     }
+    
+    task zipDist(type: Zip) {
+		includeEmptyDirs = true
+		group = 'Distribution'
+		classifier = 'dist'
+		description = "Builds ${classifier} archive, containing all jars and docs"
+		destinationDir = new File('build/distributions')
+		archiveName = "${project.name}-${project.version}-dist.zip"
+		
+		ext.baseDir = "${project.name}-${project.version}";
+		
+		mkdir('build/logs/logs');
+		mkdir('build/webapps/webapps');
+			
+		from('build/logs') {
+			into "${baseDir}"
+		}
+		
+		from('build/webapps') {
+			into "${baseDir}"
+		}
+		
+		from('src/dist') {
+            include 'README'
+            include 'LICENSE'
+            into "${baseDir}"
+            expand(copyright: new Date().format('yyyy'), version: project.version)
+        }
+        
+        from(configurations.asm.asPath) {
+        	into "${baseDir}/libs/ext"
+        }
+		
+		from('src/reference') {
+			into "${baseDir}/doc"
+		}
+		
+		from('nginious-server/libs/json.jar') {
+        	into "${baseDir}/libs/ext"
+		}
+				
+		subprojects.findAll({ subproject -> subproject.name == "nginious-api" }).each { subproject ->
+            into ("${baseDir}/doc/api") {
+                from subproject.javadoc
+            }
+		}
+		
+		subprojects.each { subproject ->
+            into ("${baseDir}/libs") {
+                from subproject.jar
+            }
+		}
+        
+        from('bin/start.sh') {
+        	into "${baseDir}/bin"
+        }    
+    }
+    
+	task dist() {
+		dist.dependsOn = [zipDist, tarDist]
+	}	
 }
