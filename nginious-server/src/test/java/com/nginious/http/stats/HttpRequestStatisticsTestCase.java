@@ -69,7 +69,7 @@ public class HttpRequestStatisticsTestCase extends XMLTestCase {
 	}
 	
 	public void testHttpRequestStatistics() throws Exception {
-		HttpRequestStatistics stats = new HttpRequestStatistics();
+		HttpRequestStatistics stats = new HttpRequestStatistics(System.currentTimeMillis() - (86400000L * 3));
 		long curTimeMillis = System.currentTimeMillis();
 		HttpRequestStatisticsEntry entry = stats.add();
 		
@@ -104,13 +104,21 @@ public class HttpRequestStatisticsTestCase extends XMLTestCase {
 		assertEquals(1158L, entry.getSumRequestsDuration());
 		assertEquals(1598, entry.getSumResponseBytes());		
 		
-		assertEquals(stats.getStartTime().getTime(), curTimeMillis - curTimeMillis % 60000L);
 		assertEquals(stats.getEndTime().getTime(), curTimeMillis - curTimeMillis % 60000L);
-		Date startTime = new Date(curTimeMillis - curTimeMillis % 60000L);
+		Date startTime = new Date(System.currentTimeMillis() - 86400000L);
 		Date endTime = new Date(curTimeMillis - curTimeMillis % 60000L + 60000L);
 		HttpRequestStatisticsEntry[] entries = stats.getEntries(startTime, endTime);
 		assertNotNull(entries);
-		assertEquals(1, entries.length);
+		
+		long startTimeMillis = startTime.getTime() - startTime.getTime() % 60000L;
+		
+		for(int i = 0; i < entries.length; i++) {
+			assertNotNull("i=" + i, entries[i]);
+			assertEquals(startTimeMillis, entries[i].getMinuteMillis());
+			startTimeMillis += 60000L;
+		}
+		
+		assertEquals(1441, entries.length);
 	}
 	
 	public void testWebSocketSessionStatistics() throws Exception {
