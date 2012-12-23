@@ -18,6 +18,7 @@ package com.nginious.http.application;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -38,6 +39,7 @@ import com.nginious.http.application.Application;
 import com.nginious.http.application.ApplicationException;
 import com.nginious.http.application.Service;
 import com.nginious.http.rest.RestService;
+import com.nginious.http.server.Header;
 import com.nginious.http.server.HttpServiceChain;
 import com.nginious.http.xsp.CompilableXspService;
 import com.nginious.http.xsp.XspCompiler;
@@ -48,6 +50,8 @@ import com.nginious.http.xsp.XspService;
  * A concrete application implementation.
  */
 class ApplicationImpl implements Application {
+	
+	private static final byte[] FAVICON_EMPTY = { 0x0d, 0x0a };
 	
 	private static HashSet<HttpMethod> methods;
 	
@@ -323,6 +327,8 @@ class ApplicationImpl implements Application {
 		if(isUnpacked() && !staticContentExists(localPath)) {
 			if(findHttpService(localPath)) {
 				execute(localPath, request, response);
+			} else if(localPath.equals("/favicon.ico")) {
+				sendEmptyFavicon(response);
 			} else {
 				throw new HttpException(HttpStatus.NOT_FOUND, "/" + this.name + localPath);	
 			}
@@ -331,6 +337,16 @@ class ApplicationImpl implements Application {
 		}
 		
 		return HttpServiceResult.DONE;		
+	}
+	
+	static void sendEmptyFavicon(HttpResponse response) throws IOException {
+		response.setStatus(HttpStatus.OK);
+		response.setContentType("image/vnd.microsoft.icon");
+		response.setContentLength(2);
+		long oneHourFromNow = System.currentTimeMillis() + 3600000L; 
+		response.addHeader("Expires", Header.formatDate(new Date(oneHourFromNow)));
+		OutputStream out = response.getOutputStream();
+		out.write(FAVICON_EMPTY);
 	}
 	
 	private boolean findHttpService(String localPath) {
