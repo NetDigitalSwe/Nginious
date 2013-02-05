@@ -18,31 +18,64 @@ package com.nginious.http.service;
 
 import java.io.IOException;
 
+import com.nginious.http.HttpMethod;
 import com.nginious.http.HttpRequest;
 import com.nginious.http.HttpResponse;
-import com.nginious.http.HttpService;
-import com.nginious.http.HttpServiceResult;
-import com.nginious.http.application.Service;
+import com.nginious.http.annotation.Controller;
+import com.nginious.http.annotation.Request;
 
-@Service(pattern = "/chain[0-9]+")
-public class TestChainFilter extends HttpService {
+@Controller(pattern = "/chain[0-9]+")
+public class TestChainFilter {
 	
 	public TestChainFilter() {
 		super();
 	}
 	
-	public HttpServiceResult executeGet(HttpRequest request, HttpResponse response) throws IOException {
+	@Request(methods = { HttpMethod.GET })
+	public void executeGet(HttpRequest request, HttpResponse response) throws IOException {
 		String path = request.getPath();
+		System.out.println("Filter: " + path);
 		
 		if(path.equals("/test/chain1")) {
 			response.addHeader("Chain", "chain1");
-			return HttpServiceResult.CONTINUE;
 		} else if(path.equals("/test/chain2")) {
-			response.addHeader("Chain", "chain2");
-			return HttpServiceResult.CONTINUE;
-			
+			response.addHeader("Chain", "chain2");			
 		}
+	}
+
+	@Request(methods = { HttpMethod.POST })
+	public void executePost(HttpRequest request, HttpResponse response) throws IOException {
+		String path = request.getPath();
+		System.out.println("Filter: " + path);
 		
-		return HttpServiceResult.DONE;
+		if(path.equals("/test/chain1")) {
+			response.addHeader("Chain", "chain1");
+		} else if(path.equals("/test/chain2")) {
+			response.addHeader("Chain", "chain2");			
+		}
+	}
+
+	@Request(methods = { HttpMethod.PUT })
+	public void executePut(HttpRequest request, HttpResponse response) throws IOException {
+		String path = request.getPath();
+		System.out.println("Filter: " + path);
+		
+		if(path.equals("/test/chain1")) {
+			response.addHeader("Chain", "chain1");
+		} else if(path.equals("/test/chain2")) {
+			response.addHeader("Chain", "chain2");			
+		}
+	}
+
+	@Request(methods = { HttpMethod.DELETE })
+	public void executeDelete(HttpRequest request, HttpResponse response) throws IOException {
+		String path = request.getPath();
+		System.out.println("Filter: " + path);
+		
+		if(path.equals("/test/chain1")) {
+			response.addHeader("Chain", "chain1");
+		} else if(path.equals("/test/chain2")) {
+			response.addHeader("Chain", "chain2");			
+		}
 	}
 }

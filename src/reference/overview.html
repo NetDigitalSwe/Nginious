@@ -34,7 +34,7 @@
 					
 					<p>
 						Nginious implements a full featured HTTP server on top of an asynchronous I/O engine. It
-						supports HTTP/0.9, HTTP/1.0, HTTP/1.1 (all features except multi ranges). The asynchronous
+						supports HTTP/0.9, HTTP/1.0 and HTTP/1.1 (all features except multi ranges). The asynchronous
 						I/O engine enables the HTTP server to scale to many simultaneous connections and also
 						enables the server to support long lived connections.
 					</p>
@@ -42,43 +42,50 @@
 					<div><h2 class="title"><a name="webapps"></a>2.2. Web applications</h2></div>
 					
 					<p>
-						Developers write HTTP services to implement web based applications in Nginious.
+						Developers write controllers to implement web based applications in Nginious.
 						These are packaged together with static content into web applications in a similar
-						way as in servlet based HTTP containers. See the <a	href="api/com/nginious/http/HttpService.html">
-						HttpService</a> class for detailed information about HTTP services.
+						way as in servlet based HTTP containers. A controller is a Java class which is
+						annotated with the <a href="api/com/nginious/http/annotation/Controller.html">Controller</a>
+						and <a href="api/com/nginious/http/annotation/Request.html">Request</a> annotations.
 					</p>
 					
 					<div><h2 class="title"><a name="websockets"></a>2.3. Web sockets</h2></div>
 					
 					<p>
-						Support for web sockets. Developers write web socket services to implement
-						behaviour. These are packaged together with HTTP services and static content
-						into web applications. See the <a href="api/com/nginious/http/websocket/WebSocketService.html">
-						WebSocketService</a> class for detailed information about web socket services.
+						Support for web sockets. Developers write web socket controllers to implement
+						behavior. These are packaged together with static content into web applications. 
+						See the <a href="api/com/nginious/http/annotation/Controller.html">Controller</a> and
+						<a href="api/com/nginious/http/annotation/Message.html">Message</a> annotations.
 					</p>
 					
-					<div><h2 class="title"><a name="rest"></a>2.4. RESTful services</h2></div>
+					<div><h2 class="title"><a name="rest"></a>2.4. RESTful controllers</h2></div>
 					
 					<p>
-						Nginious provides support for REST based services. JSON or XML content sent to
-						REST services is automatically deserialized into beans and result beans from services
+						Nginious provides support for REST based controller. JSON or XML content sent to
+						REST controllers is automatically deserialized into beans and result beans from controllers
 						is automatically serialized into JSON or XML content. Serialization and
 						deserialization is done based on the values of <code>Content-Type</code> and
-						<code>Accept</code> headers. See the <a href="api/com/nginious/http/websocket/WebSocketService.html">
-						RestService</a> class for detailed information about REST services.
+						<code>Accept</code> headers.
 					</p>
 					
-					<div><h2 class="title"><a name="xsp"></a>2.5. XSP</h2></div>
+					<div><h2 class="title"><a name="services"></a>2.5. Services</h2></div>
+					
+					<p>
+						Services publish an API or run background services in a separate thread in a web application. Controllers can access services
+						by declaring them in its methods. See the <a href="api/com/nginious/http/annotation/Service.html">Service</a>
+						annotation for information about how to declare a Java class as a service.
+					</p>
+					
+					<div><h2 class="title"><a name="xsp"></a>2.6. XSP</h2></div>
 					
 					<p>
 						XSP is a template language for generating HTML pages from dynamic content. Pages
-						are translated directly into HttpService classes using bytecode translation. The
-						javac compiler is not used. This makes the translation very fast and makes it
-						possible for developers to make changes and reload pages in their browser to view
-						changes almost instantly.
+						are translated directly into classes using bytecode translation. The javac compiler 
+						is not used. This makes the translation very fast and makes it possible for developers 
+						to make changes and reload pages in their browser to view changes almost instantly.
 					</p>
 					
-					<div><h2 class="title"><a name="multipart"></a>2.6. Multipart content</h2></div>
+					<div><h2 class="title"><a name="multipart"></a>2.7. Multipart content</h2></div>
 					
 					<p>
 						The HTTP server has built in support for handling multipart content. It also exposes
@@ -87,7 +94,7 @@
 						progress of file uploads.
 					</p>
 					
-					<div><h2 class="title"><a name="eclipse"></a>2.7. Eclipse plugin</h2></div>
+					<div><h2 class="title"><a name="eclipse"></a>2.8. Eclipse plugin</h2></div>
 					
 					<p>
 						Nginious is integrated with Eclipse through a plugin which makes it possible to run
@@ -95,7 +102,7 @@
 						layouts and wizards for creating Nginious projects.					
 					</p>
 					
-					<div><h2 class="title"><a name="deployment"></a>2.8. Server administration</h2></div>
+					<div><h2 class="title"><a name="deployment"></a>2.9. Server administration</h2></div>
 					
 					<p>
 						Nginious provides REST based services for deploying web applications to a remote
@@ -105,25 +112,25 @@
 						errors are discovered with the latest deployed version.
 					</p>
 					
-					<div><h2 class="title"><a name="reloading"></a>2.9. Resource reloading</h2></div>
+					<div><h2 class="title"><a name="reloading"></a>2.10. Resource reloading</h2></div>
 					
 					<p>
 						At the heart of Nginious is a flexible resource reloading mechanism which consists
 						of a dynamic class loader and several other mechanisms to reload XSP templates and
-						HTTP services. If a class, jar file or XSP template is updated it is automatically
+						controllers. If a class, jar file or XSP template is modified it is automatically
 						reloaded without the need to restart Nginious or redeploy web applications. This
 						together with the Eclipse plugin provides a powerful development environment with
-						almost no wait time between code changes and update in Nginious.
+						almost no wait time between code changes and updates in Nginious.
 					</p>
 					
-					<div><h2 class="title"><a name="ant"></a>2.10. Ant integration</h2></div>
+					<div><h2 class="title"><a name="ant"></a>2.11. Ant integration</h2></div>
 						
 					<p>
-						Two ant tasks are provided. One for compiling XSP templates into HTTP service classes
+						Two ant tasks are provided. One for compiling XSP templates into Java classes
 						and one for deploying web applications to a remote Nginious server.
 					</p>
 					
-					<div><h2 class="title"><a name="session"></a>2.11. Session management</h2></div>
+					<div><h2 class="title"><a name="session"></a>2.12. Session management</h2></div>
 					
 					<p>
 						Two HTTP session management strategies are provided. In-memory sessions which uses
@@ -131,10 +138,10 @@
 						which serializes the sessions contents into a cookie.
 					</p>
 					
-					<div><h2 class="title"><a name="statistics"></a>2.12. Statistics</h2></div>
+					<div><h2 class="title"><a name="statistics"></a>2.13. Statistics</h2></div>
 											
 					<p>
-						Nginious tracks basic HTTP request and web socket session statistics per minnute.
+						Nginious tracks basic HTTP request and web socket session statistics per minute.
 						Statistics information can be accessed over HTTP from Nginious servers.
 					</p>					
 				</div>

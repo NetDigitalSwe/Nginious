@@ -21,10 +21,8 @@ import java.io.IOException;
 import com.nginious.http.HttpException;
 import com.nginious.http.HttpRequest;
 import com.nginious.http.HttpResponse;
-import com.nginious.http.HttpService;
-import com.nginious.http.HttpServiceResult;
 import com.nginious.http.HttpStatus;
-import com.nginious.http.application.Service;
+import com.nginious.http.annotation.Controller;
 import com.nginious.http.server.DigestAuthentication;
 import com.nginious.http.server.Header;
 import com.nginious.http.server.HeaderException;
@@ -33,7 +31,7 @@ import com.nginious.http.server.HeaderParameters;
 
 /**
  * An authentication filter to protect access to the REST base web application management services
- * provided by {@link Service} and {@link ApplicationsService}. This filter uses digest authentication
+ * provided by {@link Controller} and {@link ApplicationsController}. This filter uses digest authentication
  * as defined in <a href="http://www.ietf.org/rfc/rfc2617.txt">RFC 2617</a>.
  * 
  * <p>
@@ -44,7 +42,7 @@ import com.nginious.http.server.HeaderParameters;
  * @author Bojan Pisler, NetDigital Sweden AB
  * @see com.nginious.http.server.DigestAuthentication
  */
-public class ApplicationAuthenticationFilter extends HttpService {
+class ApplicationAuthenticationFilter extends HttpService {
 	
 	private String password;
 	
@@ -55,7 +53,7 @@ public class ApplicationAuthenticationFilter extends HttpService {
 	 * 
 	 * @param password the password to use for
 	 */
-	public ApplicationAuthenticationFilter(String password) {
+	ApplicationAuthenticationFilter(String password) {
 		super();
 		this.auth = new DigestAuthentication();
 		this.password = password;
@@ -66,8 +64,8 @@ public class ApplicationAuthenticationFilter extends HttpService {
 	 * 
 	 * @param request the HTTP request to authenticate
 	 * @param response the HTTP response for sending authentication headers if needed
-	 * @return {@link com.nginious.http.HttpServiceResult#CONTINUE} if authenticated, 
-	 *  {@link com.nginious.http.HttpServiceResult#DONE} otherwise
+	 * @return {@link com.nginious.http.application.HttpServiceResult#CONTINUE} if authenticated, 
+	 *  {@link com.nginious.http.application.HttpServiceResult#DONE} otherwise
 	 * @throws HttpException if a HTTP error occurs while authenticating
 	 * @throws IOException if an I/O error occurs
 	 */
@@ -84,8 +82,8 @@ public class ApplicationAuthenticationFilter extends HttpService {
 	 * 
 	 * @param request the HTTP request to authenticate
 	 * @param response the HTTP response for sending authentication headers if needed
-	 * @return {@link com.nginious.http.HttpServiceResult#CONTINUE} if authenticated, 
-	 *  {@link com.nginious.http.HttpServiceResult#DONE} otherwise
+	 * @return {@link com.nginious.http.application.HttpServiceResult#CONTINUE} if authenticated, 
+	 *  {@link com.nginious.http.application.HttpServiceResult#DONE} otherwise
 	 * @throws HttpException if a HTTP error occurs while authenticating
 	 * @throws IOException if an I/O error occurs
 	 */
@@ -102,8 +100,8 @@ public class ApplicationAuthenticationFilter extends HttpService {
 	 * 
 	 * @param request the HTTP request to authenticate
 	 * @param response the HTTP response for sending authentication headers if needed
-	 * @return {@link com.nginious.http.HttpServiceResult#CONTINUE} if authenticated, 
-	 *  {@link com.nginious.http.HttpServiceResult#DONE} otherwise
+	 * @return {@link com.nginious.http.application.HttpServiceResult#CONTINUE} if authenticated, 
+	 *  {@link com.nginious.http.application.HttpServiceResult#DONE} otherwise
 	 * @throws HttpException if a HTTP error occurs while authenticating
 	 * @throws IOException if an I/O error occurs
 	 */
@@ -120,8 +118,8 @@ public class ApplicationAuthenticationFilter extends HttpService {
 	 * 
 	 * @param request the HTTP request to authenticate
 	 * @param response the HTTP response for sending authentication headers if needed
-	 * @return {@link com.nginious.http.HttpServiceResult#CONTINUE} if authenticated, 
-	 *  {@link com.nginious.http.HttpServiceResult#DONE} otherwise
+	 * @return {@link com.nginious.http.application.HttpServiceResult#CONTINUE} if authenticated, 
+	 *  {@link com.nginious.http.application.HttpServiceResult#DONE} otherwise
 	 * @throws HttpException if a HTTP error occurs while authenticating
 	 * @throws IOException if an I/O error occurs
 	 */

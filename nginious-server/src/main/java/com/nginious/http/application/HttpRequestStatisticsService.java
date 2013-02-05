@@ -19,15 +19,14 @@ package com.nginious.http.application;
 import java.io.IOException;
 
 import com.nginious.http.HttpException;
-import com.nginious.http.HttpServiceResult;
-import com.nginious.http.rest.RestRequest;
-import com.nginious.http.rest.RestResponse;
-import com.nginious.http.rest.RestService;
+import com.nginious.http.HttpMethod;
+import com.nginious.http.annotation.Controller;
+import com.nginious.http.annotation.Request;
 import com.nginious.http.stats.HttpRequestStatistics;
 import com.nginious.http.stats.HttpRequestStatisticsEntry;
 
 /*
- * A REST service which returns HTTP request statistics for a time period in the HTTP response. The
+ * A REST controller which returns HTTP request statistics for a time period in the HTTP response. The
  * returned data contains entries for each minute within the time period.
  * 
  * <p>
@@ -48,7 +47,8 @@ import com.nginious.http.stats.HttpRequestStatisticsEntry;
  * </p>
  * 
  */
-class HttpRequestStatisticsService extends RestService<StatisticsRange, HttpRequestStatisticsInfo> {
+@Controller(path = "/httpstats")
+public class HttpRequestStatisticsService {
 	
 	private ApplicationManagerImpl manager;
 	
@@ -64,9 +64,8 @@ class HttpRequestStatisticsService extends RestService<StatisticsRange, HttpRequ
 	 * Returns HTTP request statistics for the time period found in the statistics range in the specified REST request.
 	 * The response is returned in the specified REST response. 
 	 */
-	public HttpServiceResult executeGet(RestRequest<StatisticsRange> request, RestResponse<HttpRequestStatisticsInfo> response) throws HttpException, IOException {
-		StatisticsRange range = request.getBean();
-		
+	@Request(methods = { HttpMethod.GET })
+	public HttpRequestStatisticsInfo executeGet(StatisticsRange range) throws HttpException, IOException {
 		if(range == null) {
 			range = new StatisticsRange();
 		}
@@ -80,7 +79,6 @@ class HttpRequestStatisticsService extends RestService<StatisticsRange, HttpRequ
 			info.addItem(item);
 		}
 		
-		response.setBean(info);
-		return HttpServiceResult.DONE;
+		return info;
 	}
 }

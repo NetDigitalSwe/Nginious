@@ -48,7 +48,12 @@ public class HttpTestResponse implements HttpResponse {
 	
 	private HttpStatus status;
 	
+	private Object data;
+	
+	@SuppressWarnings("unused")
 	private String statusMsg;
+	
+	private boolean committed;
 	
 	public HttpTestResponse() {
 		super();
@@ -74,6 +79,7 @@ public class HttpTestResponse implements HttpResponse {
 			this.stream = new ByteArrayOutputStream();
 		}
 		
+		this.committed = true;
 		return this.stream;
 	}
 
@@ -82,6 +88,7 @@ public class HttpTestResponse implements HttpResponse {
 			this.writer = new PrintWriter(getOutputStream());
 		}
 		
+		this.committed = true;
 		return this.writer;
 	}
 	
@@ -159,15 +166,29 @@ public class HttpTestResponse implements HttpResponse {
 	}
 	
 	public void setStatus(HttpStatus status) {
+		this.committed = true;
 		this.status = status;
 	}
 
 	public void setStatus(HttpStatus status, String message) {
+		this.committed = true;
 		this.status = status;
 		this.statusMsg = message;
 	}
 	
+	public void setData(Object data) {
+		this.data = data;
+	}
+	
+	public Object getData() {
+		return this.data;
+	}
+	
 	public void completed() {
 		return;
+	}
+
+	public boolean isCommitted() {
+		return this.committed;
 	}
 }

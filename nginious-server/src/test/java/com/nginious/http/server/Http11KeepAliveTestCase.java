@@ -25,7 +25,7 @@ import com.nginious.http.application.ApplicationManager;
 import com.nginious.http.server.HttpServer;
 import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
-import com.nginious.http.service.TestMethodsService;
+import com.nginious.http.service.TestMethodsController;
 
 
 import junit.framework.Test;
@@ -55,7 +55,7 @@ public class Http11KeepAliveTestCase extends TestCase {
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
-		application.addHttpService(new TestMethodsService());
+		application.addController(new TestMethodsController());
 		manager.publish(application);
 		server.start();
 	}

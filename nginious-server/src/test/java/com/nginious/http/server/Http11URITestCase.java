@@ -28,8 +28,8 @@ import com.nginious.http.application.ApplicationManager;
 import com.nginious.http.server.HttpServer;
 import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
-import com.nginious.http.service.TestParametersService;
-import com.nginious.http.service.TestURIService;
+import com.nginious.http.service.TestParametersController;
+import com.nginious.http.service.TestURIController;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -58,8 +58,8 @@ public class Http11URITestCase extends TestCase {
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
-		application.addHttpService(new TestParametersService());
-		application.addHttpService(new TestURIService());
+		application.addController(new TestParametersController());
+		application.addController(new TestURIController());
 		application.setBaseDir(new File("src/testweb/webapp"));
 		manager.publish(application);
 		server.start();

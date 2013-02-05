@@ -30,7 +30,6 @@ import java.util.Locale;
 import com.nginious.http.HttpCookie;
 import com.nginious.http.HttpMethod;
 import com.nginious.http.HttpRequest;
-import com.nginious.http.HttpServiceResult;
 import com.nginious.http.HttpSession;
 import com.nginious.http.upload.FilePart;
 import com.nginious.http.upload.UploadTracker;
@@ -277,7 +276,7 @@ public class HttpTestRequest implements HttpRequest {
 		return 80;
 	}
 	
-	public HttpServiceResult dispatch(String path) {
-		return HttpServiceResult.DONE;
+	public void dispatch(String path) {
+		return;
 	}
 }

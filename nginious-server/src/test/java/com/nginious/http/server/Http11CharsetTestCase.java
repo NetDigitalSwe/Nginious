@@ -23,7 +23,7 @@ import com.nginious.http.application.ApplicationManager;
 import com.nginious.http.server.HttpServer;
 import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
-import com.nginious.http.service.TestEncodingService;
+import com.nginious.http.service.TestEncodingController;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -52,7 +52,7 @@ public class Http11CharsetTestCase extends TestCase {
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
-		application.addHttpService(new TestEncodingService());
+		application.addController(new TestEncodingController());
 		manager.publish(application);
 		server.start();
 	}

@@ -22,7 +22,7 @@ import junit.framework.TestSuite;
 
 import com.nginious.http.application.Application;
 import com.nginious.http.application.ApplicationManager;
-import com.nginious.http.service.TestMethodsService;
+import com.nginious.http.service.TestMethodsController;
 
 public class Http09MethodsTestCase extends TestCase {
 	
@@ -47,7 +47,7 @@ public class Http09MethodsTestCase extends TestCase {
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
-		application.addHttpService(new TestMethodsService());
+		application.addController(new TestMethodsController());
 		manager.publish(application);
 		server.start();
 	}

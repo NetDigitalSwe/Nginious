@@ -19,7 +19,7 @@ package com.nginious.http.application;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.nginious.http.rest.Serializable;
+import com.nginious.http.annotation.Serializable;
 
 /**
  * A serializable bean that represents a list of all published applications.

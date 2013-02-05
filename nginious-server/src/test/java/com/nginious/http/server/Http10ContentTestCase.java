@@ -24,8 +24,8 @@ import com.nginious.http.application.ApplicationManager;
 import com.nginious.http.server.HttpServer;
 import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
-import com.nginious.http.service.TestBodyService;
-import com.nginious.http.service.TestNoDataService;
+import com.nginious.http.service.TestBodyController;
+import com.nginious.http.service.TestNoDataController;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -54,8 +54,8 @@ public class Http10ContentTestCase extends TestCase {
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
-		application.addHttpService(new TestBodyService());
-		application.addHttpService(new TestNoDataService());
+		application.addController(new TestBodyController());
+		application.addController(new TestNoDataController());
 		manager.publish(application);
 		server.start();
 	}

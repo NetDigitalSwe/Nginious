@@ -271,9 +271,8 @@ public interface HttpRequest {
 	 * Dispatches this HTTP request to the specified URI path.
 	 * 
 	 * @param path the URI path to dispatch request to
-	 * @return result of dispatch
 	 * @throws HttpException if a HTTP error occurs while dispatching request
 	 * @throws IOException if an I/O error occurs
 	 */
-	public HttpServiceResult dispatch(String path) throws HttpException, IOException;
+	public void dispatch(String path) throws HttpException, IOException;
 }

@@ -21,7 +21,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -337,10 +336,6 @@ public class XspCompiler {
         String intServiceClazzName = createIntServiceClassName(packageName, srcFilePath);
         String serviceClazzName = createServiceClassName(packageName, srcFilePath);
         writer.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, intServiceClazzName, "Lcom/nginious/http/xsp/XspService;", "com/nginious/http/xsp/XspService", null);
-        
-        AnnotationVisitor annoVisitor = writer.visitAnnotation("Lcom/nginious/http/application/Service;", true);
-        annoVisitor.visit("path", srcFilePath);
-        annoVisitor.visitEnd();
         
         // Create constructor
         createConstructor(writer, "com/nginious/http/xsp/XspService");

@@ -19,7 +19,7 @@ package com.nginious.http.service;
 import java.util.Calendar;
 import java.util.Date;
 
-import com.nginious.http.rest.Serializable;
+import com.nginious.http.annotation.Serializable;
 
 @Serializable
 public class TestBean2 {

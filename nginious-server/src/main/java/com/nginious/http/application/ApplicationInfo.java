@@ -20,12 +20,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 
-import com.nginious.http.rest.Serializable;
+import com.nginious.http.annotation.Serializable;
 
 /**
  * A serializable bean that represents information about an application and
  * all its versions including the time they where published. Used by REST service 
- * {@link ApplicationService}  to return information about application contexts.
+ * {@link ApplicationController}  to return information about application contexts.
  * 
  * @author Bojan Pisler, NetDigital Sweden AB
  *

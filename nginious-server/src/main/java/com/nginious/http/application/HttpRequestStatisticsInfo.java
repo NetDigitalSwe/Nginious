@@ -19,7 +19,7 @@ package com.nginious.http.application;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.nginious.http.rest.Serializable;
+import com.nginious.http.annotation.Serializable;
 
 /**
  * A REST serializable HTTP request statistics info which contains a list of HTTP request 

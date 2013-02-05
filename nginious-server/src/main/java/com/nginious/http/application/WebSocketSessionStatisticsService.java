@@ -19,15 +19,14 @@ package com.nginious.http.application;
 import java.io.IOException;
 
 import com.nginious.http.HttpException;
-import com.nginious.http.HttpServiceResult;
-import com.nginious.http.rest.RestRequest;
-import com.nginious.http.rest.RestResponse;
-import com.nginious.http.rest.RestService;
+import com.nginious.http.HttpMethod;
+import com.nginious.http.annotation.Controller;
+import com.nginious.http.annotation.Request;
 import com.nginious.http.stats.WebSocketSessionStatistics;
 import com.nginious.http.stats.WebSocketSessionStatisticsEntry;
 
 /*
- * A REST service which returns web socket session statistics for a time period in the HTTP response. The
+ * A REST controller which returns web socket session statistics for a time period in the HTTP response. The
  * returned data contains entries for each minute within the time period.
  * 
  * <p>
@@ -48,7 +47,8 @@ import com.nginious.http.stats.WebSocketSessionStatisticsEntry;
  * </p>
  * 
  */
-class WebSocketSessionStatisticsService extends RestService<StatisticsRange, WebSocketSessionStatisticsInfo> {
+@Controller(path = "/wsstats")
+public class WebSocketSessionStatisticsService {
 	
 	private ApplicationManagerImpl manager;
 	
@@ -64,9 +64,8 @@ class WebSocketSessionStatisticsService extends RestService<StatisticsRange, Web
 	 * Returns web socket session statistics for the time period found in the statistics range in the specified REST request.
 	 * The response is returned in the specified REST response. 
 	 */
-	public HttpServiceResult executeGet(RestRequest<StatisticsRange> request, RestResponse<WebSocketSessionStatisticsInfo> response) throws HttpException, IOException {
-		StatisticsRange range = request.getBean();
-		
+	@Request(methods = { HttpMethod.GET })
+	public WebSocketSessionStatisticsInfo executeGet(StatisticsRange range) throws HttpException, IOException {
 		if(range == null) {
 			range = new StatisticsRange();
 		}
@@ -81,7 +80,6 @@ class WebSocketSessionStatisticsService extends RestService<StatisticsRange, Web
 			info.addItem(item);
 		}
 		
-		response.setBean(info);
-		return HttpServiceResult.DONE;
+		return info;
 	}
 }

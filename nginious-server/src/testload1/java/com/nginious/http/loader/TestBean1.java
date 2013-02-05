@@ -16,7 +16,7 @@
 
 package com.nginious.http.loader;
 
-import com.nginious.http.rest.Serializable;
+import com.nginious.http.annotation.Serializable;
 
 @Serializable
 public class TestBean1 {

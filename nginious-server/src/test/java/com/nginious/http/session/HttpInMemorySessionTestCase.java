@@ -27,7 +27,7 @@ import com.nginious.http.server.HttpServerFactory;
 import com.nginious.http.server.HttpTestConnection;
 import com.nginious.http.server.HttpTestRequest;
 import com.nginious.http.server.HttpTestResponse;
-import com.nginious.http.service.TestMemorySessionService;
+import com.nginious.http.service.TestMemorySessionController;
 import com.nginious.http.session.HttpInMemorySessionManager;
 
 import junit.framework.Test;
@@ -53,7 +53,7 @@ public class HttpInMemorySessionTestCase extends TestCase {
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
-		application.addHttpService(new TestMemorySessionService());
+		application.addController(new TestMemorySessionController());
 		manager.publish(application);
 		server.start();
    }

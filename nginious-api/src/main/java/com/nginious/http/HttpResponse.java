@@ -20,7 +20,6 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Locale;
 
-
 /**
  * Provides functionality for sending a HTTP response to a client.
  * 
@@ -176,7 +175,22 @@ public interface HttpResponse {
 	public abstract void setStatus(HttpStatus status, String message);
 	
 	/**
+	 * Sets the response data for this HTTP response.
+	 *
+	 * @param data the response data
+	 */
+	public abstract void setData(Object data);
+	
+	/**
 	 * Completes this HTTP response when executed asynchronously.
 	 */
 	public abstract void completed();
+	
+	/**
+	 * Returns whether or not this HTTP response is committed. A HTTP response is committed if its status has been
+	 * set or its content is written.
+	 * 
+	 * @return <code>true</code> if this HTTP response is committed, <code>false</code> otherwise
+	 */
+	public abstract boolean isCommitted();
 }

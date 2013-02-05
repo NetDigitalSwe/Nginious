@@ -33,7 +33,7 @@ import com.nginious.http.server.HttpServer;
 import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
 import com.nginious.http.server.HttpTestConnection;
-import com.nginious.http.service.TestUploadService;
+import com.nginious.http.service.TestUploadController;
 
 public class Http11UploadTestCase extends TestCase {
 	
@@ -58,7 +58,7 @@ public class Http11UploadTestCase extends TestCase {
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
-		application.addHttpService(new TestUploadService());
+		application.addController(new TestUploadController());
 		manager.publish(application);
 		server.start();
 	}
@@ -249,11 +249,9 @@ public class Http11UploadTestCase extends TestCase {
 			
 			byte[] b = new byte[2048];
 			int len = 0;
-			int written = 0;
 			
 			while((len = in.read(b)) > 0) {
 				conn.write(b, 0, len);
-				written += len;
 			}
 			
 			byte[] responseBytes = conn.readKeepAliveBody();

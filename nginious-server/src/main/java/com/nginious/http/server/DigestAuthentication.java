@@ -21,7 +21,7 @@ import java.security.NoSuchAlgorithmException;
 
 import com.nginious.http.HttpException;
 import com.nginious.http.HttpMethod;
-import com.nginious.http.HttpService;
+import com.nginious.http.application.HttpService;
 import com.nginious.http.common.StringUtils;
 
 public class DigestAuthentication extends HttpService {

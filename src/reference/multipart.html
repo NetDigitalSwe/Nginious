@@ -5,37 +5,37 @@
 		<link type="text/css" rel="stylesheet" href="css/main.css">
 		<link rel="home" href="index.html" title="Nginious Users Guide">
 		<link rel="up" href="index.html" title="Nginious Users Guide">
-		<link rel="prev" href="session.html" title="Chapter 9. Session management">
-		<link rel="next" href="admin.html" title="Chapter 11. Server administration">
+		<link rel="prev" href="session.html" title="Chapter 10. Session management">
+		<link rel="next" href="admin.html" title="Chapter 12. Server administration">
 	</head>
 	<body>
 		<div class="navheader">
 			<div>
 				<div class="navbar">
-					<a href="session.html" title="Chapter 9. Session management">Previous</a>
+					<a href="session.html" title="Chapter 10. Session management">Previous</a>
 					<span>|</span>
 					<a href="index.html" title="Nginious Users Guide">Contents</a>
 					<span>|</span>
-					<a href="admin.html" title="Chapter 11. Server administration">Next</a>
+					<a href="admin.html" title="Chapter 12. Server administration">Next</a>
 				</div>
 			</div>
 		</div>
 		<div class="chapter">
 			<div class="titlepage">
 				<div>
-					<div><h1><a name="session"></a>Chapter 10. Multipart content</h1>
+					<div><h1><a name="session"></a>Chapter 11. Multipart content</h1>
 				</div>
 			</div>
 		</div>
 		<div class="section">
 			<div class="titlepage">
 				<div>
-					<div><h2 class="title"><a name="overview"></a>10.1. Overview</h2></div>
+					<div><h2 class="title"><a name="overview"></a>11.1. Overview</h2></div>
 					
 					<p>
 						Nginious has built in support for parsing and handling multipart content. If a <code>Content-Type</code> 
 						header with value <code>multipart</code> is found in a request the server automatically extracts files and 
-						parameters and makes them available to HTTP services through the 
+						parameters and makes them available to controllers through the 
 						<a href="api/com/nginious/http/HttpRequest.html">HttpRequest</a> instances.
 					</p>
 					
@@ -54,7 +54,7 @@
 						<a href="api/com/nginious/http/HttpRequest.html#getParameterValues(java.lang.String)">getParameterValues(String name)</a> methods.
 					</p>
 					
-					<div><h2 class="title"><a name="progress"></a>10.2. Progress tracking</h2></div>
+					<div><h2 class="title"><a name="progress"></a>11.2. Progress tracking</h2></div>
 					
 					<p>
 						Nginious provides classes and methods for tracking the progress of a multipart upload containing a large
@@ -76,21 +76,22 @@
 										Before starting a file upload the <a href="api/com/nginious/http/HttpRequest.html#prepareUploadTracker()">prepareUploadTracker()</a> method must be called.
 										This method sets a tracking cookie which makes it possible for the server to associate a
 										file upload with requests for the upload progress. This must be done before the file upload
-										starts, for example in the HTTP service that serves the form for starting the file upload.
+										starts, for example in the controller that serves the form for starting the file upload.
 									</td>
 								</tr>
 								<tr>
 									<td>Upload</td>
 									<td>
-										A HTTP service must be implemented for accepting and processing the uploaded file. This can
-										be done by subclassing the <a href="api/com/nginious/http/server/HttpServer.html">HttpService</a> class
-										and method <a href="api/com/nginious/http/HttpService.html#executePost(com.nginious.http.HttpRequest, com.nginious.http.HttpResponse)">executePost(HttpRequest req, HttpResponse resp)</a>.
+										A controller must be implemented for accepting and processing the uploaded file. This can
+										be with any Java class which is annotated with the <a href="api/com/nginious/http/annotation/Controller.html">Controller</a> annotation.
+										The controller must have a method that can accept a HTTP post. See the <a href="webapps.html">5. Web applications</a> 
+										for details. 
 								</tr>
 								<tr>
 									<td>Tracker</td>
 									<td>
-										Implement a HTTP or REST service which returns the status of an ongoing file upload. The
-										service must call the <a href="api/com/nginious/http/HttpRequest.html#getUploadTracker()">getUploadTracker()</a>
+										Implement a controller which returns the status of an ongoing file upload. The
+										controller must call the <a href="api/com/nginious/http/HttpRequest.html#getUploadTracker()">getUploadTracker()</a>
 										method to retrieve the current status of any ongoing file uploads. This information can then
 										be serialized into <code>json</code> format for sending to the client.
 									</td>
@@ -99,7 +100,7 @@
 						</table>
 					</div>
 					
-					<div><h2 class="title"><a name="refs"></a>10.3. References</h2></div>
+					<div><h2 class="title"><a name="refs"></a>11.3. References</h2></div>
 					
 					<dl>
 						<dt>
@@ -116,11 +117,11 @@
 		<div class="navfooter">
 			<div>
 				<div class="navbar">
-					<a href="session.html" title="Chapter 9. Session management">Previous</a>
+					<a href="session.html" title="Chapter 10. Session management">Previous</a>
 					<span>|</span>
 					<a href="index.html" title="Nginious Users Guide">Contents</a>
 					<span>|</span>
-					<a href="admin.html" title="Chapter 11. Server administration">Next</a>
+					<a href="admin.html" title="Chapter 12. Server administration">Next</a>
 				</div>
 			</div>
 		</div>

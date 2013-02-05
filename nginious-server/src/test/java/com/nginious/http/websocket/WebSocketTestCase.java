@@ -18,22 +18,20 @@ package com.nginious.http.websocket;
 
 import java.util.Random;
 
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+
 import com.nginious.http.application.Application;
 import com.nginious.http.application.ApplicationManager;
 import com.nginious.http.common.StringUtils;
 import com.nginious.http.server.FileLogConsumer;
-import com.nginious.http.server.Http11MethodsTestCase;
 import com.nginious.http.server.HttpServer;
 import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
 import com.nginious.http.server.HttpTestConnection;
-import com.nginious.http.service.TestServerWebSocketService;
-import com.nginious.http.service.TestWebSocketService;
-import com.nginious.http.websocket.StatusCode;
-
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import com.nginious.http.service.TestServerWebSocketController;
+import com.nginious.http.service.TestWebSocketController;
 
 public class WebSocketTestCase extends TestCase {
 	
@@ -58,8 +56,8 @@ public class WebSocketTestCase extends TestCase {
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
-		application.addHttpService(new TestWebSocketService());
-		application.addHttpService(new TestServerWebSocketService());
+		application.addController(new TestWebSocketController());
+		application.addController(new TestServerWebSocketController());
 		manager.publish(application);
 		server.start();
 	}
@@ -591,7 +589,7 @@ public class WebSocketTestCase extends TestCase {
 	}
 	
 	public static Test suite() {
-		return new TestSuite(Http11MethodsTestCase.class);
+		return new TestSuite(WebSocketTestCase.class);
 	}
 
 	public static void main(String[] argv) {

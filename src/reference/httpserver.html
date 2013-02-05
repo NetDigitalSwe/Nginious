@@ -76,7 +76,7 @@
 									<td>memory</td>
 									<td>
 										Type of HTTP sessions to create (memory|cookie). See chapter 
-										<a href="session.html">9. Session management</a> for detailed information about sessions.
+										<a href="session.html">10. Session management</a> for detailed information about sessions.
 									</td>
 								</tr>
 								<tr>
@@ -92,7 +92,7 @@
 									<td>admin</td>
 									<td>
 										Password for accessing REST administration services. See chapter
-										<a href="deployment.html">11. Server administration</a> for detailed information
+										<a href="admin.html">12. Server administration</a> for detailed information
 										about server administration.
 									</td>
 								</tr>								
@@ -128,45 +128,37 @@
 								<tr>
 									<td class="nowrap">GET</td>
 									<td>
-										Supported for accessing static content as well as for HTTP and REST services. See the 
-										<a href="api/com/nginious/http/HttpService.html">HttpService</a> and
-										<a href="api/com/nginious/http/rest/RestService.hrml">RestService</a> classes for detailed
-										information.
+										Supported for accessing static content as well as for HTTP and REST controllers. See the 
+										<a href="webapps.html">5. Web applications</a> and <a href="rest.html">6. RESTful controllers</a>
+										chapters for detailed information.
 									</td>
 								</tr>
 								<tr>
 									<td class="nowrap">HEAD</td>
 									<td>
-										Supported for accessing static content as well as for HTTP and REST services. See the 
-										<a href="api/com/nginious/http/HttpService.html">HttpService</a> and
-										<a href="api/com/nginious/http/rest/RestService.hrml">RestService</a> classes for detailed
-										information.
+										Supported for accessing static content as well as for HTTP and REST controllers. See the 
+										<a href="webapps.html">5. Web applications</a> and <a href="rest.html">6. RESTful controllers</a>
+										chapters for detailed information.
 									</td>
 								<tr>
 									<td class="nowrap">POST</td>
 									<td>
-										Supported by HTTP and REST services. See the 
-										<a href="api/com/nginious/http/HttpService.html">HttpService</a> and
-										<a href="api/com/nginious/http/rest/RestService.hrml">RestService</a> classes for detailed
-										information.
+										Supported by HTTP and REST controllers. See the <a href="webapps.html">5. Web applications</a> and
+										<a href="rest.html">6. RESTful controllers</a> chapters for detailed information.
 									</td>
 								</tr>
 								<tr>
 									<td class="nowrap">PUT</td>
 									<td>
-										Supported by HTTP and REST services. See the 
-										<a href="api/com/nginious/http/HttpService.html">HttpService</a> and
-										<a href="api/com/nginious/http/rest/RestService.hrml">RestService</a> classes for detailed
-										information.
+										Supported by HTTP and REST controllers. See the <a href="webapps.html">5. Web applications</a> and
+										<a href="rest.html">6. RESTful controller</a> chapters for detailed information.
 									</td>
 								</tr>
 								<tr>
 									<td class="nowrap">DELETE</td>
 									<td>
-										Supported by HTTP and REST services. See the 
-										<a href="api/com/nginious/http/HttpService.html">HttpService</a> and
-										<a href="api/com/nginious/http/rest/RestService.hrml">RestService</a> classes for detailed
-										information.									
+										Supported by HTTP and REST controllers. See the <a href="webapps.html">5. Web applications</a> and
+										<a href="rest.html">6. RESTful controllers</a> chapters for detailed information.
 									</td>
 								</tr>
 								<tr>
@@ -178,10 +170,9 @@
 								<tr>
 									<td class="nowrap">OPTIONS</td>
 									<td>
-										Supported for accessing static content as well as for HTTP and REST services. See the 
-										<a href="api/com/nginious/http/HttpService.html">HttpService</a> and
-										<a href="api/com/nginious/http/rest/RestService.hrml">RestService</a> classes for detailed
-										information.
+										Supported for accessing static content as well as for HTTP and REST controllers. See the 
+										<a href="webapps.html">5. Web applications</a> and <a href="rest.html">6. RESTful controllers</a> chapters
+										for detailed information.
 									</td>
 								</tr>
 								<tr>
@@ -224,7 +215,7 @@
 									<td>
 										Chunked encoding is supported for both requests and responses. The server automatically
 										detects requests with chunked encoding when the <code>Transfer-Encoding</code> header is set
-										to <code>chunked</code> in requests. If a HTTP service sets the <code>Transfer-Enoding</code>
+										to <code>chunked</code> in requests. If a controller sets the <code>Transfer-Enoding</code>
 										header to <code>chunked</code> for a response the server automatically encodes the response 
 										accordingly.
 									</td>
@@ -234,8 +225,7 @@
 									<td>
 										Nginious has built in support for multipart content. A multipart request with the
 										<code>Multipart</code> header set the content is parsed into parameters and files and
-										made available to HTTP servies through the 
-										<a href="api/com/nginious/http/HttpRequest.html">HttpRequest</a> class.
+										made available to controllers through the <a href="api/com/nginious/http/HttpRequest.html">HttpRequest</a> class.
 									</td>
 								</tr>
 								<tr>
@@ -280,7 +270,7 @@
 								<tr>
 									<td class="nowrap">Accept-Charset</td>
 									<td>
-										Available for HTTP service classes through the
+										Available for controller classes through the
 										<a href="api/com/nginious/http/HttpRequest.html">HttpRequest</a> class.
 									</td>
 								</tr>
@@ -294,7 +284,7 @@
 								<tr>
 									<td class="nowrap">Accept-Language</td>
 									<td>
-										Available for HTTP service classes through the
+										Available for controller classes through the
 										<a href="api/com/nginious/http/HttpRequest.html">HttpRequest</a> class.
 									</td>
 								</tr>
@@ -308,28 +298,27 @@
 								<tr>
 									<td class="nowrap">Age</td>
 									<td>
-										Not supported directly by any functionality in the server but can be set by HTTP services
+										Not supported directly by any functionality in the server but can be set by controllers
 										in responses.
 									</td>
 								</tr>
 								<tr>
 									<td class="nowrap">Allow</td>
 									<td>
-										Set by the server in <code>OPTIONS</code> method requests for static content, HTTP
-										services and REST services.
+										Set by the server in <code>OPTIONS</code> method requests for static content and controllers.
 									</td>
 								</tr>
 								<tr>
 									<td class="nowrap">Authorization</td>
 									<td>
-										Not supported directly by any functionality in the server but can be set by HTTP services
+										Not supported directly by any functionality in the server but can be set by controllers
 										in responses.
 									</td>
 								</tr>
 								<tr>
 									<td class="nowrap">Cache-Control</td>
 									<td>
-										Not supported directly by any functionality in the server but can be set by HTTP services
+										Not supported directly by any functionality in the server but can be set by controllers
 										in responses.
 									</td>
 								</tr>
@@ -354,7 +343,7 @@
 								<tr>
 									<td class="nowrap">Content-Language</td>
 									<td>
-										Not supported directly by any functionality in the server but can be set by HTTP services
+										Not supported directly by any functionality in the server but can be set by controllers
 										in responses.
 									</td>
 								</tr>
@@ -370,14 +359,14 @@
 								<tr>
 									<td class="nowrap">Content-Location</td>
 									<td>
-										Not supported directly by any functionality in the server but can be set by HTTP services
+										Not supported directly by any functionality in the server but can be set by controllers
 										in responses.
 									</td>
 								</tr>
 								<tr>
 									<td class="nowrap">Content-MD5</td>
 									<td>
-										Not supported directly by any functionality in the server but can be set by HTTP services
+										Not supported directly by any functionality in the server but can be set by controllers
 										in responses.
 									</td>
 								</tr>
@@ -385,8 +374,8 @@
 									<td class="nowrap">Content-Range</td>
 									<td>
 										Set by the server in static content responses to inform clients which byte range of the
-										static content is served. The client must have requested a range request with a
-										<code>Range</code> header in the request.
+										static content is served. The client must have requested a range with a <code>Range</code> header 
+										in the request.
 									</td>
 								</tr>
 								<tr>
@@ -417,14 +406,14 @@
 								<tr>
 									<td class="nowrap">Expires</td>
 									<td>
-										Not supported directly by any functionality in the server but can be set by HTTP services
+										Not supported directly by any functionality in the server but can be set by controllers
 										in responses.
 									</td>
 								</tr>
 								<tr>
 									<td class="nowrap">From</td>
 									<td>
-										Not supported directly by any functionality in the server but can be set by HTTP services
+										Not supported directly by any functionality in the server but can be set by controllers
 										in responses.
 									</td>
 								</tr>
@@ -483,7 +472,7 @@
 								<tr>
 									<td class="nowrap">Location</td>
 									<td>
-										Not supported directly by any functionality in the server but can be set by HTTP services
+										Not supported directly by any functionality in the server but can be set by controllers
 										in responses.
 									</td>
 								</tr>
@@ -496,7 +485,7 @@
 								<tr>
 									<td class="nowrap">Pragma</td>
 									<td>
-										Not supported directly by any functionality in the server but can be set by HTTP services
+										Not supported directly by any functionality in the server but can be set by controllers
 										in responses.									
 									</td>
 								</tr>
@@ -528,7 +517,7 @@
 								<tr>
 									<td class="nowrap">Retry-After</td>
 									<td>
-										Not supported directly by any functionality in the server but can be set by HTTP services
+										Not supported directly by any functionality in the server but can be set by controllers
 										in responses.
 									</td>
 								</tr>
@@ -541,7 +530,7 @@
 								<tr>
 									<td class="nowrap">TE</td>
 									<td>
-										Not supported directly by any functionality in the server but can be set by HTTP services
+										Not supported directly by any functionality in the server but can be set by controllers
 										in responses.
 									</td>
 								</tr>
@@ -568,28 +557,28 @@
 								<tr>
 									<td class="nowrap">Vary</td>
 									<td>
-										Not supported directly by any functionality in the server but can be set by HTTP services
+										Not supported directly by any functionality in the server but can be set by controllers
 										in responses.
 									</td>
 								</tr>
 								<tr>
 									<td class="nowrap">Via</td>
 									<td>
-										Not supported directly by any functionality in the server but can be set by HTTP services
+										Not supported directly by any functionality in the server but can be set by controllers
 										in responses.
 									</td>
 								</tr>
 								<tr>
 									<td class="nowrap">Warning</td>
 									<td>
-										Not supported directly by any functionality in the server but can be set by HTTP services
+										Not supported directly by any functionality in the server but can be set by controllers
 										in responses.
 									</td>
 								</tr>
 								<tr>
 									<td class="nowrap">WWW-Authenticate</td>
 									<td>
-										Not supported directly by any functionality in the server but can be set by HTTP services
+										Not supported directly by any functionality in the server but can be set by controllers
 										in responses.
 									</td>
 								</tr>

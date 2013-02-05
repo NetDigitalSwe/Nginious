@@ -16,7 +16,7 @@
 
 package com.nginious.http.server;
 
-import com.nginious.http.cmd.CommandLine;
+import com.nginious.http.annotation.CommandLine;
 
 /**
  * A HTTP server configuration contains information to configure a HTTP server with the following

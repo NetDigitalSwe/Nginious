@@ -19,12 +19,9 @@ package com.nginious.http.websocket;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import com.nginious.http.application.ControllerService;
 import com.nginious.http.server.Connection;
 import com.nginious.http.stats.WebSocketSessionStatistics;
-import com.nginious.http.websocket.WebSocketBinaryMessage;
-import com.nginious.http.websocket.WebSocketService;
-import com.nginious.http.websocket.WebSocketSession;
-import com.nginious.http.websocket.WebSocketTextMessage;
 
 /**
  * A web socket session handles the receiving and sending of messages between a web socket client and server
@@ -43,7 +40,7 @@ public class WebSocketSessionImpl implements WebSocketSession {
 	
 	private int HEADER_SIZE = 4;
 	
-	private WebSocketService service;
+	private ControllerService service;
 	
 	private WebSocketConnection conn;
 	
@@ -69,7 +66,7 @@ public class WebSocketSessionImpl implements WebSocketSession {
 	 * 
 	 * @param service the web socket service
 	 */
-	public void setService(WebSocketService service) {
+	public void setService(ControllerService service) {
 		this.service = service;
 	}
 	

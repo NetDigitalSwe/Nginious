@@ -26,9 +26,9 @@ import com.nginious.http.server.HttpServer;
 import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
 import com.nginious.http.server.HttpTestConnection;
-import com.nginious.http.service.TestUploadProgressService;
-import com.nginious.http.service.TestUploadService;
-import com.nginious.http.service.TestUploadTrackerService;
+import com.nginious.http.service.TestUploadProgressController;
+import com.nginious.http.service.TestUploadController;
+import com.nginious.http.service.TestUploadTrackerController;
 import com.nginious.http.upload.MultipartInputStream;
 
 import junit.framework.Test;
@@ -58,9 +58,9 @@ public class Http11UploadTrackerTestCase extends TestCase {
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
-		application.addHttpService(new TestUploadService());
-		application.addHttpService(new TestUploadTrackerService());
-		application.addHttpService(new TestUploadProgressService());
+		application.addController(new TestUploadController());
+		application.addController(new TestUploadTrackerController());
+		application.addController(new TestUploadProgressController());
 		manager.publish(application);
 		server.start();
 	}

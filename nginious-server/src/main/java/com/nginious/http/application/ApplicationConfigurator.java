@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -28,11 +27,8 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import com.nginious.http.HttpService;
-import com.nginious.http.rest.InvokeRestService;
-import com.nginious.http.rest.RestService;
-import com.nginious.http.websocket.InvokeWebSocketService;
-import com.nginious.http.websocket.WebSocketService;
+import com.nginious.http.annotation.Controller;
+import com.nginious.http.annotation.Service;
 
 class ApplicationConfigurator {
 	
@@ -71,22 +67,18 @@ class ApplicationConfigurator {
 	private ApplicationImpl configure(File warFileOrAppDir) throws ApplicationException {
 		ApplicationImpl application = new ApplicationImpl(this.name);
 		
-		List<URL> classPaths = new ArrayList<URL>();
 		HashSet<ClassInfo> classes = new HashSet<ClassInfo>();
 		
 		if(warFileOrAppDir.isFile()) {
-			deployFromWar(application, warFileOrAppDir, classPaths, classes);
+			deployFromWar(application, warFileOrAppDir, classes);
 		} else {
-			deployFromDir(application, warFileOrAppDir, classPaths, classes);
+			deployFromDir(application, warFileOrAppDir, classes);
 		}
 		
 		boolean done = false;
 		
 		try {
-			ApplicationClassLoader classLoader = 
-				new ApplicationClassLoader(Thread.currentThread().getContextClassLoader(), application.getBaseDir());
-			application.setClassLoader(classLoader);
-			
+			ClassLoader classLoader = application.getClassLoader(); 
 			findServiceClasses(application, classLoader, classes);
 			done = true;
 			return application;
@@ -99,7 +91,7 @@ class ApplicationConfigurator {
 		}
 	}
 	
-	private void deployFromWar(ApplicationImpl application, File warFile, List<URL> classPaths, HashSet<ClassInfo> classes) throws ApplicationException {
+	private void deployFromWar(ApplicationImpl application, File warFile, HashSet<ClassInfo> classes) throws ApplicationException {
 		File tmpDir = createTempDir();
 		application.setBaseDir(tmpDir);
 		application.setWar(true);
@@ -118,8 +110,6 @@ class ApplicationConfigurator {
 					writeEntry(jar, entry, tmpDir);
 					
 					if(name.startsWith("WEB-INF/lib/") && name.endsWith(".jar")) {
-						File classPathFile = new File(tmpDir, name);
-						classPaths.add(classPathFile.toURI().toURL());
 						findJarClasses(tmpDir, name, classes);
 					}
 				} else if(name.equals("WEB-INF/classes/")) {
@@ -129,9 +119,6 @@ class ApplicationConfigurator {
 					if(!classPathDirName.endsWith("/")) {
 						classPathDirName = classPathDirName + "/";
 					}
-					
-					URL url = new URL("file:" + classPathDirName);
-					classPaths.add(url);
 				}
 				
 				if(name.startsWith("WEB-INF/classes/") && name.endsWith(".class")) {
@@ -155,7 +142,7 @@ class ApplicationConfigurator {
 		}
 	}
 	
-	private void deployFromDir(ApplicationImpl application, File appDir, List<URL> classPaths, HashSet<ClassInfo> classes) throws ApplicationException {
+	private void deployFromDir(ApplicationImpl application, File appDir, HashSet<ClassInfo> classes) throws ApplicationException {
 		application.setBaseDir(appDir);
 		application.setDirectory(true);
 		ArrayList<String> files = new ArrayList<String>();
@@ -164,8 +151,6 @@ class ApplicationConfigurator {
 		try {
 			for(String file : files) {
 				if(file.startsWith("/WEB-INF/lib/") && file.endsWith(".jar")) {
-					File classPathFile = new File(appDir, file);
-					classPaths.add(classPathFile.toURI().toURL());
 					findJarClasses(appDir, file, classes);
 				} else if(file.equals("/WEB-INF/classes")) {
 					File classPathDir = new File(appDir, file);
@@ -174,9 +159,6 @@ class ApplicationConfigurator {
 					if(!classPathDirName.endsWith("/")) {
 						classPathDirName = classPathDirName + "/";
 					}
-					
-					URL url = new URL("file:" + classPathDirName);
-					classPaths.add(url);
 				}
 				
 				if(file.startsWith("/WEB-INF/classes/") && file.endsWith(".class")) {
@@ -229,29 +211,18 @@ class ApplicationConfigurator {
 					String className = classFile.getClassName();
 					Class<?> clazz = classLoader.loadClass(className);
 					
-					if(WebSocketService.class.isAssignableFrom(clazz)) {
-						WebSocketService service = (WebSocketService)clazz.newInstance();
-						InvokeWebSocketService invokeService = new InvokeWebSocketService(service);
-						application.addHttpService(invokeService);
-					} else if(RestService.class.isAssignableFrom(clazz)) {
-						RestService<?, ?> service = (RestService<?, ?>)clazz.newInstance();
-						InvokeRestService invokeService = new InvokeRestService(service);
-						application.addHttpService(invokeService);
-					} else if(HttpService.class.isAssignableFrom(clazz)) {
-						HttpService service = (HttpService)clazz.newInstance();
+					if(clazz.isAnnotationPresent(Controller.class)) {
+						Object controller = clazz.newInstance();
 						File file = classFile.getClassFile();
-						
-						if(file != null) {
-							ReloadableHttpService reloadableService = new ReloadableHttpService(service, classLoader, className, file);
-							application.addReloadableHttpService(reloadableService);
-						} else {
-							application.addHttpService(service);
-						}
+						application.addController(controller, file, file != null);
+					} else if(clazz.isAnnotationPresent(Service.class)) {
+						Object service = clazz.newInstance();
+						application.addService(service);
 					}
 				} catch(NoClassDefFoundError e) {
-					
+					// Ignore classes that can't be loaded
 				} catch(ClassNotFoundException e) {
-					
+					// Ignore classes that can't be loaded
 				}
 			}
 		} catch(Exception e) {

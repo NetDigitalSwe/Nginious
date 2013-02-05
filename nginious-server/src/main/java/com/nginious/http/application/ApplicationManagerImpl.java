@@ -28,14 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.nginious.http.HttpException;
 import com.nginious.http.HttpRequest;
 import com.nginious.http.HttpResponse;
-import com.nginious.http.HttpService;
-import com.nginious.http.HttpServiceResult;
 import com.nginious.http.HttpStatus;
 import com.nginious.http.common.PathParameters;
-import com.nginious.http.rest.DeserializerFactory;
-import com.nginious.http.rest.InvokeRestService;
-import com.nginious.http.rest.SerializerFactory;
-import com.nginious.http.server.HttpServiceChain;
 import com.nginious.http.stats.HttpRequestStatistics;
 import com.nginious.http.stats.WebSocketSessionStatistics;
 
@@ -57,6 +51,10 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	
 	private ConcurrentHashMap<String, ApplicationImpl> applications;
 	
+	private ApplicationClassLoader classLoader;
+	
+	private ControllerServiceFactory controllerFactory;
+	
 	private HttpService applicationService;
 	
 	private HttpService applicationsService;
@@ -64,12 +62,6 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	private HttpService httpStatsService;
 	
 	private HttpService wsStatsService;
-	
-	@SuppressWarnings("unused")
-	private SerializerFactory serializerFactory;
-	
-	@SuppressWarnings("unused")
-	private DeserializerFactory deserializerFactory;
 	
 	private HttpRequestStatistics httpStatistics;
 	
@@ -88,13 +80,13 @@ public class ApplicationManagerImpl implements ApplicationManager {
 		
 		this.applications = new ConcurrentHashMap<String, ApplicationImpl>();
 
+		this.classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
+		this.controllerFactory = new ControllerServiceFactory(this.classLoader);
+		
 		this.applicationService = createApplicationService(password);
 		this.applicationsService = createApplicationsService(password);
 		this.httpStatsService = createHttpStatsService(password);
 		this.wsStatsService = createWebSocketSessionStatsService(password);
-
-		this.serializerFactory = SerializerFactory.getInstance();
-		this.deserializerFactory = DeserializerFactory.getInstance();
 	}
 	
 	public void setHttpRequestStatistics(HttpRequestStatistics httpStatistics) {
@@ -139,9 +131,9 @@ public class ApplicationManagerImpl implements ApplicationManager {
 					try {
 						publish(appName, appFile);
 					} catch(ApplicationException e) {
-						
+						e.printStackTrace();
 					} catch(Throwable t) {
-						
+						t.printStackTrace();
 					}
 				}
 			}
@@ -188,6 +180,10 @@ public class ApplicationManagerImpl implements ApplicationManager {
 				
 		if(application != null) {
 			result = application.execute(localPath, request, response);
+			
+			if(result == HttpServiceResult.CONTINUE) {
+				result = HttpServiceResult.DONE;
+			}
 		} else if(possibleAppName.equals("favicon.ico")) {
 			// Server empty favicon if none exists
 			ApplicationImpl.sendEmptyFavicon(response);
@@ -236,15 +232,11 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 	
 	public Application createApplication(String name, File baseDir) throws ApplicationException {
-		try {
-			ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader(), baseDir);
-			ApplicationImpl application = new ApplicationImpl(name);
-			application.setBaseDir(baseDir);
-			application.setClassLoader(classLoader);
-			return application;
-		} catch(IOException e) {
-			throw new ApplicationException("Unable to setup class loader for application ", e);
-		}
+		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader(), baseDir);
+		ApplicationImpl application = new ApplicationImpl(name);
+		application.setBaseDir(baseDir);
+		application.setClassLoader(classLoader);
+		return application;
 	}
 
 	public List<Application> getApplications() {
@@ -552,42 +544,58 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}	
 
 	private HttpService createApplicationService(String password) {
-		HttpServiceChain chain = new HttpServiceChain();
-		ApplicationAuthenticationFilter authService = new ApplicationAuthenticationFilter(password);
-		chain.addServiceLast(authService);
-		ApplicationService service = new ApplicationService(this);
-		InvokeRestService invoke = new InvokeRestService(service);
-		chain.addServiceLast(invoke);
-		return chain;
+		try {
+			ControllerChain chain = new ControllerChain();
+			ApplicationAuthenticationFilter authService = new ApplicationAuthenticationFilter(password);
+			chain.addServiceLast(authService);
+			ApplicationController service = new ApplicationController(this);
+			HttpService invokerService = controllerFactory.createControllerService(service);
+			chain.addServiceLast(invokerService);
+			return chain;
+		} catch(ControllerServiceFactoryException e) {
+			throw new RuntimeException("Unable to create application controller service", e);
+		}
 	}
 	
 	private HttpService createApplicationsService(String password) {
-		HttpServiceChain chain = new HttpServiceChain();
-		ApplicationAuthenticationFilter authService = new ApplicationAuthenticationFilter(password);
-		chain.addServiceLast(authService);
-		ApplicationsService service = new ApplicationsService(this);
-		InvokeRestService invoke = new InvokeRestService(service);
-		chain.addServiceLast(invoke);
-		return chain;
+		try {
+			ControllerChain chain = new ControllerChain();
+			ApplicationAuthenticationFilter authService = new ApplicationAuthenticationFilter(password);
+			chain.addServiceLast(authService);
+			ApplicationsController service = new ApplicationsController(this);
+			HttpService invokerService = controllerFactory.createControllerService(service);
+			chain.addServiceLast(invokerService);
+			return chain;
+		} catch(ControllerServiceFactoryException e) {
+			throw new RuntimeException("Unable to create applications controller service", e);
+		}
 	}
 	
 	private HttpService createHttpStatsService(String password) {
-		HttpServiceChain chain = new HttpServiceChain();
-		ApplicationAuthenticationFilter authService = new ApplicationAuthenticationFilter(password);
-		chain.addServiceLast(authService);
-		HttpRequestStatisticsService service = new HttpRequestStatisticsService(this);
-		InvokeRestService invoke = new InvokeRestService(service);
-		chain.addServiceLast(invoke);
-		return chain;		
+		try {
+			ControllerChain chain = new ControllerChain();
+			ApplicationAuthenticationFilter authService = new ApplicationAuthenticationFilter(password);
+			chain.addServiceLast(authService);
+			HttpRequestStatisticsService service = new HttpRequestStatisticsService(this);
+			HttpService invokerService = controllerFactory.createControllerService(service);
+			chain.addServiceLast(invokerService);
+			return chain;
+		} catch(ControllerServiceFactoryException e) {
+			throw new RuntimeException("Unable to create HTTP requests statistics controller service", e);
+		}
 	}
 	
 	private HttpService createWebSocketSessionStatsService(String password) {
-		HttpServiceChain chain = new HttpServiceChain();
-		ApplicationAuthenticationFilter authService = new ApplicationAuthenticationFilter(password);
-		chain.addServiceLast(authService);
-		WebSocketSessionStatisticsService service = new WebSocketSessionStatisticsService(this);
-		InvokeRestService invoke = new InvokeRestService(service);
-		chain.addServiceLast(invoke);
-		return chain;				
+		try {
+			ControllerChain chain = new ControllerChain();
+			ApplicationAuthenticationFilter authService = new ApplicationAuthenticationFilter(password);
+			chain.addServiceLast(authService);
+			WebSocketSessionStatisticsService service = new WebSocketSessionStatisticsService(this);
+			HttpService invokerService = controllerFactory.createControllerService(service);
+			chain.addServiceLast(invokerService);
+			return chain;
+		} catch(ControllerServiceFactoryException e) {
+			throw new RuntimeException("Unable to creat web socket session statistics controller service", e);
+		}
 	}
 }

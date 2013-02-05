@@ -19,18 +19,14 @@ package com.nginious.http.application;
 import java.io.File;
 import java.util.List;
 
-import com.nginious.http.HttpService;
-
 /**
  * An application groups a set of resources and makes them available for access over HTTP. An application is 
  * published under a base path where its resources can be accessed over HTTP. An application supports the
  * following types of resources.
  * 
  * <ul>
- * <li>HTTP services - subclasses of {@link com.nginious.http.HttpService} for dynamic content generation.</li>
- * <li>REST services - subclasses of {@link com.nginious.http.rest.RestService} for dynamic content generation with
- * REST service semantics.</li>
- * <li>XSP pages - script pages compiled into {@link com.nginious.http.HttpService} subclasses for dynamic content generation.</li>
+ * <li>Controller - any class marked with the {@link com.nginious.http.annotation.Controller} annotation for dynamic content generation.</li>
+ * <li>XSP pages - script pages compiled into services for dynamic content generation.</li>
  * <li>Static content - served from files on disk from the applications base directory.</li>
  * </ul>
  * 
@@ -83,46 +79,67 @@ public interface Application {
 	public void setBaseDir(File baseDir);
 	
 	/**
-	 * Adds the specified HTTP service to this application. The HTTP service is bound to the
-	 * path specified in the HTTP services {@link Service} annotation.
+	 * Adds the specified controller to this application. The controller is bound to the path
+	 * specified in the controllers {@link com.nginious.http.annotation.Controller} annotation.
 	 * 
-	 * @param service the HTTP service to add
-	 * @throws ApplicationException if unable to add HTTP service
+	 * @param controller the controller to add
+	 * @throws ApplicationException if unable to add controller
 	 */
-	public void addHttpService(HttpService service) throws ApplicationException;
+	public void addController(Object controller) throws ApplicationException;
 	
 	/**
-	 * Adds the specified HTTP service to this application and binds it to the specified
-	 * path.
+	 * Removes the specified controller from this application.
 	 * 
-	 * @param path the HTTP service path
-	 * @param service the HTTP service
-	 * @throws ApplicationException if unable to add HTTP service
+	 * @param controller the controller to remove
+	 * @return the removed controller or <code>null</code> if controller was not part of this application
 	 */
-	public void addHttpService(String path, HttpService service) throws ApplicationException;
+	public Object removeController(Object controller);
 	
 	/**
-	 * Removes the specified HTTP service from this application.
+	 * Removes the controller bound to the specified path from this application.
 	 * 
-	 * @param service the HTTP service to remove
-	 * @return the removed HTTP service or <code>null</code> if HTTP service was not part of this
-	 * application
+	 * @param path the controller path
+	 * @return the removed controller or <code>null</code> if no controller is bound to the path
 	 */
-	public HttpService removeHttpService(HttpService service);
+	public Object removeController(String path);
 	
 	/**
-	 * Removes the HTTP service bound to the specified path from this application.
+	 * Returns all controllers for this application.
 	 * 
-	 * @param path the HTTP service path
-	 * @return the removed HTTP service or <code>null</code> if no HTTP service is bound to the
-	 * path
+	 * @return list of all controllers
 	 */
-	public HttpService removeHttpService(String path);
+	public List<Object> getControllers();
 	
 	/**
-	 * Returns all HTTP services for this application.
+	 * Adds the specified service to this application. the service is bound to the name
+	 * specified in the services {@link com.nginious.http.annotation.Service} annotation.
 	 * 
-	 * @return list of all HTTP services
+	 * @param service the service to add
+	 * @throws ApplicationException if unable to add service
 	 */
-	public List<HttpService> getHttpServices();
+	public void addService(Object service) throws ApplicationException;
+	
+	/**
+	 * Removes the specified service from this application.
+	 * 
+	 * @param service the service to remove
+	 * @return the remove service or <code>null</code> if service was not part of this application
+	 */
+	public Object removeService(Object service);
+	
+	/**
+	 * Removes the service bound to the specified name from this application.
+	 * 
+	 * @param name the service name
+	 * @return the removed service or <code>null</code> if no service is bound to the name
+	 */
+	public Object removeService(String name);
+	
+	/**
+	 * Returns the service with the specified name from this application.
+	 * 
+	 * @param name the service name
+	 * @return the service or <code>null</code> if no service with the provided name exists
+	 */
+	public Object getService(String name);
 }

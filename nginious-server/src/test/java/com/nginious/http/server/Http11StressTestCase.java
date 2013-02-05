@@ -19,16 +19,13 @@ package com.nginious.http.server;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
-import com.nginious.http.application.Application;
-import com.nginious.http.application.ApplicationManager;
-import com.nginious.http.server.HttpServer;
-import com.nginious.http.server.HttpServerConfiguration;
-import com.nginious.http.server.HttpServerFactory;
-import com.nginious.http.service.TestBodyService;
-
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+
+import com.nginious.http.application.Application;
+import com.nginious.http.application.ApplicationManager;
+import com.nginious.http.service.TestBodyController;
 
 public class Http11StressTestCase extends TestCase {
 	
@@ -53,7 +50,7 @@ public class Http11StressTestCase extends TestCase {
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
-		application.addHttpService(new TestBodyService());
+		application.addController(new TestBodyController());
 		manager.publish(application);
 		server.start();
 	}
@@ -76,9 +73,11 @@ public class Http11StressTestCase extends TestCase {
 			"Content-Length: <length>";
 		
 		HttpTestConnection conn = null;
+		int index = 0;
 		
 		try {
 			for(int i = 0; i < numRounds; i++) {
+				index = i;
 				conn = new HttpTestConnection();
 				byte[] data = createData(100);
 				String request = requestHeader.replace("<length>", Integer.toString(data.length)) + "\n\n" + new String(data);
@@ -89,7 +88,12 @@ public class Http11StressTestCase extends TestCase {
 				
 				conn.close();
 				conn = null;
+				Thread.sleep(1);
 			}
+		} catch(Exception e) {
+			e.printStackTrace();
+			System.out.println("Timeout i=" + index + " thread=" + Thread.currentThread().getName());
+			throw e;
 		} finally {
 			if(conn != null) {
 				conn.close();
@@ -98,26 +102,28 @@ public class Http11StressTestCase extends TestCase {
 	}
 	
 	public void testStress() throws Exception {
-		CountDownLatch start = new CountDownLatch(10);
-		CountDownLatch stop = new CountDownLatch(10);
-		StressTester[] testers = new StressTester[10];
-		Thread[] threads = new Thread[10];
+		int numThreads = 10;
+		CountDownLatch start = new CountDownLatch(numThreads);
+		CountDownLatch stop = new CountDownLatch(numThreads);
+		StressTester[] testers = new StressTester[numThreads];
+		Thread[] threads = new Thread[numThreads];
 		
-		for(int i = 0; i < 10; i++) {
-			StressTester tester = new StressTester(start, stop);
+		for(int i = 0; i < numThreads; i++) {
+			StressTester tester = new StressTester(start, stop, "stress-tester-" + i);
 			testers[i] = tester;
 			threads[i] = new Thread(tester);
+			threads[i].setName("stress-tester-" + i);
 			threads[i].start();
 			start.countDown();
 		}
 		
 		stop.await();
 		
-		for(int i = 0; i < 10; i++) {
+		for(int i = 0; i < numThreads; i++) {
 			Throwable t = testers[i].getThrowable();
 			
 			if(t != null) {
-				assertNull(t);
+				assertNull(testers[i].getName(), t);
 			}
 		}
 	}
@@ -130,9 +136,16 @@ public class Http11StressTestCase extends TestCase {
 		
 		private Throwable t;
 		
-		StressTester(CountDownLatch start, CountDownLatch stop) {
+		private String name;
+		
+		StressTester(CountDownLatch start, CountDownLatch stop, String name) {
 			this.start = start;
 			this.stop = stop;
+			this.name = name;
+		}
+		
+		String getName() {
+			return this.name;
 		}
 		
 		Throwable getThrowable() {

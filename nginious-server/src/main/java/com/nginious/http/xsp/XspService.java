@@ -21,8 +21,8 @@ import java.io.IOException;
 import com.nginious.http.HttpException;
 import com.nginious.http.HttpRequest;
 import com.nginious.http.HttpResponse;
-import com.nginious.http.HttpService;
-import com.nginious.http.HttpServiceResult;
+import com.nginious.http.application.HttpService;
+import com.nginious.http.application.HttpServiceResult;
 
 
 /**

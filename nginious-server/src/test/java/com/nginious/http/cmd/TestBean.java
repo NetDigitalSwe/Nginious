@@ -16,7 +16,7 @@
 
 package com.nginious.http.cmd;
 
-import com.nginious.http.cmd.CommandLine;
+import com.nginious.http.annotation.CommandLine;
 
 public class TestBean {
 	

@@ -24,10 +24,10 @@ import com.nginious.http.application.ApplicationManager;
 import com.nginious.http.server.HttpServer;
 import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
-import com.nginious.http.service.TestEncodingService;
-import com.nginious.http.service.TestLocaleService;
-import com.nginious.http.service.TestMethodsService;
-import com.nginious.http.service.TestStatusMessageService;
+import com.nginious.http.service.TestEncodingController;
+import com.nginious.http.service.TestLocaleController;
+import com.nginious.http.service.TestMethodsController;
+import com.nginious.http.service.TestStatusMessageController;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -56,10 +56,10 @@ public class Http11MiscTestCase extends TestCase {
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
-		application.addHttpService(new TestEncodingService());
-		application.addHttpService(new TestLocaleService());
-		application.addHttpService(new TestMethodsService());
-		application.addHttpService(new TestStatusMessageService());
+		application.addController(new TestEncodingController());
+		application.addController(new TestLocaleController());
+		application.addController(new TestMethodsController());
+		application.addController(new TestStatusMessageController());
 		manager.publish(application);
 		server.start();
 	}

@@ -28,7 +28,7 @@ public class Suite {
     	suite.addTest(com.nginious.http.client.Suite.suite());
     	suite.addTest(com.nginious.http.cmd.Suite.suite());
     	suite.addTest(com.nginious.http.common.Suite.suite());
-    	suite.addTest(com.nginious.http.rest.Suite.suite());
+    	suite.addTest(com.nginious.http.serialize.Suite.suite());
     	suite.addTest(com.nginious.http.server.Suite.suite());
     	suite.addTest(com.nginious.http.session.Suite.suite());
     	suite.addTest(com.nginious.http.stats.Suite.suite());

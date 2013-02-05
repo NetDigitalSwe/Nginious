@@ -25,6 +25,7 @@ import java.io.IOException;
  *
  */
 public class Base64Utils {
+	
 	// Mapping table from 6-bit nibbles to Base64 characters.
 	private static final char[] sixBitNibblesToBase64Chars = new char[64];
 	   

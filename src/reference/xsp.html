@@ -5,44 +5,43 @@
 		<link type="text/css" rel="stylesheet" href="css/main.css">
 		<link rel="home" href="index.html" title="Nginious Users Guide">
 		<link rel="up" href="index.html" title="Nginious Users Guide">
-		<link rel="prev" href="websocket.html" title="Chapter 7. WebSocket services">
-		<link rel="next" href="session.html" title="Chapter 9. Session management">
+		<link rel="prev" href="services.html" title="Chapter 8. Services">
+		<link rel="next" href="session.html" title="Chapter 10. Session management">
 	</head>
 	<body>
 		<div class="navheader">
 			<div>
 				<div class="navbar">
-					<a href="websocket.html" title="Chapter 7. WebSocket services">Previous</a>
+					<a href="services.html" title="Chapter 8. Services">Previous</a>
 					<span>|</span>
 					<a href="index.html" title="Nginious Users Guide">Contents</a>
 					<span>|</span>
-					<a href="session.html" title="Chapter 9. Session management">Next</a>
+					<a href="session.html" title="Chapter 10. Session management">Next</a>
 				</div>
 			</div>
 		</div>
 		<div class="chapter">
 			<div class="titlepage">
 				<div>
-					<div><h1><a name="webapps"></a>Chapter 8. XSP</h1>
+					<div><h1><a name="webapps"></a>Chapter 9. XSP</h1>
 				</div>
 			</div>
 		</div>
 		<div class="section">
 			<div class="titlepage">
 				<div>
-					<div><h2 class="title"><a name="features"></a>8.1. Features and concepts</h2></div>
+					<div><h2 class="title"><a name="features"></a>9.1. Features and concepts</h2></div>
 					
 					<p>
 						XSP is a template language for generating html pages from dynamic data. A XSP template is built up from
 						standard html, XSP tags and expressions. Tags and expressions are used to generate html from attributes set
-						in HTTP services.
+						in controllers.
 					</p>
 					
 					<p>
-						A compiler is used to compile XSP templates into HTTP service classes. The compiler generates
-						Java bytecode directly from XSP templates without involving the standard Javac compiler. This makes the
-						compilation process very fast. XSP template compilation can be done before deployment in web applications or
-						runtime when accessed.
+						A compiler is used to compile XSP templates into Java classes. The compiler generates Java bytecode directly from 
+						XSP templates without involving the standard Javac compiler. This makes the compilation process very fast. XSP template 
+						compilation can be done before deployment in web applications or runtime when accessed.
 					</p>
 					
 					<p>
@@ -77,18 +76,18 @@
 						</div>
 					</p>
 					
-					<div><h2 class="title"><a name="execute"></a>8.2 Executing XSP pages</h2></div>
+					<div><h2 class="title"><a name="execute"></a>9.2 Executing XSP pages</h2></div>
 					
 					<p>
-						XSP pages are compiled into HTTP service classes which can be executed and dispatched to as normal HTTP 
-						services. Below is an example where a request is dispatched from a HTTP service to a XSP page with name
-						<code>test.xsp</code>. The HTTP service sets two attributes <code>name</code> and <code>items</code> which
-						can be accessed through expressions in the XSP page. See XSP page example above.
+						XSP pages are compiled into Java classes which can be executed and dispatched to as normal controllers. 
+						Below is an example where a request is dispatched from a controller to a XSP page with name <code>test.xsp</code>. 
+						The controller sets two attributes <code>name</code> and <code>items</code> which can be accessed through expressions 
+						in the XSP page. See XSP page example above.
 					</p>
 					
 					<div class="example-contents">
-						<pre class="programlisting"><span class="hl-string">							
-public HttpServiceResult doGet(HttpRequest req, HttpResponse resp) throws HttpServiceException, IOException {
+						<pre class="programlisting"><span class="hl-string">@Request(methods = { HttpMethod.GET })
+public void doGet(HttpRequest req, HttpResponse resp) throws HttpServiceException, IOException {
   List&lt;String&gt; items = new ArrayList&lt;String&gt;();
   items.add("One");
   items.add("Two");
@@ -97,14 +96,13 @@ public HttpServiceResult doGet(HttpRequest req, HttpResponse resp) throws HttpSe
   req.setAttribute("items", items);
   req.setAttribute("name", "Hello world");
   req.dispatch("/test.xsp");
-}
-						</span></pre>
+}</span></pre>
 					</div>
 										
-					<div><h2 class="title"><a name="tags"></a>8.3. Tags</h2></div>
+					<div><h2 class="title"><a name="tags"></a>9.3. Tags</h2></div>
 					
 					<p>
-						Tags are used in XSP to generate dynamic content from attributes set in HTTP services. Below is a
+						Tags are used in XSP to generate dynamic content from attributes set in controllers. Below is a
 						descripton of all supported tags.
 					</p>
 					
@@ -289,7 +287,7 @@ public HttpServiceResult doGet(HttpRequest req, HttpResponse resp) throws HttpSe
 					<b>xsp:meta</b>
 					
 					<p>
-						Provides meta data to the XSP compiler when compiling a XSP template into a HTTP service class. Two meta
+						Provides meta data to the XSP compiler when compiling a XSP template into a Java class. Two meta
 						tags are currently supported. See table below
 					</p>
 					
@@ -304,7 +302,7 @@ public HttpServiceResult doGet(HttpRequest req, HttpResponse resp) throws HttpSe
 							<tbody>
 								<tr>
 									<td>package</td>
-									<td>Name of package where compiled HTTP services compiled from XSP template should be placed.</td>
+									<td>Name of package where compiled Java class from XSP template should be placed.</td>
 								</tr>
 								<tr>
 									<td>Content-Type</td>
@@ -335,7 +333,7 @@ public HttpServiceResult doGet(HttpRequest req, HttpResponse resp) throws HttpSe
 						</table>
 					</div>					
 					
-					<div><h2 class="title"><a name="expressions"></a>8.4. Expressions</h2></div>
+					<div><h2 class="title"><a name="expressions"></a>9.4. Expressions</h2></div>
 					
 					<p>
 						Expressions can be used as test statements in if tags as well as in standalone in XSP pages to calculate
@@ -680,11 +678,11 @@ public HttpServiceResult doGet(HttpRequest req, HttpResponse resp) throws HttpSe
 		<div class="navfooter">
 			<div>
 				<div class="navbar">
-					<a href="websocket.html" title="Chapter 7. WebSocket services">Previous</a>
+					<a href="services.html" title="Chapter 8. Services">Previous</a>
 					<span>|</span>
 					<a href="index.html" title="Nginious Users Guide">Contents</a>
 					<span>|</span>
-					<a href="session.html" title="Chapter 9. Session management">Next</a>
+					<a href="session.html" title="Chapter 10. Session management">Next</a>
 				</div>
 			</div>
 		</div>

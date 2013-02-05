@@ -32,15 +32,10 @@ import com.nginious.http.HttpException;
 import com.nginious.http.HttpMethod;
 import com.nginious.http.HttpRequest;
 import com.nginious.http.HttpResponse;
-import com.nginious.http.HttpService;
-import com.nginious.http.HttpServiceResult;
 import com.nginious.http.HttpStatus;
-import com.nginious.http.application.Application;
-import com.nginious.http.application.ApplicationException;
-import com.nginious.http.application.Service;
-import com.nginious.http.rest.RestService;
+import com.nginious.http.annotation.Controller;
+import com.nginious.http.annotation.Service;
 import com.nginious.http.server.Header;
-import com.nginious.http.server.HttpServiceChain;
 import com.nginious.http.xsp.CompilableXspService;
 import com.nginious.http.xsp.XspCompiler;
 import com.nginious.http.xsp.XspException;
@@ -76,13 +71,17 @@ class ApplicationImpl implements Application {
 	
 	private File baseDir;
 	
-	private ConcurrentHashMap<String, HttpService> executableServices;
+	private ControllerServiceFactory controllerFactory;
 	
-	private HashSet<HttpService> addedServices;
+	private ConcurrentHashMap<String, HttpService> executableControllers;
 	
-	private TreeSet<HttpServiceFilter> filterServices = new TreeSet<HttpServiceFilter>();
+	private ConcurrentHashMap<String, ServiceRunner> services;
 	
-	private HashMap<String, String> allowedServiceMethods = new HashMap<String, String>();
+	private HashSet<Object> addedControllers;
+	
+	private TreeSet<HttpControllerFilter> filterControllers = new TreeSet<HttpControllerFilter>();
+	
+	private HashMap<String, String> allowedControllerMethods = new HashMap<String, String>();
 	
 	private ApplicationClassLoader classLoader;
 	
@@ -92,10 +91,15 @@ class ApplicationImpl implements Application {
 	ApplicationImpl(String name) {
 		this.name = name;
 		this.publishTime = new Date();
-		this.executableServices = new ConcurrentHashMap<String, HttpService>();
-		this.addedServices = new HashSet<HttpService>();
-		this.allowedServiceMethods = new HashMap<String, String>();
-		this.filterServices = new TreeSet<HttpServiceFilter>();
+		this.classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
+		this.controllerFactory = new ControllerServiceFactory(this.classLoader);
+		controllerFactory.setApplication(this);
+		
+		this.executableControllers = new ConcurrentHashMap<String, HttpService>();
+		this.services = new ConcurrentHashMap<String, ServiceRunner>();
+		this.addedControllers = new HashSet<Object>();
+		this.allowedControllerMethods = new HashMap<String, String>();
+		this.filterControllers = new TreeSet<HttpControllerFilter>();
 	}
 	
 	public String getName() {
@@ -112,10 +116,15 @@ class ApplicationImpl implements Application {
 
 	public void setBaseDir(File baseDir) {
 		this.baseDir = baseDir;
+		classLoader.setWebAppDir(baseDir);
 	}
 	
 	void setClassLoader(ApplicationClassLoader classLoader) {
 		this.classLoader = classLoader;
+	}
+	
+	ClassLoader getClassLoader() {
+		return this.classLoader;
 	}
 	
 	boolean isDirectory() {
@@ -150,93 +159,139 @@ class ApplicationImpl implements Application {
 		return this.publishTime;
 	}
 	
-	void addReloadableHttpService(ReloadableHttpService reloadableService) throws ApplicationException {
-		Service mapping = reloadableService.getService();
-		
-		if(mapping == null) {
-			throw new ApplicationException("Http service mapping annotation for class '" + reloadableService.getClass().getName() + "' is missing");			
-		}
-		
-		String path = mapping.path();
-		String pattern = mapping.pattern();
-		String methods = decodeMethods(reloadableService.getClass().getName(), mapping.methods());
-		
-		addHttpService(path, reloadableService, methods, pattern, mapping);
-		
+	public void addController(Object controller) throws ApplicationException {
+		addController(controller, null, false);
 	}
 	
-	public void addHttpService(HttpService service) throws ApplicationException {
-		Service mapping = service.getService();
-		
-		if(mapping == null) {
-			throw new ApplicationException("Http service mapping annotation for class '" + service.getClass().getName() + "' is missing");			
-		}
-		
-		String path = mapping.path();
-		String pattern = mapping.pattern();
-		String methods = decodeMethods(service.getClass().getName(), mapping.methods());
-		
-		addHttpService(path, service, methods, pattern, mapping);
+	void addController(Object controller, File classFile, boolean reloadable) throws ApplicationException {
+		try {
+			Controller mapping = controller.getClass().getAnnotation(Controller.class);
+			String path = mapping.path();
+			String pattern = mapping.pattern();
+			ControllerService invokerService = controllerFactory.createControllerService(controller);
+			
+			if(reloadable) {
+				String className = controller.getClass().getName();
+				HttpService reloadableService = new ReloadableControllerService(controllerFactory, invokerService, this.classLoader, className, classFile);
+				addHttpService(path, reloadableService, invokerService.getHttpMethods(), pattern, mapping);
+			} else {
+				addHttpService(path, invokerService, invokerService.getHttpMethods(), pattern, mapping);
+			}
+
+			addedControllers.add(controller);
+		} catch(ControllerServiceFactoryException e) {
+			throw new ApplicationException("Can't add controller '" + controller.getClass() + "'", e);
+		}		
 	}
-	
-	public void addHttpService(String path, HttpService service) throws ApplicationException {
-		addHttpService(path, service, "HEAD,GET,POST,PUT,DELETE", null, null);
-	}
-	
-	private void addHttpService(String path, HttpService service, String methods, String pattern, Service mapping) throws ApplicationException {
-		if(executableServices.containsKey(path)) {
+		
+	private void addHttpService(String path, HttpService service, String methods, String pattern, Controller mapping) throws ApplicationException {
+		if(executableControllers.containsKey(path)) {
 			throw new ApplicationException("Another HTTP service is already bound to path '" + path + "'");
 		}
 		
 		if(path != null && !path.equals("")) {
-			addedServices.add(service);
-			executableServices.put(path, service);
-			allowedServiceMethods.put(path, methods);
+			executableControllers.put(path, service);
+			allowedControllerMethods.put(path, methods);
 		} else if(pattern != null && !pattern.equals("")) {
 			validateFilterMethods(service.getClass().getName(), methods);
-			filterServices.add(new HttpServiceFilter(service, mapping));
-			addedServices.add(service);			
+			filterControllers.add(new HttpControllerFilter(service, mapping));
 		}
 	}
 
-	public HttpService removeHttpService(HttpService service) {
-		Service mapping = service.getClass().getAnnotation(Service.class);
+	public Object removeController(Object controller) {
+		Controller mapping = controller.getClass().getAnnotation(Controller.class);
 		
 		if(mapping != null) {
 			String path = mapping.path();
 			
 			if(path != null && !path.equals("")) {
-				return removeHttpService(path);
+				return removeController(path);
 			} else {
-				addedServices.remove(service);
-				return service;
+				if(addedControllers.remove(controller)) {
+					return controller;
+				}
 			}
 		}
 		
 		return null;
 	}
 	
-	public HttpService removeHttpService(String path) {
-		HttpService service = executableServices.remove(path);
+	public Object removeController(String path) {
+		HttpService service = executableControllers.remove(path);
 		
 		if(service != null) {
-			allowedServiceMethods.remove(path);
-			addedServices.remove(service);
-			
-			while(service instanceof HttpServiceChain) {
-				HttpService[] chainedServices = ((HttpServiceChain)service).getServices();
-				service = chainedServices[chainedServices.length - 1];
+			if(service instanceof ControllerChain) {
+				HttpService[] chainedServices = ((ControllerChain)service).getServices();
+				
+				for(int i = chainedServices.length - 1; i > 0; i--) {
+					if(chainedServices[i] instanceof ControllerService) {
+						ControllerService controllerService = (ControllerService)chainedServices[i];
+						Object controller = controllerService.getController();
+						addedControllers.remove(controller);						
+					}
+				}
+			} else {
+				ControllerService controllerService = (ControllerService)service;
+				Object controller = controllerService.getController();
+				addedControllers.remove(controller);
 			}
+			
+			allowedControllerMethods.remove(path);
 		}
 		
 		return service;
 	}
 
-	public List<HttpService> getHttpServices() {
-		int size = addedServices.size();
-		ArrayList<HttpService> outServices = new ArrayList<HttpService>(size);
-		outServices.addAll(this.addedServices);
-		return outServices;
+	public List<Object> getControllers() {
+		int size = addedControllers.size();
+		ArrayList<Object> outControllers = new ArrayList<Object>(size);
+		outControllers.addAll(this.addedControllers);
+		return outControllers;
+	}
+	
+	public void addService(Object service) throws ApplicationException {
+		addService(service, null);
+	}
+	
+	void addService(Object service, File classFile) throws ApplicationException {
+		Class<?> serviceClazz = service.getClass();
+		Service mapping = service.getClass().getAnnotation(Service.class);
+		
+		if(mapping == null) {
+			throw new ApplicationException("Service class " + serviceClazz.getName() + " is not annotated with a service mapping");			
+		}
+		
+		String name = mapping.name();
+		ServiceRunner runner = new ServiceRunner(this.classLoader, classFile, service);
+		services.put(name, runner);
+		runner.start();
+	}
+		
+	public Object removeService(Object service) {
+		Class<?> serviceClazz = service.getClass();
+		Service mapping = serviceClazz.getAnnotation(Service.class);
+		
+		if(mapping == null) {
+			return null;
+		}
+		
+		String name = mapping.name();
+		return removeService(name);
+	}
+	
+	public Object removeService(String name) {
+		ServiceRunner runner = services.remove(name);
+		
+		if(runner != null) {
+			return runner.stop();
+		}
+		
+		return null;
+	}
+	
+	public Object getService(String name) {
+		ServiceRunner runner = services.get(name);
+		return runner.getService();
 	}
 	
 	void publish() {
@@ -244,8 +299,8 @@ class ApplicationImpl implements Application {
 	}
 	
 	private void applyFilters() {
-		for(HttpServiceFilter filter : this.filterServices) {
-			Set<String> paths = executableServices.keySet();
+		for(HttpControllerFilter filter : this.filterControllers) {
+			Set<String> paths = executableControllers.keySet();
 			
 			for(String path : paths) {
 				applyFilter(filter, path);
@@ -253,24 +308,18 @@ class ApplicationImpl implements Application {
 		}		
 	}
 	
-	private void applyFilters(String path) {
-		for(HttpServiceFilter filter : this.filterServices) {
-			applyFilter(filter, path);
-		}
-	}
-	
-	private void applyFilter(HttpServiceFilter filter, String path) {
+	private void applyFilter(HttpControllerFilter filter, String path) {
 		if(path.matches(filter.getMapping().pattern())) {
-			HttpService service = executableServices.get(path);
+			HttpService service = executableControllers.get(path);
 			
-			if(service instanceof HttpServiceChain) {
-				HttpServiceChain chain = (HttpServiceChain)service;
+			if(service instanceof ControllerChain) {
+				ControllerChain chain = (ControllerChain)service;
 				chain.addServiceFirst(filter.getService());
 			} else {
-				HttpServiceChain chain = new HttpServiceChain();
+				ControllerChain chain = new ControllerChain();
 				chain.addServiceLast(filter.getService());
 				chain.addServiceLast(service);
-				executableServices.put(path, chain);
+				executableControllers.put(path, chain);
 			}
 		}		
 	}
@@ -278,6 +327,10 @@ class ApplicationImpl implements Application {
 	void unpublish() {
 		if(isWar()) {
 			cleanup(this.baseDir);
+		}
+		
+		for(ServiceRunner runner : services.values()) {
+			runner.stop();
 		}
 	}
 	
@@ -293,27 +346,23 @@ class ApplicationImpl implements Application {
 		}
 		
 		dir.delete();
-		
-		if(classLoader != null) {
-			classLoader.cleanup();
-		}		
 	}
 	
 	HttpServiceResult execute(String localPath, HttpRequest request, HttpResponse response) throws HttpException, IOException {
-		HttpService httpService = executableServices.get(localPath);
+		HttpService httpService = executableControllers.get(localPath);
 		HttpMethod method = request.getMethod();
 		
 		if(httpService != null && !method.equals(HttpMethod.OPTIONS)) {
 			try {
 				return httpService.invoke(request, response);
-			} catch(HttpServiceRemovedException e) {
-				executableServices.remove(localPath);
+			} catch(HttpControllerRemovedException e) {
+				executableControllers.remove(localPath);
 				throw new HttpException(e.getStatus(), e.getMessage(), e.getCause());
 			}
 		}
 		
 		if(httpService != null && method.equals(HttpMethod.OPTIONS)) {
-			String allowed = allowedServiceMethods.get(localPath);
+			String allowed = allowedControllerMethods.get(localPath);
 			response.setStatus(HttpStatus.OK);
 			response.setContentLength(0);
 			response.addHeader("Allow", allowed);
@@ -325,7 +374,7 @@ class ApplicationImpl implements Application {
 		}
 		
 		if(isUnpacked() && !staticContentExists(localPath)) {
-			if(findHttpService(localPath)) {
+			if(findController(localPath)) {
 				execute(localPath, request, response);
 			} else if(localPath.equals("/favicon.ico")) {
 				sendEmptyFavicon(response);
@@ -349,7 +398,7 @@ class ApplicationImpl implements Application {
 		out.write(FAVICON_EMPTY);
 	}
 	
-	private boolean findHttpService(String localPath) {
+	private boolean findController(String localPath) {
 		List<String> files = new ArrayList<String>();
 		File classesBaseDir = new File(this.baseDir, "WEB-INF/classes");
 		createFileList(classesBaseDir, classesBaseDir, files);
@@ -361,28 +410,21 @@ class ApplicationImpl implements Application {
 				
 				try {
 					Class<?> clazz = classLoader.loadClass(className);
+					Controller mapping = clazz.getAnnotation(Controller.class);
 					
-					if(RestService.class.isAssignableFrom(clazz) || HttpService.class.isAssignableFrom(clazz)) {
-						Service mapping = clazz.getAnnotation(Service.class);
+					if(mapping != null) {
+						String path = mapping.path();
 						
-						if(mapping != null) {
-							String path = mapping.path();
-							
-							if(localPath.equals(path)) {
-								HttpService service = (HttpService)clazz.newInstance();
-								File classFile = new File(classesBaseDir, file);
-								ReloadableHttpService reloadableService = new ReloadableHttpService(service, classLoader, className, classFile);
-								addReloadableHttpService(reloadableService);
-								applyFilters(path);
-								return true;
-							}
+						if(localPath.equals(path)) {
+							Object controller = clazz.newInstance();
+							File classFile = new File(classesBaseDir, file);
+							addController(controller, classFile, true);
+							return true;
 						}
 						
 					}
 				} catch(ClassNotFoundException e) {
-				} catch(Exception e) {
-					return false;
-				}
+				} catch(Exception e) {}
 			}
 		}
 		
@@ -429,12 +471,8 @@ class ApplicationImpl implements Application {
 				throw new HttpException(HttpStatus.NOT_FOUND, localPath);
 			}
 			
-			Class<?> serviceClazz = service.getClass();
-			Service mapping = serviceClazz.getAnnotation(Service.class);
-			String path = mapping.path();
-			
 			HttpService compilableService = new CompilableXspService(this.classLoader, service, webInfDir, xspFile, classesDir);
-			executableServices.put(path, compilableService);
+			executableControllers.put(localPath, compilableService);
 			return service.invoke(request, response);
 		} catch(XspException e) {
 			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Compilation failed");
@@ -486,37 +524,13 @@ class ApplicationImpl implements Application {
 		}
 	}
 	
-	private String decodeMethods(String serviceName, String methodSpec) throws ApplicationException {
-		String[] supportedMethods = methodSpec.split(",");
-		StringBuffer outMethods = new StringBuffer();
-		boolean first = true;
-		
-		for(int i = 0; i < supportedMethods.length; i++) {
-			supportedMethods[i] = supportedMethods[i].trim();
-			
-			if(!methods.contains(HttpMethod.valueOf(supportedMethods[i]))) {
-				throw new ApplicationException("Invalid method " + supportedMethods[i] + 
-						" in annotation for service " + serviceName);
-			}
-			
-			if(!first) {
-				outMethods.append(", ");
-			}
-			
-			outMethods.append(supportedMethods[i]);
-			first = false;
-		}
-		
-		return outMethods.toString();
-	}
-	
-	private class HttpServiceFilter implements Comparable<HttpServiceFilter> {
+	private class HttpControllerFilter implements Comparable<HttpControllerFilter> {
 		
 		private HttpService service;
 		
-		private Service mapping;
+		private Controller mapping;
 		
-		private HttpServiceFilter(HttpService service, Service mapping) {
+		private HttpControllerFilter(HttpService service, Controller mapping) {
 			this.service = service;
 			this.mapping = mapping;
 		}
@@ -525,7 +539,7 @@ class ApplicationImpl implements Application {
 			return this.service;
 		}
 		
-		Service getMapping() {
+		Controller getMapping() {
 			return this.mapping;
 		}
 		
@@ -535,17 +549,17 @@ class ApplicationImpl implements Application {
 		}
 		
 		public boolean equals(Object o) {
-			if(o instanceof HttpServiceFilter) {
-				HttpServiceFilter other = (HttpServiceFilter)o;
-				Service otherMapping = other.getMapping();
+			if(o instanceof HttpControllerFilter) {
+				HttpControllerFilter other = (HttpControllerFilter)o;
+				Controller otherMapping = other.getMapping();
 				return otherMapping.pattern().equals(mapping.pattern()) && otherMapping.index() == mapping.index();
 			}
 			
 			return super.equals(o);
 		}
 		
-		public int compareTo(HttpServiceFilter filter) {
-			Service filterMapping = filter.getMapping();
+		public int compareTo(HttpControllerFilter filter) {
+			Controller filterMapping = filter.getMapping();
 			
 			if(mapping.index() == filterMapping.index()) {
 				return mapping.pattern().compareTo(filterMapping.pattern());

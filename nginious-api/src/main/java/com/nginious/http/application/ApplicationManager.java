@@ -25,7 +25,7 @@ import java.util.List;
  * 
  * <p>
  * An application can be published for the first time or updated by calling the {@link #publish(String, File)}
- * method. If the application is packaged in a web application archive any previously published versions of an
+ * method. If the application is packaged in a web application archive any previously published versions of the application
  * are backed up. Up to 10 versions of an application are backed up. By calling the {@link #rollback(String)}
  * the current version of an application is unpublished and the latest backed up version is published.
  * </p>

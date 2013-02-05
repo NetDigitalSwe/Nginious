@@ -20,17 +20,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Random;
 
-import com.nginious.http.application.Application;
-import com.nginious.http.application.ApplicationManager;
-import com.nginious.http.server.HttpServer;
-import com.nginious.http.server.HttpServerConfiguration;
-import com.nginious.http.server.HttpServerFactory;
-import com.nginious.http.service.TestBodyService;
-import com.nginious.http.service.TestChunkingService;
-
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+
+import com.nginious.http.application.Application;
+import com.nginious.http.application.ApplicationManager;
+import com.nginious.http.service.TestBodyController;
+import com.nginious.http.service.TestChunkingController;
 
 public class Http11ChunkedTestCase extends TestCase {
 	
@@ -55,8 +52,8 @@ public class Http11ChunkedTestCase extends TestCase {
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
-		application.addHttpService(new TestBodyService());
-		application.addHttpService(new TestChunkingService());
+		application.addController(new TestBodyController());
+		application.addController(new TestChunkingController());
 		manager.publish(application);
 		server.start();
 	}

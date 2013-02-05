@@ -191,8 +191,7 @@ public class Http11AdminTestCase extends XMLTestCase {
 		byte[] responseBytes = conn.readKeepAliveBody();
 		String xml = new String(responseBytes);
 		
-		// System.out.println(xml);
-		
+		System.out.println(xml);
 		assertXpathExists("/test-bean2", xml);
 		assertXpathEvaluatesTo("one", "/test-bean2/first", xml);
 		assertXpathEvaluatesTo("two", "/test-bean2/second", xml);
@@ -215,10 +214,10 @@ public class Http11AdminTestCase extends XMLTestCase {
 		String expectedResponse = "HTTP/1.1 404 Not Found\015\012" +
 			"Content-Type: text/html; charset=utf-8\015\012" +
 			"Date: <date>\015\012" +
-			"Content-Length: 55\015\012" +
+			"Content-Length: 60\015\012" +
 			"Connection: keep-alive\015\012" +
 			"Server: Nginious/1.0.0\015\012\015\012" +
-			"<html><body><h1>404 Not Found: /test</h1></body></html>";
+			"<html><body><h1>404 Not Found: /test/test</h1></body></html>";
 		
 		byte[] header = requestHeader.getBytes();
 		conn.write(header);
@@ -253,7 +252,7 @@ public class Http11AdminTestCase extends XMLTestCase {
 		conn.write(request);
 		byte[] responseBytes = conn.readKeepAliveBody();
 		String xml = new String(responseBytes);
-		// System.out.println("Xml: " + xml);
+		
 		assertXpathExists("/application-info", xml);
 		assertXpathEvaluatesTo("test", "/application-info/name", xml);
 		assertXpathExists("/application-info/versions", xml);
@@ -295,7 +294,7 @@ public class Http11AdminTestCase extends XMLTestCase {
 		
 		conn.write(request);
 		String response = conn.readKeepAliveString();
-		// System.out.println(response);
+		
 		expectedResponse = conn.setHeaders(response, expectedResponse);
 		assertEquals(expectedResponse, response);
 	}
@@ -326,8 +325,6 @@ public class Http11AdminTestCase extends XMLTestCase {
 		conn.write(request);
 		byte[] responseBytes = conn.readKeepAliveBody();
 		String xml = new String(responseBytes);
-		
-		// System.out.println(xml);
 		
 		assertXpathExists("/application-info", xml);
 		assertXpathEvaluatesTo("test", "/application-info/name", xml);
@@ -404,8 +401,6 @@ public class Http11AdminTestCase extends XMLTestCase {
 		byte[] responseBytes = conn.readKeepAliveBody();
 		String xml = new String(responseBytes);
 		
-		// System.out.println(xml);
-		
 		assertXpathExists("/application-info", xml);
 		assertXpathEvaluatesTo("test", "/application-info/name", xml);
 		assertXpathExists("/application-info/versions", xml);
@@ -441,8 +436,6 @@ public class Http11AdminTestCase extends XMLTestCase {
 		conn.write(header);
 		byte[] responseBytes = conn.readKeepAliveBody();
 		String xml = new String(responseBytes);
-		
-		// System.out.println(xml);
 		
 		assertXpathExists("/application-info", xml);
 		assertXpathEvaluatesTo("test", "/application-info/name", xml);
@@ -510,7 +503,7 @@ public class Http11AdminTestCase extends XMLTestCase {
 		byte[] responseData = conn.readKeepAliveBody();
 		String xml = new String(responseData);
 		
-		// System.out.println(xml);
+		System.out.println(xml);
 		
 		assertXpathExists("/applications-info", xml);
 		assertXpathExists("/applications-info/applications", xml);
@@ -608,20 +601,6 @@ public class Http11AdminTestCase extends XMLTestCase {
 				try { in.close(); } catch(IOException e) {}
 			}
 		}
-	}
-	
-	private void deleteDir(File dir) {
-		File[] subFiles = dir.listFiles();
-		
-		for(File subFile : subFiles) {
-			if(subFile.isDirectory()) {
-				deleteDir(subFile);
-			} else {
-				subFile.delete();				
-			}
-		}
-		
-		dir.delete();
 	}
 	
 	public static Test suite() {

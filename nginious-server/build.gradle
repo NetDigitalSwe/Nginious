@@ -105,6 +105,7 @@ assemble.dependsOn testwebWar, testload1Jar, testload1War, testload2Jar, testloa
 clean.dependsOn eclipseClean
 
 test {
+	include 'com/nginious/http/application/Http11ServiceTestCase**'
 	jvmArgs '-Dfile.encoding=utf-8'
 }
 

@@ -27,7 +27,7 @@ import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
 import com.nginious.http.server.HttpTestConnection;
 import com.nginious.http.server.HttpTestRequest;
-import com.nginious.http.service.TestSessionService;
+import com.nginious.http.service.TestSessionController;
 import com.nginious.http.session.HttpCookieSessionDeserializer;
 import com.nginious.http.session.HttpCookieSessionManager;
 import com.nginious.http.session.HttpCookieSessionSerializer;
@@ -62,7 +62,7 @@ public class HttpCookieSessionTestCase extends TestCase {
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
-		application.addHttpService(new TestSessionService());
+		application.addController(new TestSessionController());
 		manager.publish(application);
 		server.start();
    }

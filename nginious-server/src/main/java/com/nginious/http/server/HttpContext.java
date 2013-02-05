@@ -39,10 +39,10 @@ import com.nginious.http.HttpException;
 import com.nginious.http.HttpMethod;
 import com.nginious.http.HttpRequest;
 import com.nginious.http.HttpResponse;
-import com.nginious.http.HttpServiceResult;
 import com.nginious.http.HttpSession;
 import com.nginious.http.HttpStatus;
 import com.nginious.http.application.ApplicationManagerImpl;
+import com.nginious.http.application.HttpServiceResult;
 import com.nginious.http.common.Base64Utils;
 import com.nginious.http.common.Buffer;
 import com.nginious.http.common.PathParameters;
@@ -1194,8 +1194,8 @@ class HttpContext {
 			return HttpContext.this.conn.getRemotePort();
 		}
 		
-		public HttpServiceResult dispatch(String path) throws HttpException, IOException {
-			return execute(path, this, this.response);
+		public void dispatch(String path) throws HttpException, IOException {
+			execute(path, this, this.response);
 		}
 	}
 	
@@ -1227,6 +1227,8 @@ class HttpContext {
 		
 		private HttpRequestHandler request;
 		
+		private boolean committed;
+		
 		private HttpResponseHandler(HttpRequestHandler request) {
 			super();
 			this.request = request;
@@ -1253,6 +1255,7 @@ class HttpContext {
 			this.characterEncoding = null;
 			this.contentType = null;
 			this.statusMsg = null;
+			this.committed = false;
 			return true;
 		}
 		
@@ -1285,6 +1288,7 @@ class HttpContext {
 				this.outputStream = new HttpHandlerOutputStream(this.output);
 			}
 			
+			this.committed = true;
 			return this.outputStream;
 		}
 		
@@ -1315,6 +1319,7 @@ class HttpContext {
 				this.writer = new PrintWriter(out);
 			}
 			
+			this.committed = true;
 			return this.writer;
 		}
 
@@ -1426,10 +1431,25 @@ class HttpContext {
 		public void setStatus(HttpStatus status, String message) {
 			this.status = status;
 			this.statusMsg = message;
+			this.committed = true;
+		}
+		
+		public void setData(Object data) {
+			String textData = data.toString();
+			int length = textData.length();
+			setContentLength(length);
+			setContentType("text/plain");
+			setCharacterEncoding("utf-8");
+			getWriter().print(textData);
+			this.committed = true;
 		}
 		
 		public void completed() {
 			contextManager.unmanage(HttpContext.this);
+		}
+		
+		public boolean isCommitted() {
+			return this.committed;
 		}
 		
 		void flush() throws IOException {

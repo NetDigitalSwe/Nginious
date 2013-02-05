@@ -18,11 +18,11 @@ package com.nginious.http.application;
 
 import java.util.Date;
 
-import com.nginious.http.rest.Serializable;
+import com.nginious.http.annotation.Serializable;
 
 /**
  * A serializable bean that contains information about an application version
- * and the time it was published. Used by REST service {@link ApplicationService} to return
+ * and the time it was published. Used by REST service {@link ApplicationController} to return
  * information about published applications.
  * 
  * @author Bojan Pisler, NetDigital Sweden AB

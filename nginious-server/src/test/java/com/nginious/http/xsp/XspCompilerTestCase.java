@@ -24,17 +24,13 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import com.nginious.http.HttpException;
-import com.nginious.http.application.Service;
-import com.nginious.http.server.HttpTestRequest;
-import com.nginious.http.server.HttpTestResponse;
-import com.nginious.http.xsp.XspCompiler;
-import com.nginious.http.xsp.XspException;
-import com.nginious.http.xsp.XspService;
-
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+
+import com.nginious.http.HttpException;
+import com.nginious.http.server.HttpTestRequest;
+import com.nginious.http.server.HttpTestResponse;
 
 public class XspCompilerTestCase extends TestCase {
 	
@@ -184,13 +180,6 @@ public class XspCompilerTestCase extends TestCase {
 		XspCompiler compiler = new XspCompiler();
 		XspService service = compiler.compileService("src/testweb/webapp/WEB-INF/xsp/XspAnnotationsTest.xsp");
 		assertNotNull(service);
-		
-		Class<?> clazz = service.getClass();
-		Service mapping = clazz.getAnnotation(Service.class);
-		assertEquals("src/testweb/webapp/WEB-INF/xsp/XspAnnotationsTest.xsp", mapping.path());
-		assertEquals(0, mapping.index());
-		assertEquals("HEAD,GET,POST,PUT,DELETE", mapping.methods());
-		assertEquals("", mapping.pattern());
 	}
 	
 	public void testXspDateTag() throws Exception {

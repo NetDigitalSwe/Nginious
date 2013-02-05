@@ -5,37 +5,37 @@
 		<link type="text/css" rel="stylesheet" href="css/main.css">
 		<link rel="home" href="index.html" title="Nginious Users Guide">
 		<link rel="up" href="index.html" title="Nginious Users Guide">
-		<link rel="prev" href="admin.html" title="Chapter 11. Server administration">
-		<link rel="next" href="statistics.html" title="Chapter 13. Statistics">
+		<link rel="prev" href="admin.html" title="Chapter 12. Server administration">
+		<link rel="next" href="statistics.html" title="Chapter 14. Statistics">
 	</head>
 	<body>
 		<div class="navheader">
 			<div>
 				<div class="navbar">
-					<a href="admin.html" title="Chapter 11. Server administration">Previous</a>
+					<a href="admin.html" title="Chapter 12. Server administration">Previous</a>
 					<span>|</span>
 					<a href="index.html" title="Nginious Users Guide">Contents</a>
 					<span>|</span>
-					<a href="statistics.html" title="Chapter 13. Statistics">Next</a>
+					<a href="statistics.html" title="Chapter 14. Statistics">Next</a>
 				</div>
 			</div>
 		</div>
 		<div class="chapter">
 			<div class="titlepage">
 				<div>
-					<div><h1><a name="admin"></a>Chapter 12. Ant integration</h1>
+					<div><h1><a name="admin"></a>Chapter 13. Ant integration</h1>
 				</div>
 			</div>
 		</div>
 		<div class="section">
 			<div class="titlepage">
 				<div>
-					<div><h2 class="title"><a name="xsp"></a>12.1. Compiling XSP templates</h2></div>
+					<div><h2 class="title"><a name="xsp"></a>13.1. Compiling XSP templates</h2></div>
 					
 					<p>
-						The xspc ant task is used for precompiling XSP templates into HTTP services for inclusion into web applications.
+						The xspc ant task is used for precompiling XSP templates into Java classes for inclusion into web applications.
 						It works in a similar way as the <code>javac</code> task for compiling java classes. Below is an example
-						that compiles a set of XSP templates into HTTP services. Note that the jar file <code>nginious-ant-1.0.0.jar</code>
+						that compiles a set of XSP templates into Java classes. Note that the jar file <code>nginious-ant-1.0.0.jar</code>
 						that includes has to be included in the classpath.
 					</p>
 					
@@ -70,11 +70,11 @@
 						</table>
 					</div>
 					
-					<div><h2 class="title"><a name="deploying"></a>12.2. Deploying</h2></div>
+					<div><h2 class="title"><a name="deploying"></a>13.2. Deploying</h2></div>
 					
 					<p>
 						The deploy task deploys a web application archive to a remote Nginious server. The jar file 
-						<code>nginious-ant-1.0.0.jar</code> that includes has to be included in the classpath.
+						<code>nginious-ant-1.0.0.jar</code> that contains ant tasks has to be included in the classpath.
 					</p>
 
 					<div class="example-contents">
@@ -100,7 +100,7 @@
 								<tr>
 									<td>url</td>
 									<td>
-										URL of Nginious REST admin service for deploying web applications. The last path element
+										URL of Nginious REST admin controller for deploying web applications. The last path element
 										of the URL matches the name of the web application being deployed.
 									</td>
 								</tr>
@@ -113,13 +113,13 @@
 								<tr>
 									<td>username</td>
 									<td>
-										Username for accessing remote Nginious server admin service.
+										Username for accessing remote Nginious server admin controller.
 									</td>
 								</tr>
 								<tr>
 									<td>password</td>
 									<td>
-										Password for accessing remote Nginious server admin service.
+										Password for accessing remote Nginious server admin controller.
 									</td>
 								</tr>
 							</tbody>
@@ -131,11 +131,11 @@
 		<div class="navfooter">
 			<div>
 				<div class="navbar">
-					<a href="admin.html" title="Chapter 11. Server administration">Previous</a>
+					<a href="admin.html" title="Chapter 12. Server administration">Previous</a>
 					<span>|</span>
 					<a href="index.html" title="Nginious Users Guide">Contents</a>
 					<span>|</span>
-					<a href="statistics.html" title="Chapter 13. Statistics">Next</a>
+					<a href="statistics.html" title="Chapter 14. Statistics">Next</a>
 				</div>
 			</div>
 		</div>

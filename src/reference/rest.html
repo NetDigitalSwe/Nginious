@@ -1,7 +1,7 @@
 <html>
 	<head>
 		<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
-		<title>Chapter 6. RESTful services</title>
+		<title>Chapter 6. RESTful controllers</title>
 		<link type="text/css" rel="stylesheet" href="css/main.css">
 		<link rel="home" href="index.html" title="Nginious Users Guide">
 		<link rel="up" href="index.html" title="Nginious Users Guide">
@@ -23,7 +23,7 @@
 		<div class="chapter">
 			<div class="titlepage">
 				<div>
-					<div><h1><a name="webapps"></a>Chapter 6. RESTful services</h1>
+					<div><h1><a name="rest"></a>Chapter 6. RESTful controllers</h1></div>
 				</div>
 			</div>
 		</div>
@@ -33,10 +33,10 @@
 					<div><h2 class="title"><a name="overview"></a>6.1. Overview</h2></div>
 					
 					<p>
-						RESTful services add REST semantics to HTTP services. Request data is automatically deserialized from
-						JSON, XML or query parameters into a Java bean. The deserialized bean is sent to the REST service as
-						part of the request. The REST service returns another bean as response which is serialized into JSON or
-						XML format for sending in the response body to the client. 
+						RESTful controllers add additional functionality to controllers. Request data can be automatically deserialized
+						from JSON. XML or query parameters into Java beans. The deserialized bean can be used as a parameter to a
+						controller method. The controller method can returns another bean as response from a method. This bean is
+						serialized into JSON or XML for sending to the client in the response body.
 					</p>
 					
 					<p>
@@ -46,8 +46,8 @@
 					</p>
 					
 					<p>
-						The server determines which format to deserializa from by looking at the <code>Content-Type</code> header
-						in the request. Which format to serialize to is determined by the server by the <code>Accept</code> header.
+						The server determines which format to deserialize from by looking at the <code>Content-Type</code> header
+						in the request. Which format to serialize to is determined by inspecting the <code>Accept</code> request header.
 						The following is a list of formats supported by the server.
 					</p>
 					
@@ -80,66 +80,126 @@
 						</table>
 					</div>
 					
-					<div><h2 class="title"><a name="services"></a>6.2. REST services</h2></div>
+					<div><h2 class="title"><a name="controllers"></a>6.2. REST controllers</h2></div>
 					
 					<p>
-						A REST service is a subclass of <a href="api/com/nginious/http/rest/RestService.html">RestService</a>. A
-						REST service has two type parameters that define which type of bean to deserialize and which type of bean
-						to serialize for the service. Below is an example REST service which type parameters <code>InBean</code> and
-						<code>OutBean</code>. The service override the <code>executeGet</code> method for handling <code>GET</code>
-						method requests.
+						REST controllers adhere to the same rules as HTTP controllers. See section <a href="webapps.html#controllers">5.5 Controllers</a>
+						for general information about controllers. The server adds REST behavior to controller methods when it detects that the
+						method accepts a deserializable bean in its parameter list or returns a serializable bean as return type. Below is an example
+						controller which accepts a <code>InBean</code> deserializable bean and returns a <code>OutBean</code> serializable bean.
 					</p>
 					
 					<p>
 						<div class="example-contents">
 							<pre class="programlisting">
-<span class="hl-string">@Service(path = "/example/rest")
-public class ExampleRestService extends RestService<&lt;InBean, OutBean&gt; {
+<span class="hl-string">@Controller(path = "/example/rest")
+public class ExampleRestController {
   
-  public HttpServiceResult executeGet(RestRequest&lt;InBean&gt; req, RestResponse&lt;OutBean&gt; resp) throws HttpException, IOException {
-    InBean in = req.getBean();
+  public OutBean executeGet(HttpResponse response, InBean in) throws HttpException, IOException {
     String value = in.getValue();
     OutBean out = new OutBean();
     out.setValue(value);
     resp.setBean(out);
-    return HttpServiceResult.DONE;
+    return out;
   }
 }</span></pre>
 						</div>
 					</p>
 					
+					<div><h2 class="title"><a name="methodrules"></a>6.3. REST controller method rules</h2></div>
+					
 					<p>
-						Below is a description of each method that may be implemented for a REST service.
+						The rules for REST controller methods are the same as for methods that handle HTTP requests with the addition that
+						deserializable beans are accepted as method parameters and serializable beans can be returned from methods.
+						Below is a table that the describes the possible parameter and return types. 
 					</p>
 					
-					<b>HttpServiceResult executeGet(RestRequest&lt;K&gt; req, RespResponse&lt;T&gt; resp)</b>
+					<p><b>The following is a list of parameter types that a controller method can accept</b></p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td class="nowrap">Parameter type</td>
+									<td>Description</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="nowrap">HttpRequest</td>
+									<td>
+										An instance of <a href="api/com/nginious/http/HttpRequest.html">HttpRequest</a> used for accessing information
+										about the HTTP request.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">HttpResponse</td>
+									<td>
+										An instance of <a href="api/com/nginious/http/HttpResponse.html">HttpResponse</a> used for constructing a
+										HTTP response to the client.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">Service</td>
+									<td>
+										Any object annotated with the <a href="api/com/nginious/http/annotation/Service.html">Service</a>
+										annotation.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">Object</td>
+									<td>
+										An object annotated with the <a href="api/com/nginious/http/annotation/Serializable.html">Serializable</a>
+										annotation. The server deserializes the bean from content in the HTTP request based on the <code>Content-Type</code>
+										header of the request before calling the method.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>					
+					
+					<p><b>The following is a list of return types that a controller method can return</b></p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td class="nowrap">Return type</td>
+									<td>Description</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="nowrap">String</td>
+									<td>
+										A controller method can return a string whereby it is inspected. If the string is a path that ends with
+										<code>.xsp</code> it is intepreted as a dispatch to a XSP page. Otherwise the string is added as content
+										to a HTTP response with content type <code>text/plain</code> and sent in the response.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">Object</td>
+									<td>
+										An object annotated with the <a href="api/com/nginious/http/annotation/Serializable.html">Serializable</a>
+										annotation. The server serializes the bean and sends it to the client in the HTTP response body. The serialization
+										is dine based on the <code>Accept</code> header format.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">void</td>
+									<td>
+										If a controller method does not return anything it is responsible to add any response it wants to send
+										to a client through a <code>HttpResponse</code> instance which it should accept as a parameter.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>					
+					
+					<div><h2 class="title"><a name="annotation"></a>6.4. Bean annotation</h2></div>
 					
 					<p>
-						Called when a <code>GET</code> method request is done to the URI path bound to the REST service.
-					</p>
-					
-					<b>HttpServiceResult executePost(RestRequest&lt;K&gt; req, RespResponse&lt;T&gt; resp)</b>
-					
-					<p>
-						Called when a <code>POST</code> method request is done to the URI path bound to the REST service.
-					</p>
-					
-					<b>HttpServiceResult executePut(RestRequest&lt;K&gt; req, RespResponse&lt;T&gt; resp)</b>
-					
-					<p>
-						Called when a <code>PUT</code> method request is done to the URI path bound to the REST service.					
-					</p>
-					
-					<b>HttpServiceResult executeDelete(RestRequest&lt;K&gt; req, RespResponse&lt;T&gt; resp)</b>
-					
-					<p>
-						Called when a <code>DELETE</code> method request is done to the URI path bound to the REST service.					
-					</p>
-					
-					<div><h2 class="title"><a name="annotation"></a>6.3. Bean annotation</h2></div>
-					
-					<p>
-						The <a href="api/com/nginious/http/rest/Serializable.html">Serializable</a> annotation is used to annotate 
+						The <a href="api/com/nginious/http/annotation/Serializable.html">Serializable</a> annotation is used to annotate 
 						beans to inform the server how to serialize and deserialize a specific bean type. The annotation can be
 						applied to the class or to individual methods in the bean. The following table describes the annotation
 						properties.
@@ -225,20 +285,20 @@ public class ExampleBean {
 					</p>
 					
 					
-					<div><h2 class="title"><a name="refs"></a>6.4. References</h2></div>
+					<div><h2 class="title"><a name="refs"></a>6.5. References</h2></div>
 					
 					<dl>
 						<dt>
-							- <a href="api/com/nginious/http/rest/RestService.html">RestService</a> class.
+							- <a href="api/com/nginious/http/annotation/Controller.html">Controller</a> annotation.
 						</dt>
 						<dt>
-							- <a href="api/com/nginious/http/rest/RestRequest.html">RestRequest</a> class.
+							- <a href="api/com/nginious/http/HttpRequest.html">HttpRequest</a> class.
 						</dt>
 						<dt>
-							- <a href="api/com/nginious/http/rest/RestResponse.html">RestResponse</a> class.
+							- <a href="api/com/nginious/http/HttpResponse.html">HttpResponse</a> class.
 						</dt>
 						<dt>
-							- <a href="api/com/nginious/http/rest/Serializable.html">Serializable</a> annotation.
+							- <a href="api/com/nginious/http/annotation/Serializable.html">Serializable</a> annotation.
 						</dt>
 					</dl>					
 				</div>

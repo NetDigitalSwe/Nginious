@@ -5,49 +5,49 @@
 		<link type="text/css" rel="stylesheet" href="css/main.css">
 		<link rel="home" href="index.html" title="Nginious Users Guide">
 		<link rel="up" href="index.html" title="Nginious Users Guide">
-		<link rel="prev" href="multipart.html" title="Chapter 10. Multipart content">
-		<link rel="next" href="ant.html" title="Chapter 12. Ant integration">
+		<link rel="prev" href="multipart.html" title="Chapter 11. Multipart content">
+		<link rel="next" href="ant.html" title="Chapter 13. Ant integration">
 	</head>
 	<body>
 		<div class="navheader">
 			<div>
 				<div class="navbar">
-					<a href="multipart.html" title="Chapter 10. Multipart content">Previous</a>
+					<a href="multipart.html" title="Chapter 11. Multipart content">Previous</a>
 					<span>|</span>
 					<a href="index.html" title="Nginious Users Guide">Contents</a>
 					<span>|</span>
-					<a href="ant.html" title="Chapter 12. Ant integration">Next</a>
+					<a href="ant.html" title="Chapter 13. Ant integration">Next</a>
 				</div>
 			</div>
 		</div>
 		<div class="chapter">
 			<div class="titlepage">
 				<div>
-					<div><h1><a name="admin"></a>Chapter 11. Server administration</h1>
+					<div><h1><a name="admin"></a>Chapter 12. Server administration</h1>
 				</div>
 			</div>
 		</div>
 		<div class="section">
 			<div class="titlepage">
 				<div>
-					<div><h2 class="title"><a name="overview"></a>11.1. Overview</h2></div>
+					<div><h2 class="title"><a name="overview"></a>12.1. Overview</h2></div>
 					
 					<p>
-						Nginious provides a set of REST based services for administering web applications for a server instance.
-						Using the REST services it's possible to deploy, redeploy, rollback, delete and list web applications.
+						Nginious provides a set of REST based controllers for administering web applications for a server instance.
+						Using the REST controolers it's possible to deploy, redeploy, rollback, delete and list web applications.
 					</p>
 					
-					<div><h2 class="title"><a name="services"></a>11.2. Services</h2></div>
+					<div><h2 class="title"><a name="controllers"></a>12.2. Controllers</h2></div>
 					
 					<p>
-						The table below defines how to call the respective services.
+						The table below defines how to call the respective controllers.
 					</p>
 					
 					<div class="table">
 						<table>
 							<thead>
 								<tr>
-                    				<td>Service</td>
+                    				<td>Controller</td>
                     				<td>Request</td>
                     				<td>Description</td>
 				                </tr>
@@ -75,7 +75,7 @@
 									<td>PUT /admin/application/[name]</td>
 									<td>
 										Deploys a new web application. The body of the PUT request must include a web application
-										archive file coded as multipart content. Returns a <code>application-info</code> structure
+										archive file encoded as multipart content. Returns a <code>application-info</code> structure
 										with information about the deployed web application in the request.
 									</td>
 								</tr>
@@ -83,8 +83,8 @@
 									<td>Redeploying a web application.</td>
 									<td>POST /admin/application/[name]</td>
 									<td>
-										Deploys a new web application. The body of the POST request must include a web application
-										archive file coded as multipart content. Returns a <code>application-info</code> structure
+										Redeploys a web application. The body of the POST request must include a web application
+										archive file encoded as multipart content. Returns a <code>application-info</code> structure
 										with information about the deployed web application and information about up to 10 previous 
 										versions.
 									</td>
@@ -111,10 +111,10 @@
 					</div>
 					
 					
-					<div><h2 class="title"><a name="formats"></a>11.3. Data formats</h2></div>
+					<div><h2 class="title"><a name="formats"></a>12.3. Data formats</h2></div>
 					
 					<p>
-						The REST based admin services supports responses in two formats, JSON and XML. A client signals which
+						The REST based admin controllers supports responses in two formats, JSON and XML. A client signals which
 						format it prefers the response data in using the <code>Accept</code> header. A request with an accept
 						header with value <code>application/json</code> informs the server that the client prefers the response
 						to be encoded in JSON format.
@@ -144,10 +144,10 @@
 						</table>
 					</div>
 					
-					<div><h2 class="title"><a name="data"></a>11.4. Response data</h2></div>
+					<div><h2 class="title"><a name="data"></a>12.4. Response data</h2></div>
 					
 					<p>
-						Below are examples of response data returned by the admin REST services. The examples are in XML format
+						Below are examples of response data returned by the admin REST controllers. The examples are in XML format
 						but the JSON formatted responses have the same structure.
 					</p>
 					
@@ -228,11 +228,11 @@
 		<div class="navfooter">
 			<div>
 				<div class="navbar">
-					<a href="multipart.html" title="Chapter 10. Multipart content">Previous</a>
+					<a href="multipart.html" title="Chapter 11. Multipart content">Previous</a>
 					<span>|</span>
 					<a href="index.html" title="Nginious Users Guide">Contents</a>
 					<span>|</span>
-					<a href="ant.html" title="Chapter 12. Ant integration">Next</a>
+					<a href="ant.html" title="Chapter 13. Ant integration">Next</a>
 				</div>
 			</div>
 		</div>

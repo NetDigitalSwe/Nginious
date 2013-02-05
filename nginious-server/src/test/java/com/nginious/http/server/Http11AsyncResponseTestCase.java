@@ -21,7 +21,7 @@ import com.nginious.http.application.ApplicationManager;
 import com.nginious.http.server.HttpServer;
 import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
-import com.nginious.http.service.TestAsyncService;
+import com.nginious.http.service.TestAsyncController;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -50,7 +50,7 @@ public class Http11AsyncResponseTestCase extends TestCase {
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
-		application.addHttpService(new TestAsyncService());
+		application.addController(new TestAsyncController());
 		manager.publish(application);
 		server.start();
 	}

@@ -16,7 +16,7 @@
 					<span>|</span>
 					<a href="index.html" title="Nginious Users Guide">Contents</a>
 					<span>|</span>
-					<a href="rest.html" title="Chapter 6. RESTful services">Next</a>
+					<a href="rest.html" title="Chapter 6. RESTful controllers">Next</a>
 				</div>
 			</div>
 		</div>
@@ -85,11 +85,11 @@
 						</table>
 					</div>
 					
-					<div><h2 class="title"><a name="importantclasses"></a>5.3. Important classes</h2></div>
+					<div><h2 class="title"><a name="importantclasses"></a>5.3. Important classes and annotations</h2></div>
 					
 					<p>
-						The table below includes the most important classes needed for developing dynamic functionality for
-						web applications.
+						The table below includes the most important classes and annotations needed for developing dynamic
+						functionality for web applications.
 					</p>
 					
 					<div class="table">
@@ -102,10 +102,24 @@
 							</thead>
 							<tbody>
 								<tr>
-									<td><a href="api/com/nginious/http/HttpService.html">HTTPService</a></td>
+									<td><a href="api/com/nginious/http/annotation/Controller.html">Controller</a></td>
 									<td>
-										Base class for implementing dynamic functionality in web applications. See section
-										<a href="#httpservices">5.5 HTTP services</a> for more information.
+										Annotation for annotating a class as a controller. The annotation marks a class
+										as willing to accept HTTP requests for a sub path.
+									</td>
+								</tr>
+								<tr>
+									<td><a href="api/com/nginious/http/annotation/Request.html">Request</a></td>
+									<td>
+										Annotation for annotating methods in a controller class. The annotation marks a
+										method a willing to accept HTTP requests with a specific HTTP method.
+									</td>
+								</tr>
+								<tr>
+									<td><a href="api/com/nginious/http/annotation/Message.html">Message</a></td>
+									<td>
+										Annotation for annotating methods in a controller class. The annotation marks a
+										method a willing to accept web socket operations.
 									</td>
 								</tr>
 								<tr>
@@ -118,6 +132,14 @@
 									<td><a href="api/com/nginious/http/HttpResponse.html">HTTPResponse</a></td>
 									<td>
 										Used to set all parts of a HTTP response to be sent to a client.
+									</td>
+								</tr>
+								<tr>
+									<td><a href="api/com/nginious/http/annotation/Service.html">Service</a></td>
+									<td>
+										Annotation for annotating a class as a service. The annotation marks a class
+										as a service which publishes an API or runs threaded services in the background.
+										See chapter <a href="services.html">8. Services</a> for more information.
 									</td>
 								</tr>
 							</tbody>
@@ -147,27 +169,18 @@
 							</thead>
 							<tbody>
 								<tr>
-									<td class="nowrap">HTTP service</td>
+									<td class="nowrap">Controller</td>
 									<td>
-										A HTTP service class is reloaded on the first request to the service if the class file
-										has been modified.
+										A controller class is reloaded on the first request to the controller if the class file
+										has been modified. Any serializer or deserializer classes used by the controller are
+										discarded and recreated. See the <a href="rest.html">6. RESTful controllers</a> chapter
+										for more information about serializer and deserializer classes.
 									</td>
 								</tr>
 								<tr>
-									<td class="nowrap">REST service</td>
+									<td class="nowrap">Service</td>
 									<td>
-										A REST service class is reloaded on the first request to the service if the class file
-										has been modified. Any serializer and deserializer classes used by the service are
-										discarded and recreated. See the <a href="rest.html">6. RESTful services</a> chapter for more
-										information about serializer and deserializer classes.										
-									</td>
-								</tr>
-								<tr>
-									<td class="nowrap">Web socket service</td>
-									<td>
-										A web sockset service class is reloaded on the first new connection to the service if the
-										class file has been modified. See the <a href="websocket.html">7. WebSocket services</a> 
-										chapter for more information about web socket services.	
+										A service class is reloaded when accessed if the class file has been modified.
 									</td>
 								</tr>
 								<tr>
@@ -195,76 +208,211 @@
 						</table>
 					</div>
 					
-					<div><h2 class="title"><a name="httpservices"></a>5.5. HTTP services</h2></div>
+					<div><h2 class="title"><a name="controllers"></a>5.5. Controllers</h2></div>
 					
 					<p>
-						A HTTP service class is the main building block for handling dynamic content in web applications.
-						It is mapped to a path and handles all requests from HTTP clients to the mapped path. This includes
-						all the main HTTP methods, <code>GET</code>, <code>POST</code>, <code>PUT</code> and <code>DELETE</code>.
-						Below is an example HTTP service subclass which overrides the <code>executeGet</code> method to handle
-						<code>HTTP GET</code> method requests from clients.  
+						Controllers are arbitrary classes which are annotated with the <a href="api/com/nginious/http/annotation/Controller.html">Controller</a>
+						annotation. They provide the main building block for handling dynamic content in web applications. There is no need to inherit
+						from any specific base class or implement any specific interface for controllers like in servlet based systems. Instead controller
+						classes are inspected runtime where annotations define how controller methods should be called.
+					</p>
+						
+					<p>
+						A controller is mapped to a path and handles requests from HTTP clients and messages from web socket clients. This includes all the
+						main HTTP methods, <code>GET</code>, <code>POST</code>, <code>PUT</code> and <code>DELETE</code> as well as all web socket operations.
+						Below is an example controller class which implements a <code>doGet</code>  method to handle <code>HTTP GET</code> method requests to 
+						the path <code>/example/controller</code> from clients.
 					</p>
 					
 					<p>
 						<div class="example-contents">
 							<pre class="programlisting">
-<span class="hl-string">@Service(path = "/example/service")
-public class ExampleService extends HttpService {
+<span class="hl-string">@Controller(path = "/example/controller")
+public class ExampleController {
   
-  public HttpServiceResult executeGet(HttpRequest req, HttpResponse; resp) throws HttpException, IOException {
+  @Request(methods = { HttpMethod.GET })
+  public void doGet(HttpRequest req, HttpResponse; resp) throws HttpException, IOException {
     resp.setContentType("text/plain");
     resp.setCharacterEncoding("utf-8");
     resp.setContentLength(13);
     PrintWriter writer = resp.getWriter();
     writer.println("Hello world!");
-    return HttpServiceResult.DONE;
   }
 }</span></pre>
 						</div>
 					</p>
 					
 					<p>
-						Below is a description of each method that may be implemented for a HTTP service.
+						<b>Controller methods can be divided into three categories</b>
 					</p>
 					
-					<b>HttpServiceResult executeGet(HttpRequest req, HttpResponse resp)</b>
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td class="nowrap">Category</td>
+									<td>Description</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="nowrap">HTTP</td>
+									<td>
+										Methods for handling HTTP requests. These are methods which are annotated with the
+										<a href="api/com/nginious/http/annotation/Request.html">Request</a> annotation where the
+										<code>methods</code> attribute contains one or more of the values <code>HttpMethod.GET</code>,
+										<code>HttpMethod.POST</code>, <code>HttpMethod.PUT</code> and <code>HttpMethod.DELETE</code>.
+										See section <a href="#controllermethods">5.6 HTTP controller methods</a> for additional information.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">REST</td>
+									<td>
+										Methods for handling HTTP requests with added REST semantics. These methods are annotated in the
+										same way as methods handling pure HTTP requests with the addition that they either take one bean object
+										as argument or return a bean object as argument which is annotated with the
+										<a href="api/nginious/http/annotation/Serializable.html">Serializable</a> annotation. See chapter
+										<a href="rest.html">6. RESTful controllers</a> for additional information. 
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">WebSocket</td>
+									<td>
+										Methods which handle web socket sessions and messages. These methods are annotated with the
+										<a href="api/com/nginious/http/annotation/Message.html">Message</a> annotation where the
+										<code>operations</code> attribute contains one ore more of the value <code>WebSocketOperation.OPEN</code>,
+										<code>WebSocketOperation.CLOSE</code>, <code>WebSocketOperation.TEXT</code> and <code>WebSocketOperation.BINARY</code>.
+										See chapter <a href="websocket.html">7. WebSocket controllers</a> for additional information.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					<div><h2 class="title"><a name="controllermethods"></a>5.6. HTTP controller methods</h2></div>
+					
+					<p>The following is a list of possible method annotations for controller methods that handle HTTP requests.</p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td class="nowrap">Type</td>
+									<td>Description</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="nowrap">HTTP GET</td>
+									<td>
+										A method with any name which is annotated with the <a href="api/com/nginious/http/annotation/Request.html">Request</a>
+										annotation where the methods attribute contains the value <code>HttpMethod.GET</code>. The method will be called
+										for every HTTP GET request to the path that the controller is bound to.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">HTTP POST</td>
+									<td>
+										A method with any name which is annotated with the <a href="api/com/nginious/http/annotation/Request.html">Request</a>
+										annotation where the methods attribute contains the value <code>HttpMethod.POST</code>. The method will be called
+										for every HTTP POST request to the path that the controller is bound to.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">HTTP PUT</td>
+									<td>
+										A method with any name which is annotated with the <a href="api/com/nginious/http/annotation/Request.html">Request</a>
+										annotation where the methods attribute contains the value <code>HttpMethod.PUT</code>. The method will be called
+										for every HTTP PUT request to the path that the controller is bound to.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">HTTP DELETE</td>
+									<td>
+										A method with any name which is annotated with the <a href="api/com/nginious/http/annotation/Request.html">Request</a>
+										annotation where the methods attribute contains the value <code>HttpMethod.DELETE</code>. The method will be called
+										for every HTTP DELETE request to the path that the controller is bound to.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					<div><h2 class="title"><a name="methodrules"></a>5.7. HTTP controller method rules</h2></div>
 					
 					<p>
-						Called when a <code>GET</code> method request is done to the URI path bound to the HTTP service.
+						The rules for controller methods that handle HTTP requests are flexible since controllers are inspected
+						runtime where rules are constructed for how to call each controller method with the correct parameters.
+						This is possible since controllers don't inherit from any base class or implement any specific interface.
+						Below is a table that the describes the possible parameter and return types. 
 					</p>
 					
-					<b>HttpServiceResult executePost(HttpRequest req, HttpResponse resp)</b>
+					<p><b>The following is a list of parameter types that a controller method can accept</b></p>
 					
-					<p>
-						Called when a <code>POST</code> method request is done to the URI path bound to the HTTP service.
-					</p>
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td class="nowrap">Parameter type</td>
+									<td>Description</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="nowrap">HttpRequest</td>
+									<td>
+										An instance of <a href="api/com/nginious/http/HttpRequest.html">HttpRequest</a> used for accessing information
+										about the HTTP request.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">HttpResponse</td>
+									<td>
+										An instance of <a href="api/com/nginious/http/HttpResponse.html">HttpResponse</a> used for constructing a
+										HTTP response to the client.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">Service</td>
+									<td>
+										Any object annotated with the <a href="api/com/nginious/http/annotation/Service.html">Service</a>
+										annotation.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>					
 					
-					<b>HttpServiceResult executePut(HttpRequest req, HttpResponse resp)</b>
+					<p><b>The following is a list of return types that a controller method can return</b></p>
 					
-					<p>
-						Called when a <code>PUT</code> method request is done to the URI path bound to the HTTP service.					
-					</p>
-					
-					<b>HttpServiceResult executeDelete(HttpRequest req, HttpResponse resp)</b>
-					
-					<p>
-						Called when a <code>DELETE</code> method request is done to the URI path bound to the HTTP service.					
-					</p>
-					
-					<div><h2 class="title"><a name="restservices"></a>5.6. REST services</h2></div>
-					
-					<p>
-						A REST service is a HTTP service with extensions to handle REST semantics. See the 
-						<a href="rest.html">6. RESTful services</a> chapter for more information about REST services.
-					</p>
-					
-					<div><h2 class="title"><a name="wsservices"></a>5.7. WebSocket services</h2></div>
-					
-					<p>
-						A web socket service is a HTTP service extended to handle web socket sessions. See the
-						<a href="websocket.html">7. WebSocket services</a> chapter for more information about web socket services.
-					</p>
-					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td class="nowrap">Return type</td>
+									<td>Description</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="nowrap">String</td>
+									<td>
+										A controller method can return a string whereby it is inspected. If the string is a path that ends with
+										<code>.xsp</code> it is intepreted as a dispatch to a XSP page. Otherwise the string is added as content
+										to a HTTP response with content type <code>text/plain</code> and sent in the response.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">void</td>
+									<td>
+										If a controller method does not return anything it is responsible to add any response it wants to send
+										to a client through a <code>HttpResponse</code> instance which it may accept as a parameter.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+									
 					<div><h2 class="title"><a name="naming"></a>5.8. Naming</h2></div>
 					
 					<p>
@@ -336,7 +484,7 @@ public class ExampleService extends HttpService {
 						</li>
 						<li>
 							Using the server REST based administration services to publish a web application archive. See
-							chapter <a href="admin.html">11. Server administration</a> for information on how to publish a web 
+							chapter <a href="admin.html">12. Server administration</a> for information on how to publish a web 
 							application through the administration interface. The server does not have to be restarted when
 							publishing web applications through the REST based administration service.
 						</li>
@@ -351,7 +499,7 @@ public class ExampleService extends HttpService {
 					<span>|</span>
 					<a href="index.html" title="Nginious Users Guide">Contents</a>
 					<span>|</span>
-					<a href="rest.html" title="Chapter 6. RESTful services">Next</a>
+					<a href="rest.html" title="Chapter 6. RESTful controllers">Next</a>
 				</div>
 			</div>
 		</div>

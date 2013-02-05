@@ -1,7 +1,7 @@
 <html>
 	<head>
 		<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
-		<title>Chapter 7. WebSocket services</title>
+		<title>Chapter 7. WebSocket controllers</title>
 		<link type="text/css" rel="stylesheet" href="css/main.css">
 		<link rel="home" href="index.html" title="Nginious Users Guide">
 		<link rel="up" href="index.html" title="Nginious Users Guide">
@@ -12,7 +12,7 @@
 		<div class="navheader">
 			<div>
 				<div class="navbar">
-					<a href="rest.html" title="Chapter 6. RESTful services">Previous</a>
+					<a href="rest.html" title="Chapter 6. RESTful controllers">Previous</a>
 					<span>|</span>
 					<a href="index.html" title="Nginious Users Guide">Contents</a>
 					<span>|</span>
@@ -23,7 +23,7 @@
 		<div class="chapter">
 			<div class="titlepage">
 				<div>
-					<div><h1><a name="webapps"></a>Chapter 7. WebSocket services</h1></div>
+					<div><h1><a name="webapps"></a>Chapter 7. WebSocket controllers</h1></div>
 				</div>
 			</div>
 		</div>
@@ -33,62 +33,188 @@
 					<div><h2 class="title"><a name="features"></a>7.1. Overview</h2></div>
 					
 					<p>
-						Web socket services provides functionality for handling messages for a specific web socket connection
-						session. A web socket service is bound to a URI path using annotations. When a client does a web socket
-						handshake to the URI path an instance of the web socket class is bound to the connection for handling
-						messages.
+						Web socket controllers provides functionality for handling messages for a specific web socket connection
+						session. A web socket controller is a controller with specific methods for handling web socket sessions
+						and messages. It is bound to a URI path using through a<a href="api/nginious/http/annotation/Controller.html">Controller</a>
+						annotation. When a client does a web socket handshake to the URI path the controller is bound to the web socket session for
+						handling messages.
 					</p>
 					
-					<div><h2 class="title"><a name="services"></a>7.2. WebSocket services</h2></div>
+					<div><h2 class="title"><a name="controllers"></a>7.2. WebSocket controllers</h2></div>
 					
 					<p>
-						A web socket service is a subclass of 
-						<a href="api/com/nginious/http/websocket/WebSocketService.html">WebSocketService</a>. Below is a description 
-						of each method that must be implemented for a web socket service.
+						Web socket controllers adhere to the same rules as HTTP controllers. See section <a href="webapps.html#controllers">5.5 Controllers</a>
+						for general information about controllers. Methods in a controller that handle web socket operations must be annotated with the
+						<a href="api/com/nginious/http/annotation/Message.html">Message</a> annotation. The following is a list of possible method
+						annotations for controller methods that handle web socket operations.
 					</p>
+
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td class="nowrap">Type</td>
+									<td>Description</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="nowrap">Web socket open</td>
+									<td>
+										A method with any name which is annotated with the <a href="api/com/nginious/http/annotation/Message.html">Message</a>
+										annotation where the methods attribute contains the value <code>WebSocketOperation.OPEN</code>. The method will be called
+										every time a new web socket connection session is opened.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">Web socket close</td>
+									<td>
+										A method with any name which is annotated with the <a href="api/com/nginious/http/annotation/Message.html">Message</a>
+										annotation where the methods attribute contains the value <code>WebSocketOperation.CLOSE</code>. The method will be called
+										every time a new web socket connection session is closed.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">Binary message</td>
+									<td>
+										A method with any name which is annotated with the <a href="api/com/nginious/http/annotation/Message.html">Message</a>
+										annotation where the methods attribute contains the value <code>WebSocketOperation.BINARY</code>. The method will be called
+										every time a binary message is received.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">Text message</td>
+									<td>
+										A method with any name which is annotated with the <a href="api/com/nginious/http/annotation/Message.html">Message</a>
+										annotation where the methods attribute contains the value <code>WebSocketOperation.TEXT</code>. The method will be called
+										every time a text message is received.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+					<div><h2 class="title"><a name="methodrules"></a>7.3. WebSocket controller method rules</h2></div>
 					
-					<b>executeOpen(HttpRequest request, HttpResponse response, WebSocketSession session)</b>
+					<p><b>The following is a list of parameter types that a web socket controller method can accept</b></p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td class="nowrap">Parameter type</td>
+									<td>Description</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="nowrap">HttpRequest</td>
+									<td>
+										An instance of <a href="api/com/nginious/http/HttpRequest.html">HttpRequest</a> used for accessing information
+										about the HTTP request. Only valid for methods that handle opening of new web socket connection sessions which are
+										methods that are annotated with the <a href="api/com/nginious/http/annotation/Message.html">Message</a> annotation
+										where the operations attribute contains the value <code>WebSocketOperation.OPEN</code>.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">HttpResponse</td>
+									<td>
+										An instance of <a href="api/com/nginious/http/HttpResponse.html">HttpResponse</a> used for constructing a HTTP response
+										to the client. Only valid for methods that handle opening of new web socket connection sessions which are
+										methods that are annotated with the <a href="api/com/nginious/http/annotation/Message.html">Message</a> annotation
+										where the operations attribute contains the value <code>WebSocketOperation.OPEN</code>.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">Service</td>
+									<td>
+										Any object annotated with the <a href="api/com/nginious/http/annotation/Service.html">Service</a>
+										annotation.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">WebSocketSession</td>
+									<td>
+										An instance of <a href="api/com/nginious/http/websocket/WebSocketSession.html">WebSocketSession</a> used for sending
+										responses to received messages.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">WebSocketBinaryMessage</td>
+									<td>
+										An instance of <a href="api/com/nginious/http/websocket/WebSocketBinaryMessage.html">WebSocketBinaryMessage</a> which is a 
+										message with a binary payload. Only valid for methods that handle binary messages which methods that are annotated with 
+										the <a href="api/com/nginious/http/annotation/Message.html">Message</a> annotation where the operations attribute 
+										contains the value <code>WebSocketOperation.BINARY</code>.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">WebSocketTextMessage</td>
+									<td>
+										An instance of <a href="api/com/nginious/http/websocket/WebSocketTextMessage.html">WebSocketTextMessage</a> which is a 
+										message with a text payload. Only valid for methods that handle text messages which methods that are annotated with 
+										the <a href="api/com/nginious/http/annotation/Message.html">Message</a> annotation where the operations attribute 
+										contains the value <code>WebSocketOperation.TEXT</code>.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>					
+					
+					<p><b>The following is a list of return types that a web socket controller method can return</b></p>
+					
+					<div class="table">
+						<table>
+							<thead>
+								<tr>
+									<td class="nowrap">Return type</td>
+									<td>Description</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="nowrap">String</td>
+									<td>
+										Can be returned by methods that handle text or binary messages which are method that are annotated with the
+										<a href="api/com/nginious/http/annotation/Message.html">Message</a> annotation where the operations attribute 
+										contains the value <code>WebSocketOperation.BINARY</code> or <code>WebSocketOperation.TEXT</code>. The string
+										is sent by the server as a text response message to the client.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">byte[]</td>
+									<td>
+										Can be returned by methods that handle text or binary messages which are method that are annotated with the
+										<a href="api/com/nginious/http/annotation/Message.html">Message</a> annotation where the operations attribute 
+										contains the value <code>WebSocketOperation.BINARY</code> or <code>WebSocketOperation.TEXT</code>. The byte[]
+										array is sent by the server as a binary response message to the client.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">void</td>
+									<td>
+										If a web socket controller method does not return anything it is responsible to add any response it wants to send
+										to a client through a <code>WebSocketSession</code> instance which it may accept as a parameter.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+					<div><h2 class="title"><a name="example"></a>7.4. Example controller</h2></div>
 					
 					<p>
-						Called when a new client makes a web socket handshake to the web socket services path. This informs the
-						web socket service that a new web socket session has been opened. The web socket service may use the
-						web socket session to send messages to the client.
-					</p>
-					
-					<b>executeBinaryMessage(WebSocketBinaryMessage message, WebSocketSession session)</b>
-					
-					<p>
-						Called when a binary message is received from a client bound to a web socket session.
-					</p>
-					
-					<b>executeTextMessage(WebSocketTextMessage message, WebSocketSession session)</b>
-					
-					<p>
-						Called when a text message is received from a client bound to a web socket session.
-					</p>
-					
-					<b>executeClose(WebSocketSession session)</b>
-					
-					<p>
-						Called when a session with a client is closed. The close may have been initiated by the client or
-						the service itself.
-					</p>
-					
-					<div><h2 class="title"><a name="example"></a>7.3. Example service</h2></div>
-					
-					<p>
-					  Below is an example implementation of a simple service which echoes all received messages back to
-					  the client. The service is mapped to the URI path <code>/example/echo</code>. The service is associated with
+					  Below is an example implementation of a simple controller which echoes all received messages back to
+					  the client. The controller is mapped to the URI path <code>/example/echo</code>. The controller is associated with
 					  all clients making a websocket handshake to the URI. Any subsequent binary or text message will be handled
-					  by the service for as long as the websocket session is open.
+					  by the controller for as long as the websocket session is open.
 					<p>
 					
 					<p>
 						<div class="example-contents">
 							<pre class="programlisting">
-<span class="hl-string">
-@Service(path = "/example/echo")
-public class EchoWebSocketService extends WebSocketService {
+<span class="hl-string">@Controller(path = "/example/echo")
+public class EchoWebSocketController {
   
   private HashSet&lt;WebSocketSession&gt;();
   
@@ -97,44 +223,46 @@ public class EchoWebSocketService extends WebSocketService {
     this.sessions = new HashSet&lt;WebSocketSession&gt;();
   }
   
+  @Message(operations = { WebSocketOperation.OPEN })
   public void executeOpen(HttpRequest req, HttpResponse resp, WebSocketSession session) throws HttpException, IOException {
     synchronized(this) {
       sessions.add(session);
     }
   }
   
-  public void executeBinaryMessage(WebSocketBinaryMessage message, WebSocketSession session) throws WebSocketException, IOException {
+  @Message(operations = { WebSocketOperation.BINARY })
+  public byte[] executeBinaryMessage(WebSocketBinaryMessage message, WebSocketSession session) throws WebSocketException, IOException {
     byte[] messagePayload = message.getMessage();
-    session.sendBinaryData(messagePayload);
+    return messagePayload;
   }
   
-  public void executeTextMessage(WebSocketTextMessage message, WebSocketSession session) throws WebSocketException, IOException {
+  @Message(operations = { WebSocketOperation.TEXT })
+  public String executeTextMessage(WebSocketTextMessage message, WebSocketSession session) throws WebSocketException, IOException {
     String messagePayload = message.getMessage();
-    session.sendTextData(messagePayload);
+	return messagePayload;
   }
   
+  @Message(operations = { WebSocketOperation.CLOSE })
   public void executeClose(WebSocketSession session) throws WebSocketException {
     synchronized(this) {
       sessions.remove(session);
     }
   }
-}
-</span>
-							</pre>
+}</span></pre>
 						</div>
 					</p>
 					
-					<div><h2 class="title"><a name="refs"></a>7.4. References</h2></div>
+					<div><h2 class="title"><a name="refs"></a>7.5. References</h2></div>
 					
 					<dl>
-						<dt>
-							- <a href="api/com/nginious/http/websocket/WebSocketService.html">WebSocketService</a> class.
-						</dt>
 						<dt>
 							- <a href="api/com/nginious/http/websocket/WebSocketSession.html">WebSocketSession</a> classes.
 						</dt>
 						<dt>
-							- <a href="api/com/nginious/http/application/Service.html">Service</a> annotation.
+							- <a href="api/com/nginious/http/annotation/Controller.html">Controller</a> annotation.
+						</dt>
+						<dt>
+							- <a href="api/com/nginious/http/annotation/Message.html">Message</a> annotation.
 						</dt>
 					</dl>					
 					
@@ -144,7 +272,7 @@ public class EchoWebSocketService extends WebSocketService {
 		<div class="navfooter">
 			<div>
 				<div class="navbar">
-					<a href="rest.html" title="Chapter 6. RESTful services">Previous</a>
+					<a href="rest.html" title="Chapter 6. RESTful controllers">Previous</a>
 					<span>|</span>
 					<a href="index.html" title="Nginious Users Guide">Contents</a>
 					<span>|</span>

@@ -28,8 +28,6 @@ import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.nginious.http.common.IteratorEnumeration;
-import com.nginious.http.rest.DeserializerFactory;
-import com.nginious.http.rest.SerializerFactory;
 
 /**
  * A class loader for loading classes from jar libraries and class directories in a web
@@ -61,9 +59,36 @@ public class ApplicationClassLoader extends ClassLoader {
 	
 	private File webAppDir;
 	
-	private SerializerFactory serializerFactory;
+	/**
+	 * Constructs a new app class loader which uses the specified parent class loader.
+	 * 
+	 * @throws IOException if unable to set up class loader
+	 */
+	public ApplicationClassLoader(ClassLoader parent) {
+		this(parent, null);
+	}
 	
-	private DeserializerFactory deserializerFactory;
+	/**
+	 * Returns whether or not this class loader has loaded the specified class or not.
+	 * 
+	 * @param clazz the class to check
+	 * @return <code>true</code> if the class had been loaded by this class loader, <code>false</code> otherwise
+	 */
+	public boolean hasLoaded(Class<?> clazz) {
+		ClassLoader loader = clazz.getClassLoader();
+		
+		if(loader.equals(this)) {
+			return true;
+		}
+		
+		for(ClassLoader subClassLoader : subClassLoaders.values()) {
+			if(loader.equals(subClassLoader)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
 	
 	/**
 	 * Constructs a new app class loader which uses the specified parent class
@@ -72,16 +97,23 @@ public class ApplicationClassLoader extends ClassLoader {
 	 * 
 	 * @param parent the parent class loaader
 	 * @param webAppDir the web application directory
-	 * @throws IOException if unable to set up class loader
 	 */
-	public ApplicationClassLoader(ClassLoader parent, File webAppDir) throws IOException {
+	public ApplicationClassLoader(ClassLoader parent, File webAppDir) {
 		super(parent);
 		this.parent = parent;
-		this.webAppDir = webAppDir;
-		this.serializerFactory = SerializerFactory.getInstance();
-		this.deserializerFactory = DeserializerFactory.getInstance();
 		this.subClassLoaders = new ConcurrentHashMap<File, SubAppClassLoader>();
-		setupSubClassLoaders(this.webAppDir, true);
+		setWebAppDir(webAppDir);
+	}
+	
+	void setWebAppDir(File webAppDir) {
+		if(this.webAppDir != null) {
+			throw new IllegalArgumentException("Web app dir already set");
+		}
+		
+		if(webAppDir != null) {
+			this.webAppDir = webAppDir;
+			setupSubClassLoaders(this.webAppDir, true);
+		}
 	}
 	
 	/**
@@ -119,17 +151,19 @@ public class ApplicationClassLoader extends ClassLoader {
 			}
 		}
 		
-		classLoaders = checkNewSubClassLoaders(this.webAppDir);
-		
-		for(SubAppClassLoader classLoader : classLoaders) {
-			URL resource = classLoader.getResourceInternal(name);
+		if(this.webAppDir != null) {
+			classLoaders = checkNewSubClassLoaders(this.webAppDir);
 			
-			if(resource != null) {
-				return resource;
-			}				
+			for(SubAppClassLoader classLoader : classLoaders) {
+				URL resource = classLoader.getResourceInternal(name);
+				
+				if(resource != null) {
+					return resource;
+				}				
+			}
 		}
 		
-		return null;
+		return super.getResource(name);
 	}
 	
 	/**
@@ -172,7 +206,7 @@ public class ApplicationClassLoader extends ClassLoader {
 			}
 		}
 		
-		if(outResources.size() == 0) {
+		if(outResources.size() == 0 && this.webAppDir != null) {
 			classLoaders = checkNewSubClassLoaders(this.webAppDir);
 			
 			for(SubAppClassLoader classLoader : classLoaders) {
@@ -184,6 +218,10 @@ public class ApplicationClassLoader extends ClassLoader {
 					}
 				}				
 			}
+		}
+		
+		if(outResources.isEmpty()) {
+			return super.getResources(name);
 		}
 		
 		return new IteratorEnumeration<URL>(outResources.iterator());
@@ -237,28 +275,17 @@ public class ApplicationClassLoader extends ClassLoader {
 			}
 		}
 		
-		classLoaders = checkNewSubClassLoaders(this.webAppDir);
-		
-		for(SubAppClassLoader classLoader : classLoaders) {
-			try {
-				return classLoader.loadClassInternal(name, resolve);
-			} catch(ClassNotFoundException e) {}
+		if(this.webAppDir != null) {
+			classLoaders = checkNewSubClassLoaders(this.webAppDir);
+			
+			for(SubAppClassLoader classLoader : classLoaders) {
+				try {
+					return classLoader.loadClassInternal(name, resolve);
+				} catch(ClassNotFoundException e) {}
+			}
 		}
 		
-		throw new ClassNotFoundException(name);
-	}
-	
-	/**
-	 * Cleans up this class loader. This method is typically called when a web application is
-	 * undeployed
-	 */
-	public void cleanup() {
-		Collection<SubAppClassLoader> classLoaders = subClassLoaders.values();
-		
-		for(SubAppClassLoader classLoader : classLoaders) {
-			serializerFactory.removeLoadedSerializers(classLoader);
-			deserializerFactory.removeLoadedDeserializers(classLoader);
-		}
+		return super.loadClass(name, resolve);
 	}
 	
 	/**
@@ -273,8 +300,6 @@ public class ApplicationClassLoader extends ClassLoader {
 	private SubAppClassLoader reloadIfModified(SubAppClassLoader classLoader, String name, boolean className) {
 		if(classLoader.isModified(name, className)) {
 			File jarOrClassDir = classLoader.getJarOrClassDir();
-			serializerFactory.removeLoadedSerializers(classLoader);
-			deserializerFactory.removeLoadedDeserializers(classLoader);
 			
 			if(jarOrClassDir.exists()) {
 				classLoader = new SubAppClassLoader(jarOrClassDir, this.parent);
@@ -377,7 +402,7 @@ public class ApplicationClassLoader extends ClassLoader {
 		 * @param parent the parent class loader
 		 */
 		private SubAppClassLoader(File jarOrClassDir, ClassLoader parent) {
-			super(new URL[0], parent);
+			super(new URL[0], null);
 			this.jarOrClassDir = jarOrClassDir;
 			this.isJar = jarOrClassDir.isFile();
 			this.lastModified = jarOrClassDir.lastModified();
@@ -485,7 +510,20 @@ public class ApplicationClassLoader extends ClassLoader {
 		}
 		
 		private Class<?> loadClassInternal(String name, boolean resolve) throws ClassNotFoundException {
-			Class<?> clazz = super.loadClass(name, resolve);
+			// Class<?> clazz = super.loadClass(name, resolve);
+			Class<?> clazz = findLoadedClass(name);
+			
+			if(clazz == null) {
+				try {
+					clazz = findClass(name);
+					
+					if(resolve) {
+						resolveClass(clazz);
+					}
+				} catch(ClassNotFoundException e) {
+					clazz = super.loadClass(name, resolve);
+				}
+			}
 			
 			if(clazz != null) {
 				loadedClasses.add(name);

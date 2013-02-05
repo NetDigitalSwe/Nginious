@@ -21,7 +21,7 @@ import com.nginious.http.application.ApplicationManager;
 import com.nginious.http.server.HttpServer;
 import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
-import com.nginious.http.service.TestCookieService;
+import com.nginious.http.service.TestCookieController;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -50,7 +50,7 @@ public class Http11CookieTestCase extends TestCase {
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
-		application.addHttpService(new TestCookieService());
+		application.addController(new TestCookieController());
 		manager.publish(application);
 		server.start();
 	}

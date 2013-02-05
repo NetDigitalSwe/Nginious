@@ -67,18 +67,19 @@ public class Http11ServiceTestCase extends TestCase {
 		FileUtils.deleteDir(this.tmpDir);
 	}
 	
-	public void testHttpServiceOptions() throws Exception {
-		String request = "OPTIONS /test/methods HTTP/1.1\015\012" + 
+	public void testServiceGet() throws Exception {
+		String request = "GET /test/servicetest HTTP/1.1\015\012" + 
 			"Host: localhost\015\012" +
 			"Content-Length: 0\015\012" + 
 			"Connection: close\015\012\015\012";
 		
 		String expectedResponse = "HTTP/1.1 200 OK\015\012" +
+			"Content-Type: text/plain; charset=utf-8\015\012" +
 			"Date: <date>\015\012" + 
-			"Allow: HEAD, GET, POST, PUT, DELETE\015\012" + 
-			"Content-Length: 0\015\012" +
+			"Content-Length: 2\015\012" +
 			"Connection: close\015\012" +
-			"Server: Nginious/1.0.0\015\012\015\012";
+			"Server: Nginious/1.0.0\015\012\015\012" +
+			"1\n";
 		
 		HttpTestConnection conn = null;
 		
@@ -93,117 +94,24 @@ public class Http11ServiceTestCase extends TestCase {
 			if(conn != null) {
 				conn.close();
 			}
-		}		
-	}
-	
-	public void testDefaultGet() throws Exception {
-		String request = "GET /test/default HTTP/1.1\015\012" + 
+		}
+		
+		Thread.sleep(1500L);
+		
+		request = "GET /test/servicetest HTTP/1.1\015\012" + 
 			"Host: localhost\015\012" +
 			"Content-Length: 0\015\012" + 
 			"Connection: close\015\012\015\012";
 		
-		String expectedResponse = "HTTP/1.1 405 Not Allowed\015\012" +
-			"Content-Type: text/html; charset=utf-8\015\012" +
+		expectedResponse = "HTTP/1.1 200 OK\015\012" +
+			"Content-Type: text/plain; charset=utf-8\015\012" +
 			"Date: <date>\015\012" + 
-			"Content-Length: 74\015\012" +
+			"Content-Length: 2\015\012" +
 			"Connection: close\015\012" +
 			"Server: Nginious/1.0.0\015\012\015\012" +
-			"<html><body><h1>405 Not Allowed: GET method not allowed</h1></body></html>";
+			"2\n";
 		
-		HttpTestConnection conn = null;
-		
-		try {
-			conn = new HttpTestConnection();
-			conn.write(request);
-			
-			String response = conn.readString();
-			expectedResponse = conn.setHeaders(response, expectedResponse);
-			assertEquals(expectedResponse, response);			
-		} finally {
-			if(conn != null) {
-				conn.close();
-			}
-		}		
-	}
-	
-	public void testDefaultPost() throws Exception {
-		String request = "POST /test/default HTTP/1.1\015\012" + 
-			"Host: localhost\015\012" +
-			"Content-Length: 4\015\012" + 
-			"Connection: close\015\012\015\012" +
-			"Test";
-		
-		String expectedResponse = "HTTP/1.1 405 Not Allowed\015\012" +
-			"Content-Type: text/html; charset=utf-8\015\012" +
-			"Date: <date>\015\012" + 
-			"Content-Length: 75\015\012" +
-			"Connection: close\015\012" +
-			"Server: Nginious/1.0.0\015\012\015\012" +
-			"<html><body><h1>405 Not Allowed: POST method not allowed</h1></body></html>";
-		
-		HttpTestConnection conn = null;
-		
-		try {
-			conn = new HttpTestConnection();
-			conn.write(request);
-			
-			String response = conn.readString();
-			expectedResponse = conn.setHeaders(response, expectedResponse);
-			assertEquals(expectedResponse, response);			
-		} finally {
-			if(conn != null) {
-				conn.close();
-			}
-		}		
-	}
-	
-	public void testDefaultPut() throws Exception {
-		String request = "PUT /test/default HTTP/1.1\015\012" + 
-			"Host: localhost\015\012" +
-			"Content-Length: 4\015\012" + 
-			"Connection: close\015\012\015\012" +
-			"Test";
-		
-		String expectedResponse = "HTTP/1.1 405 Not Allowed\015\012" +
-			"Content-Type: text/html; charset=utf-8\015\012" +
-			"Date: <date>\015\012" + 
-			"Content-Length: 74\015\012" +
-			"Connection: close\015\012" +
-			"Server: Nginious/1.0.0\015\012\015\012" +
-			"<html><body><h1>405 Not Allowed: PUT method not allowed</h1></body></html>";
-		
-		HttpTestConnection conn = null;
-		
-		try {
-			conn = new HttpTestConnection();
-			conn.write(request);
-			
-			String response = conn.readString();
-			expectedResponse = conn.setHeaders(response, expectedResponse);
-			assertEquals(expectedResponse, response);			
-		} finally {
-			if(conn != null) {
-				conn.close();
-			}
-		}		
-	}
-	
-	public void testDefaultDelete() throws Exception {
-		String request = "DELETE /test/default HTTP/1.1\015\012" + 
-			"Host: localhost\015\012" +
-			"Content-Length: 4\015\012" + 
-			"Connection: close\015\012\015\012" +
-			"Test";
-		
-		String expectedResponse = "HTTP/1.1 405 Not Allowed\015\012" +
-			"Content-Type: text/html; charset=utf-8\015\012" +
-			"Date: <date>\015\012" + 
-			"Content-Length: 77\015\012" +
-			"Connection: close\015\012" +
-			"Server: Nginious/1.0.0\015\012\015\012" +
-			"<html><body><h1>405 Not Allowed: DELETE method not allowed</h1></body></html>";
-		
-		HttpTestConnection conn = null;
+		conn = null;
 		
 		try {
 			conn = new HttpTestConnection();

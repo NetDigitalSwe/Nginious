@@ -68,14 +68,14 @@ public class Suite extends TestSuite {
     	
     	suite.addTest(new Http11StaticContentTestCase("testStaticContentOptions"));
     	
-    	suite.addTest(new Http11ServiceTestCase("testHttpServiceOptions"));
-    	suite.addTest(new Http11ServiceTestCase("testDefaultGet"));
-    	suite.addTest(new Http11ServiceTestCase("testDefaultPost"));
-    	suite.addTest(new Http11ServiceTestCase("testDefaultPut"));
-    	suite.addTest(new Http11ServiceTestCase("testDefaultDelete"));
+    	suite.addTest(new Http11MethodsTestCase("testControllerOptions"));
+    	suite.addTest(new Http11MethodsTestCase("testDefaultGet"));
+    	suite.addTest(new Http11MethodsTestCase("testDefaultPost"));
+    	suite.addTest(new Http11MethodsTestCase("testDefaultPut"));
+    	suite.addTest(new Http11MethodsTestCase("testDefaultDelete"));
     	
-    	suite.addTest(new Http11ServiceChainTestCase("testHttpServiceChain1"));
-    	suite.addTest(new Http11ServiceChainTestCase("testHttpServiceChain2"));
+    	suite.addTest(new Http11ControllerChainTestCase("testControllerChain1"));
+    	suite.addTest(new Http11ControllerChainTestCase("testControllerChain2"));
     	
     	suite.addTest(new Http11DispatchTestCase("testHttpGetDispatch"));
     	suite.addTest(new Http11DispatchTestCase("testHttpPostDispatch"));
@@ -98,7 +98,7 @@ public class Suite extends TestSuite {
     	suite.addTest(new Http11AdminTestCase("testPublish"));
     	suite.addTest(new Http11AdminTestCase("testRepublish"));
     	
-    	suite.addTest(new Http11ReloadableServiceTestCase("testReloadableHttpService"));
+    	suite.addTest(new Http11ReloadableControllerTestCase("testReloadableController"));
     	suite.addTest(new NullWebAppsDirTestCase("testNullWebAppsDir"));
     	
     	return suite;

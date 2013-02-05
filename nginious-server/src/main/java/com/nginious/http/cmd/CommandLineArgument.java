@@ -19,6 +19,8 @@ package com.nginious.http.cmd;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import com.nginious.http.annotation.CommandLine;
+
 /**
  * Manages mapping between a set method in a bean and a command line argument. A command line argument is built
  * up from bean introspection where all set methods are searched for {@link CommandLine} annotations
