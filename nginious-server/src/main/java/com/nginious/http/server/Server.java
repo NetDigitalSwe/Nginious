@@ -111,7 +111,6 @@ public abstract class Server implements Runnable {
 		boolean done = false;
 		
 		try {
-			log.open();
 			log.info(this.name, "starting...");
 			
 			if(this.started) {
@@ -166,8 +165,15 @@ public abstract class Server implements Runnable {
 		channel.close();
 		
 		log.info(this.name, "stopped");
-		log.close();
 		return true;
+	}
+	
+	void openLog() throws IOException {
+		log.open();
+	}
+	
+	void closeLog() throws IOException {
+		log.close();		
 	}
 	
 	/**
