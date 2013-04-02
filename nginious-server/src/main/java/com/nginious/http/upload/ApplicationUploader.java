@@ -72,6 +72,12 @@ public class ApplicationUploader {
 	 * @return response from server
 	 */
     public HttpClientResponse upload() throws HttpClientException, IOException {
+    	int port = url.getPort();
+    	
+    	if(port == -1) {
+    		port = url.getDefaultPort();
+    	}
+    	
     	HttpClient client = new HttpClient(url.getHost(), url.getPort());
     	boolean exists = findDeployedApp(client);
     	return uploadFile(client, exists);
