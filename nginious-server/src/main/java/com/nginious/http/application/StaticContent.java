@@ -60,6 +60,8 @@ import com.nginious.http.server.MimeTypes;
  */
 class StaticContent {
 	
+	private static final String DEFAULT_FILE = "index.html";
+	
 	private static HashSet<String> compressedContentTypes = new HashSet<String>();
 	
 	static {
@@ -102,6 +104,10 @@ class StaticContent {
 	 */
 	StaticContent(File baseDir, String path) {
 		this.baseDir = baseDir;
+		initContentFile(path);
+	}
+	
+	private void initContentFile(String path) {
 		this.path = path;
 		this.contentFile = new File(this.baseDir, path);
 		this.lastModified = contentFile.lastModified();
@@ -124,13 +130,21 @@ class StaticContent {
 	 * @throws HttpException if a HTTP error occurs
 	 */
 	void execute(HttpRequest request, HttpResponse response) throws IOException, HttpException {
+		if(contentFile.isDirectory()) {
+			initContentFile(this.path + DEFAULT_FILE);
+			
+			if(!contentFile.exists()) {
+				throw new HttpException(HttpStatus.NOT_FOUND, this.path);
+			}
+		}
+		
 		checkAcceptable(request, this.path, this.contentType);
 		
-		if(executeIfModifiedSince(request, response, contentFile)) {
+		if(executeIfModifiedSince(request, response, this.contentFile)) {
 			return;
 		}
 		
-		if(executeIfNoneMatch(request, response, path, contentFile)) {
+		if(executeIfNoneMatch(request, response, path, this.contentFile)) {
 			return;
 		}
 		
@@ -138,7 +152,7 @@ class StaticContent {
 		boolean httpVersion11 = request.getVersion().equals("HTTP/1.1");
 		
 		if(httpVersion11) {
-			executeIfMatch(request, response, path, contentFile);
+			executeIfMatch(request, response, path, this.contentFile);
 		}
 		
 		if(executeRangeIfRange(request)) {
@@ -608,10 +622,10 @@ class StaticContent {
 		FileInputStream in = null;
 		
 		try {
-			in = new FileInputStream(contentFile);
+			in = new FileInputStream(this.contentFile);
 			byte[] b = new byte[(int)this.length];
 			
-			if(in.read(b) != length) {
+			if(in.read(b) != this.length) {
 				throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "failed reading content " + this.path);
 			}
 			
@@ -635,7 +649,7 @@ class StaticContent {
 		FileInputStream in = null;
 		
 		try {
-			in = new FileInputStream(contentFile);
+			in = new FileInputStream(this.contentFile);
 			ByteArrayOutputStream bOut = new ByteArrayOutputStream((int)this.length);
 			GZIPOutputStream out = new GZIPOutputStream(bOut);
 			byte[] b = new byte[(int)this.length];
