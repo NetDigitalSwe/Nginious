@@ -124,7 +124,9 @@ public class MessageLog {
 	 * @throws IOException if unable to close message log
 	 */
 	void close() throws IOException {
-		consumer.stop();
+		if(consumer != null) {
+			consumer.stop();
+		}
 	}
 	
 	/**
