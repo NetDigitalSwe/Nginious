@@ -242,10 +242,6 @@ public class HttpServerImpl extends Server implements HttpServer {
 		boolean done = false;
 		
 		try {
-			this.hostnames = getHostnames();
-			sessionManager.start();
-			manager.start();
-			
 			if(this.accessLogConsumer != null) {
 				accessLog.setConsumer(this.accessLogConsumer);
 			}
@@ -253,6 +249,11 @@ public class HttpServerImpl extends Server implements HttpServer {
 			if(this.messageLogConsumer != null) {
 				log.setConsumer(this.messageLogConsumer);
 			}
+			
+			super.openLog();
+			this.hostnames = getHostnames();
+			sessionManager.start();
+			manager.start();
 			
 			accessLog.open();
 			done = super.start();
@@ -276,9 +277,11 @@ public class HttpServerImpl extends Server implements HttpServer {
 			sessionManager.stop();
 			manager.stop();
 			accessLog.close();
+			super.closeLog();
 			return true;
 		}
 		
+		super.closeLog();
 		return false;
 	}
 	
