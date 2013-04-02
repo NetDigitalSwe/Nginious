@@ -19,6 +19,7 @@ package com.nginious.http.application;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -27,17 +28,15 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.zip.GZIPInputStream;
 
-import com.nginious.http.application.Application;
-import com.nginious.http.application.ApplicationManager;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+
 import com.nginious.http.server.FileLogConsumer;
 import com.nginious.http.server.HttpServer;
 import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
 import com.nginious.http.server.HttpTestConnection;
-
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
 public class Http11StaticContentTestCase extends TestCase {
 	
@@ -62,7 +61,7 @@ public class Http11StaticContentTestCase extends TestCase {
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
-		application.setBaseDir(new File("src/testweb/webapp"));
+		application.setBaseDir(new File("build/resources/testweb"));
 		manager.publish(application);
 		server.start();
 	}
@@ -70,6 +69,12 @@ public class Http11StaticContentTestCase extends TestCase {
 	protected void tearDown() throws Exception {
 		if(this.server != null) {
 			server.stop();
+		}
+		
+		File index = new File("build/resources/testweb/static/index.html");
+		
+		if(index.exists()) {
+			index.delete();
 		}
 	}
 	
@@ -138,6 +143,85 @@ public class Http11StaticContentTestCase extends TestCase {
 			int contentLength = response.length - contentStart;
 			File file = new File("src/testweb/webapp/static/test.doc");
 			assertEquals(contentLength, (int)file.length());
+		} finally {
+			if(conn != null) {
+				conn.close();
+			}
+		}		
+	}	
+	
+	public void testDefaultFileNotFound() throws Exception {
+		String request = "GET /test/static/ HTTP/1.1\015\012" + 
+			"Host: localhost\015\012" +
+			"Content-Length: 0\015\012" + 
+			"Connection: close\015\012\015\012";
+		
+		String expectedResponse = "HTTP/1.1 404 Not Found\015\012" +
+			"Content-Type: text/html; charset=utf-8\015\012" +
+			"Date: <date>\015\012" + 
+			"Content-Length: 68\015\012" +
+			"Connection: close\015\012" +
+			"Server: Nginious/1.0.0\015\012\015\012" +
+			"<html><body><h1>404 Not Found: /static/index.html</h1></body></html>";
+		
+		HttpTestConnection conn = null;
+		
+		try {
+			conn = new HttpTestConnection();
+			
+			SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
+			format.setTimeZone(TimeZone.getTimeZone("GMT"));
+			request = request.replaceFirst("<modified>", format.format(new Date()));
+			
+			conn.write(request);
+			
+			String response = conn.readString();
+			expectedResponse = conn.setHeaders(response, expectedResponse);
+			assertEquals(expectedResponse, response);			
+		} finally {
+			if(conn != null) {
+				conn.close();
+			}
+		}		
+	}
+
+	public void testDefaultFile() throws Exception {
+		File index = new File("build/resources/testweb/static/index.html");
+		FileOutputStream out = new FileOutputStream(index);
+		out.write("Hello world!\n".getBytes());
+		out.flush();
+		out.close();
+		
+		String request = "GET /test/static/ HTTP/1.1\015\012" + 
+			"Host: localhost\015\012" +
+			"Content-Length: 0\015\012" + 
+			"Connection: close\015\012\015\012";
+		
+		String expectedResponse = "HTTP/1.1 200 OK\015\012" +
+			"Content-Type: text/html\015\012" +
+			"ETag: 59CA0EFA9F5633CB0371BBC0355478D8\015\012" +
+			"Date: <date>\015\012" + 
+			"Last-Modified: <modified>\015\012" +
+			"Accept-Ranges: bytes\015\012" +
+			"Content-Length: 13\015\012" +
+			"Connection: close\015\012" +
+			"Server: Nginious/1.0.0\015\012\015\012" +
+			"Hello world!\n";
+
+		HttpTestConnection conn = null;
+		
+		try {
+			conn = new HttpTestConnection();
+			
+			SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
+			format.setTimeZone(TimeZone.getTimeZone("GMT"));
+			request = request.replaceFirst("<modified>", format.format(new Date()));
+			
+			conn.write(request);
+			
+			String response = conn.readString();
+			expectedResponse = conn.setHeaders(response, expectedResponse);
+			assertEquals(expectedResponse, response);			
 		} finally {
 			if(conn != null) {
 				conn.close();
