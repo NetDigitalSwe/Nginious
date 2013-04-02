@@ -81,7 +81,9 @@ class AccessLog {
 	 * @throws IOException if unable to close access log
 	 */
 	void close() throws IOException {
-		consumer.stop();
+		if(consumer != null) {
+			consumer.stop();
+		}
 	}
 	
 	/**
