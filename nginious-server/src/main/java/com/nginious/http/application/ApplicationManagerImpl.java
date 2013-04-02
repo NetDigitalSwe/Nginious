@@ -30,6 +30,7 @@ import com.nginious.http.HttpRequest;
 import com.nginious.http.HttpResponse;
 import com.nginious.http.HttpStatus;
 import com.nginious.http.common.PathParameters;
+import com.nginious.http.server.MessageLog;
 import com.nginious.http.stats.HttpRequestStatistics;
 import com.nginious.http.stats.WebSocketSessionStatistics;
 
@@ -42,6 +43,8 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	private static final String ROOT_APP = "root";
 
 	private static Object deployLock = new Object();
+	
+	private static MessageLog log = MessageLog.getInstance();
 	
 	private String applicationsDirName;
 	
@@ -74,6 +77,14 @@ public class ApplicationManagerImpl implements ApplicationManager {
 		
 		if(this.applicationsDirName != null) {
 			this.backupDirName = createBackupDirName(this.applicationsDirName);
+			File backupDir = new File(this.backupDirName);
+			
+			if(!backupDir.exists()) {
+				if(!backupDir.mkdir()) {
+					log.warn("ApplicationManager", "Can't create backup directory '" + this.backupDirName + "'");
+					this.backupDirName = null;
+				}
+			}
 		} else {
 			this.applicationsDirName = this.tmpDirName;
 		}
@@ -98,6 +109,8 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 	
 	public void start() {
+		log.info("ApplicationManager", "start");
+		
 		if(this.applicationsDirName == null || applicationsDirName.equals(this.tmpDirName)) {
 			return;
 		}
@@ -120,9 +133,9 @@ public class ApplicationManagerImpl implements ApplicationManager {
 					try {
 						publish(appFile.getName(), appFile);
 					} catch(ApplicationException e) {
-						e.printStackTrace();
+						log.warn("ApplicationManager", e);
 					} catch(Throwable t) {
-						t.printStackTrace();
+						log.warn("ApplicationManager", t);
 					}
 				} else if(appFile.isFile() && appFile.getName().endsWith(".war")) {
 					String appName = appFile.getName();
@@ -131,9 +144,9 @@ public class ApplicationManagerImpl implements ApplicationManager {
 					try {
 						publish(appName, appFile);
 					} catch(ApplicationException e) {
-						e.printStackTrace();
+						log.warn("ApplicationManagher", e);
 					} catch(Throwable t) {
-						t.printStackTrace();
+						log.warn("ApplicationManager", t);
 					}
 				}
 			}
@@ -141,6 +154,7 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 	
 	public void stop() {
+		log.info("ApplicationManager", "stop");
 		Set<String> names = applications.keySet();
 		
 		synchronized(deployLock) {
@@ -246,6 +260,7 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 	
 	public Application publish(Application application) throws ApplicationException {
+		log.info("ApplicationManager.publish", application.getName());
 		if(applications.containsKey(application.getName())) {
 			throw new ApplicationException("Application with name '" + application.getName() + "' already exists");
 		}
@@ -257,6 +272,8 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 	
 	public Application publish(String name, File warFileOrAppDir) throws ApplicationException {
+		log.info("ApplicationManager.publish", name);
+		
 		if(this.applicationsDirName == null) {
 			throw new ApplicationException("Unable to publish application '" + name + "', no application directory configured");
 		}
@@ -271,6 +288,8 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 	
 	public Application rollback(String name) throws ApplicationException {
+		log.info("ApplicationManager.rollback", name);
+		
 		synchronized(deployLock) {
 			ApplicationImpl prevApplication = applications.get(name);
 			
@@ -280,6 +299,10 @@ public class ApplicationManagerImpl implements ApplicationManager {
 			
 			if(!prevApplication.isWar()) {
 				throw new ApplicationException("Can't rollback unpacked application '" + name + "'");
+			}
+			
+			if(this.backupDirName == null) {
+				throw new ApplicationException("Can't rollback '" + name + "' no backup directory exists");
 			}
 			
 			File backupFile = new File(this.backupDirName, name + ".war.1.bak");
@@ -315,6 +338,8 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 
 	public void unpublish(String name) throws ApplicationException {
+		log.info("ApplicationManager.unpublish", name);
+		
 		synchronized(deployLock) {
 			ApplicationImpl application = applications.remove(name);
 			
@@ -333,6 +358,8 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 	
 	public void delete(String name) throws ApplicationException {
+		log.info("ApplicationManager.unpublish", name);
+		
 		synchronized(deployLock) {
 			ApplicationImpl application = applications.get(name);
 			
@@ -401,21 +428,25 @@ public class ApplicationManagerImpl implements ApplicationManager {
 		info.setName(application.getName());
 		info.addVersion(0, warFile.lastModified());
 		
-		int idx = 1;
-		String backupDirName = getBackupDir();
-		
-		warFile = new File(backupDirName, application.getName() + ".war." + idx + ".bak");
-		
-		while(warFile.exists()) {
-			info.addVersion(idx, warFile.lastModified());
-			idx++;
+		if(this.backupDirName != null) {
+			int idx = 1;
+			String backupDirName = getBackupDir();
+			
 			warFile = new File(backupDirName, application.getName() + ".war." + idx + ".bak");
+			
+			while(warFile.exists()) {
+				info.addVersion(idx, warFile.lastModified());
+				idx++;
+				warFile = new File(backupDirName, application.getName() + ".war." + idx + ".bak");
+			}
 		}
 		
 		return info;
 	}
 	
 	private ApplicationImpl create(String name, File warFileOrAppDir) throws ApplicationException {
+		log.info("ApplicationManager.create", name);
+		
 		synchronized(deployLock) {
 			File destFile = new File(this.applicationsDirName, name + ".war");
 			
@@ -434,19 +465,21 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 	
 	private ApplicationImpl upgrade(String name, File warFile) throws ApplicationException {
+		log.info("ApplicationManager.upgrade", name);
+		
 		synchronized(deployLock) {
 			ApplicationConfigurator configurator = new ApplicationConfigurator(name, warFile);
 			ApplicationImpl application = configurator.configure();
 			ApplicationImpl prevApplication = applications.put(name, application);
 			
-			if(prevApplication != null) {
+			if(prevApplication != null && this.backupDirName != null) {
 				moveUpBackupNumbers(name);
 				moveToBackupDir(name);
 			}
 			
 			moveToAppsDir(name, warFile);
 			
-			if(prevApplication != null) {
+			if(prevApplication != null && this.backupDirName != null) {
 				prevApplication.unpublish();
 			}
 			
