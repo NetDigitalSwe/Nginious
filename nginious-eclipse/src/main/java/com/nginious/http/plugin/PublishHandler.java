@@ -55,11 +55,16 @@ import com.nginious.http.upload.ProgressListener;
 
 public class PublishHandler extends AbstractHandler {
 	
+	private Logger logger;
+	
 	public PublishHandler() {
 		super();
+		this.logger = ServerManager.getInstance().getLogger();
 	}
 	
 	public Object execute(ExecutionEvent event) throws ExecutionException {
+		logger.log("ENTER PublishHandler.execute event={0}", event);
+		
 		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
 		Shell shell = window.getShell();
 		ISelectionService service = window.getSelectionService();
@@ -70,10 +75,13 @@ public class PublishHandler extends AbstractHandler {
 			publishProject(shell, project);
 		}
 		
+		logger.log("EXIT PublishHandler.execute object={0}", (Object)null);
 		return null;
 	}	
 	
 	private void publishProject(Shell shell, IProject project) {
+		logger.log("ENTER PublishHandler.publishProject project={0}", project);
+		
 		IRunnableContext context = new ProgressMonitorDialog(shell);
 		
 		try {
@@ -81,6 +89,7 @@ public class PublishHandler extends AbstractHandler {
 			context.run(true, false, publisher);
 		} catch(InterruptedException e) {
 		} catch(InvocationTargetException e) {
+			logger.log("PublishHandler.publishProject exception", e);					
 			String title = Messages.PublishHandler_error_title;
 			Object[] args = { project.getName() };
 			String message = MessageFormat.format(Messages.PublishHandler_error_message, args);
@@ -89,7 +98,10 @@ public class PublishHandler extends AbstractHandler {
 	}
 	
 	private IProject extractProject(ISelection selection) {
+		logger.log("ENTER PublishHandler.extractProject selection={0}", selection);
+		
 		if(!(selection instanceof IStructuredSelection)) {
+			logger.log("EXIT PublishHandler.extractProject project={0}", (IProject)null);		
 			return null;
 		}
 		
@@ -97,6 +109,7 @@ public class PublishHandler extends AbstractHandler {
 		Object element = structuredSelection.getFirstElement();
 		
 		if(element instanceof IProject) {
+			logger.log("EXIT PublishHandler.extractProject project={0}", element);		
 			return (IProject)element;
 		}
 		
@@ -105,11 +118,13 @@ public class PublishHandler extends AbstractHandler {
 			Object adapter = adaptable.getAdapter(IResource.class);
 			
 			if(adapter instanceof IProject) {
+				logger.log("EXIT PublishHandler.extractProject project={0}", adapter);		
 				return (IProject)adapter;
 			}
 			
 		}
 		
+		logger.log("EXIT PublishHandler.extractProject project={0}", (IProject)null);		
 		return null;
 	}
 	
@@ -127,6 +142,8 @@ public class PublishHandler extends AbstractHandler {
 		}
 		
 		public void run(IProgressMonitor monitor) {
+			logger.log("ENTER PublishHandler.Publisher.run monitor={0}", monitor);
+			
 			this.monitor = monitor;
 			File warFile = null;
 			monitor.beginTask(Messages.PublishHandler_begin_message, 110);
@@ -156,7 +173,7 @@ public class PublishHandler extends AbstractHandler {
 				if(warFile != null) {
 					monitor.setTaskName(Messages.PublishHandler_upload_message);
 					monitor.worked(10);
-					URL url = new URL(publishUrl);
+					URL url = new URL(publishUrl);					
 					ApplicationUploader applicationPublisher = new ApplicationUploader(this, url, warFile, publishUsername, publishPassword);
 					HttpClientResponse response = applicationPublisher.upload();
 					
@@ -168,19 +185,24 @@ public class PublishHandler extends AbstractHandler {
 				} else {
 					monitor.setCanceled(true);
 				}
+				
+				logger.log("EXIT PublishHandler.Publisher.run");						
 			} catch(CoreException e) {
+				logger.log("PublishHandler.Publisher.run exception", e);					
 				monitor.setCanceled(true);
 				String title = Messages.PublishHandler_error_title;
 				Object[] args = { project.getName() };
 				String message = MessageFormat.format(Messages.PublishHandler_error_message, args);
 				MessagesUtils.perform(e, shell, title, message);
 			} catch(HttpClientException e) {
+				logger.log("PublishHandler.Publisher.run exception", e);					
 				monitor.setCanceled(true);
 				String title = Messages.PublishHandler_error_title;
 				Object[] args = { project.getName() };
 				String message = MessageFormat.format(Messages.PublishHandler_error_message, args);
 				MessagesUtils.displayMessageDialog(e.getMessage(), null, title, message);
 			} catch(IOException e) {
+				logger.log("PublishHandler.Publisher.run exception", e);					
 				monitor.setCanceled(true);
 				String title = Messages.PublishHandler_error_title;
 				Object[] args = { project.getName() };
@@ -199,6 +221,8 @@ public class PublishHandler extends AbstractHandler {
 	}
 	
 	private File createWebApplicationArchive(Shell shell, IProgressMonitor monitor, IProject project) throws CoreException, IOException {
+		logger.log("ENTER PublishHandler.createWebApplicationArchive project={0}", project);
+		
 		IJarBuilder builder = null;
 		String tmpFile = null;
 		boolean done = false;
@@ -236,6 +260,7 @@ public class PublishHandler extends AbstractHandler {
 			}
 			
 			done = true;
+			logger.log("EXIT PublishHandler.createWebApplicationArchive tmpFile={0}", tmpFile);			
 			return new File(tmpFile);
 		} finally {
 			if(builder != null) {
@@ -253,12 +278,17 @@ public class PublishHandler extends AbstractHandler {
 	}
 	
 	private String createTempWebApplicationFile() throws IOException {
+		logger.log("ENTER PublishHandler.createTempWebApplicationFile");
 		File tmpFile = File.createTempFile("nginious", ".war");
 		tmpFile.delete();
+		
+		logger.log("EXIT PublishHandler.createTempWebApplicationFile tmpFile={0}", tmpFile.toString());		
 		return tmpFile.toString();
 	}
 	
 	private void findWebApplicationFiles(IFolder folder, List<IFile> files) throws CoreException {
+		logger.log("ENTER PublishHandler.findWebApplicationFiles");
+		
 		IResource[] resources = folder.members(IResource.FILE | IResource.FOLDER);
 		
 		for(IResource resource : resources) {
@@ -268,5 +298,7 @@ public class PublishHandler extends AbstractHandler {
 				files.add((IFile)resource);
 			}
 		}
+		
+		logger.log("EXIT PublishHandler.findWebApplicationFiles");
 	}
 }
