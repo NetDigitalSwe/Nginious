@@ -1,0 +1,112 @@
+<html>
+	<head>
+		<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>Chapter 8. Services</title>
+		<link type="text/css" rel="stylesheet" href="css/main.css">
+		<link rel="home" href="index.html" title="Nginious Users Guide">
+		<link rel="up" href="index.html" title="Nginious Users Guide">
+		<link rel="prev" href="websocket.html" title="Chapter 7. WebSocket controllers">
+		<link rel="next" href="session.html" title="Chapter 9. Session management">
+	</head>
+	<body>
+		<div class="navheader">
+			<div>
+				<div class="navbar">
+					<a href="websocket.html" title="Chapter 7. WebSocket controllers">Previous</a>
+					<span>|</span>
+					<a href="index.html" title="Nginious Users Guide">Contents</a>
+					<span>|</span>
+					<a href="session.html" title="Chapter 9. Session management">Next</a>
+				</div>
+			</div>
+		</div>
+		<div class="chapter">
+			<div class="titlepage">
+				<div>
+					<div><h1><a name="services"></a>Chapter 8. Services</h1></div>
+				</div>
+			</div>
+		</div>
+		<div class="section">
+			<div class="titlepage">
+				<div>
+					<div><h2 class="title"><a name="intro"></a>8.1. Introduction</h2></div>
+					
+					<p>
+						Services publish an API or run background services in separate threads in a web application. Services are not accessible directly
+						over any protocol like HTTP or web sockets but can be accessed by controllers by adding them as parameters to one or more controller
+						methods. Services are packaged together with other Java classes and controllers in web applications and instantiated by Nginious when
+						the web application is published.
+					</p>
+					
+					<div><h2 class="title"><a name="classes"></a>8.2. Services</h2></div>
+					
+					<p>
+						Services are arbitrary classes which are annotated with the <a href="api/com/nginious/http/annotation/Service.html">Service</a>
+						annotation. When a web application is published the server inspects all classes in the web application searching for classes
+						annotated with the <code>Service></code> annotation. The classes are instantiated and made available to controllers in the web
+						application
+					</p>
+					
+					<p>
+						A service may optionally implement the <code>java.lang.Runnable</code> interface. In this case the server starts a separate thread to
+						execute the service when the web application containing the service is published. When the web application is unpublished the
+						thread is interrupted and stopped.
+					</p>
+					
+					<p>
+						Below is an example service which implements the <code>java.lang.Runnable</code> interface.
+					</p>
+						
+					<p>
+						<div class="example-contents">
+							<pre class="programlisting">
+<span class="hl-string">@Service(name = "example")
+public class CounterService implements Runnable {
+  
+  private AtomicInteger counter;
+  
+  public CounterService() {
+  	this.counter = new AtomicInteger(0);
+  }
+  
+  public int getCounter() {
+    return counter.get();
+  }
+  
+  public void run() {
+    Thread serviceThread = Thread.currentThread();
+    boolean stopped = false;
+    
+    while(!stopped) {
+      counter.incrementAndGet();
+      stopped = serviceThread.isInterrupted();
+      
+      if(!stopped) {
+        try {
+          Thread.sleep(1000L);
+        } catch(InterruptedException e) {
+          stopped = true;
+        }
+      }
+    }
+  }
+}</span></pre>
+						</div>
+					</p>
+				</div>
+			</div>
+        </div>
+		<div class="navfooter">
+			<div>
+				<div class="navbar">
+					<a href="websocket.html" title="Chapter 7. WebSocket controllers">Previous</a>
+					<span>|</span>
+					<a href="index.html" title="Nginious Users Guide">Contents</a>
+					<span>|</span>
+					<a href="session.html" title="Chapter 9. Session management">Next</a>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
