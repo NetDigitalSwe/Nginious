@@ -75,6 +75,10 @@ class ServerManager implements IResourceChangeListener {
 		
 	}
 	
+	Logger getLogger() {
+		return this.logger;
+	}
+	
 	public void resourceChanged(IResourceChangeEvent event) {
 		logger.log("ENTER ServerManager.resourceChanged event={0}", event);
 		
@@ -251,7 +255,7 @@ class ServerManager implements IResourceChangeListener {
 			server.setMessageLogConsumer(messageLogConsumer);
 			server.start();
 			ApplicationManager manager = server.getApplicationManager();
-			manager.publish(project.getName(), webappsPath.toFile());
+			manager.publish("root", webappsPath.toFile());
 			
 			HttpServerEnvironment env = new HttpServerEnvironment(project, server, accessLogConsumer, messageLogConsumer);
 			env.setPort(listenPort);
