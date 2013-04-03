@@ -336,6 +336,8 @@ public abstract class ControllerService extends HttpService {
 			response.setContentType("text/plain");
 			response.setCharacterEncoding("utf-8");
 			response.setContentLength(content.getBytes().length);
+			PrintWriter writer = response.getWriter();
+			writer.print(content);
 		}
 	}
 	
