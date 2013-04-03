@@ -17,6 +17,7 @@ import com.nginious.http.annotation.Serializable;
 import com.nginious.http.annotation.Service;
 import com.nginious.http.serialize.DeserializerFactory;
 import com.nginious.http.serialize.SerializerFactory;
+import com.nginious.http.server.MessageLog;
 import com.nginious.http.websocket.WebSocketBinaryMessage;
 import com.nginious.http.websocket.WebSocketOperation;
 import com.nginious.http.websocket.WebSocketSession;
@@ -33,6 +34,8 @@ import com.nginious.http.websocket.WebSocketTextMessage;
  *
  */
 public class ControllerServiceFactory {
+	
+	private static MessageLog log = MessageLog.getInstance();
 	
 	private ConcurrentHashMap<Class<?>, ControllerService> controllerServices;
 	
@@ -245,7 +248,7 @@ public class ControllerServiceFactory {
 			visitor.visitVarInsn(Opcodes.ALOAD, 1);
 			visitor.visitVarInsn(Opcodes.ALOAD, 2);
 			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "response",
-					"(Ljava/lang/String;Lcom/nginious/http/HttpRequest;Lcom/nginious/http/HttpResponse;)V)");
+					"(Ljava/lang/String;Lcom/nginious/http/HttpRequest;Lcom/nginious/http/HttpResponse;)V");
 		} else if(!returnType.equals(Void.class) && !returnType.equals(void.class)) {
 			visitor.visitVarInsn(Opcodes.ALOAD, 1);
 			visitor.visitVarInsn(Opcodes.ALOAD, 2);
@@ -716,8 +719,7 @@ public class ControllerServiceFactory {
 		signature.append("<L");
 		signature.append(controllerClazzName);
 		signature.append(";>;");
-		return
-				signature.toString();
+		return signature.toString();
 	}
 	
 	Class<?> loadClass(ClassLoader loader, String className, byte[] b) {
@@ -737,7 +739,7 @@ public class ControllerServiceFactory {
     			method.setAccessible(false);
     		}
         } catch (Exception e) {
-        	e.printStackTrace();
+        	log.warn("ControllerServiceFactory", e);
         }
         
         return clazz;
