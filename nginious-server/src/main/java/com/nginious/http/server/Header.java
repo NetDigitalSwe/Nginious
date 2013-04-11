@@ -153,7 +153,8 @@ public class Header {
      * @return the header parameters
      * @throws HeaderException if unable to parse header value
      */
-    private HeaderParameters parseParameters() throws HeaderException {
+    @SuppressWarnings("incomplete-switch")
+	private HeaderParameters parseParameters() throws HeaderException {
     	HeaderParameters parameters = new HeaderParameters();
     	
         int pos = 0;
