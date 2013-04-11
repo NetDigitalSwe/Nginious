@@ -46,11 +46,16 @@ class AccessLog {
 	
 	private LogOutputConsumer consumer;
 	
+	private String accessLogPath;
+	
 	/**
-	 * Constructs a new access log
+	 * Constructs a new access log which writes its data to the specified access log path.
+	 * 
+	 * @param accessLogPath the access log path
 	 */
-	AccessLog() {
+	AccessLog(String accessLogPath) {
 		super();
+		this.accessLogPath = accessLogPath;
 	}
 	
 	/**
@@ -69,7 +74,7 @@ class AccessLog {
 	 */
 	void open() throws IOException {
 		if(this.consumer == null) {
-			this.consumer = new FileLogConsumer("logs/access");
+			this.consumer = new FileLogConsumer(this.accessLogPath);
 		}
 		
 		consumer.start();
