@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -59,11 +60,11 @@ public class Http11StaticContentTestCase extends TestCase {
 		this.server = factory.create(config);
 		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
+		server.start();
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
 		application.setBaseDir(new File("build/resources/testweb"));
 		manager.publish(application);
-		server.start();
 	}
 
 	protected void tearDown() throws Exception {
@@ -1191,11 +1192,19 @@ public class Http11StaticContentTestCase extends TestCase {
 	}
 	
 	private void assertEquals(File file, byte[] data, int startInclusive, int endInclusive) throws Exception {
-		RandomAccessFile in = new RandomAccessFile(file, "r");
-		in.seek(startInclusive);
+		RandomAccessFile in = null;
 		
-		for(int i= startInclusive; i <= endInclusive; i++) {
-			assertEquals(data[i - startInclusive], (byte)in.read());
+		try {
+			in = new RandomAccessFile(file, "r");
+			in.seek(startInclusive);
+			
+			for(int i= startInclusive; i <= endInclusive; i++) {
+				assertEquals(data[i - startInclusive], (byte)in.read());
+			}
+		} finally {
+			if(in != null) {
+				try { in.close(); } catch(IOException e) {}
+			}
 		}
 	}
 	
