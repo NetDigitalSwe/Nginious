@@ -19,6 +19,7 @@ package com.nginious.http.upload;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Random;
 
 import junit.framework.Test;
@@ -152,6 +153,7 @@ public class Http11UploadTestCase extends TestCase {
 			"Connection: <connection>\015\012" + 
 			"Content-Length: <length>";
 		HttpTestConnection conn = null;
+		MultipartInputStream in = null;
 		
 		try {
 			conn = new HttpTestConnection();
@@ -159,7 +161,7 @@ public class Http11UploadTestCase extends TestCase {
 			for(int i = 4096; i <= 131072; i += 4096) {
 				String data = createData(i);
 				byte[] byteData = data.getBytes();
-				MultipartInputStream in = new MultipartInputStream("AaB03x", new ByteArrayInputStream(byteData), byteData.length);
+				in = new MultipartInputStream("AaB03x", new ByteArrayInputStream(byteData), byteData.length);
 				in.setHeader("Content-Disposition", "form-data; name=\"pics\"; filename=\"file.txt\"");
 				in.setHeader("Content-Type", "text/plain");
 
@@ -182,11 +184,13 @@ public class Http11UploadTestCase extends TestCase {
 				for(int j = 0; j < byteData.length; j++) {
 					assertTrue(byteData[j] == responseBytes[j]);
 				}
+				
+				in.close();
 			}
 			
 			String data = createData(1756427);
 			byte[] byteData = data.getBytes();
-			MultipartInputStream in = new MultipartInputStream("AaB03x", new ByteArrayInputStream(byteData), byteData.length);
+			in = new MultipartInputStream("AaB03x", new ByteArrayInputStream(byteData), byteData.length);
 			in.setHeader("Content-Disposition", "form-data; name=\"pics\"; filename=\"file.txt\"");
 			in.setHeader("Content-Type", "text/plain");
 
@@ -213,6 +217,10 @@ public class Http11UploadTestCase extends TestCase {
 			conn.close();
 			conn = null;
 		} finally {
+			if(in != null) {
+				try { in.close(); } catch(IOException e) {}
+			}
+			
 			if(conn != null) {
 				conn.close();
 			}
@@ -227,6 +235,7 @@ public class Http11UploadTestCase extends TestCase {
 			"Connection: <connection>\015\012" + 
 			"Content-Length: <length>";
 		HttpTestConnection conn = null;
+		MultipartInputStream in = null;
 		
 		try {
 			conn = new HttpTestConnection();
@@ -239,7 +248,7 @@ public class Http11UploadTestCase extends TestCase {
 			assertEquals(fileLen, (long)read);
 			fIn.close();
 			
-			MultipartInputStream in = new MultipartInputStream("AaB03x", new ByteArrayInputStream(byteData), byteData.length);
+			in = new MultipartInputStream("AaB03x", new ByteArrayInputStream(byteData), byteData.length);
 			in.setHeader("Content-Disposition", "form-data; name=\"pics\"; filename=\"file.txt\"");
 			in.setHeader("Content-Type", "text/plain");
 			
@@ -266,6 +275,10 @@ public class Http11UploadTestCase extends TestCase {
 			conn.close();
 			conn = null;
 		} finally {
+			if(in != null) {
+				try { in.close(); } catch(IOException e) {}
+			}
+			
 			if(conn != null) {
 				conn.close();
 			}
