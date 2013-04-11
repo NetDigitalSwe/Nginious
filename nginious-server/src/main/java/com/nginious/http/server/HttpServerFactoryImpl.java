@@ -27,8 +27,8 @@ public class HttpServerFactoryImpl extends HttpServerFactory {
 	 * @return the created HTTP server
 	 */
 	public HttpServer create(HttpServerConfiguration configuration) {
-		ApplicationManagerImpl manager = new ApplicationManagerImpl(configuration.getWebappsDir(), configuration.getAdminPwd());
 		HttpServerImpl server = new HttpServerImpl(configuration);
+		ApplicationManagerImpl manager = new ApplicationManagerImpl(configuration);
 		server.setApplicationManager(manager);
 		return server;
 	}	
