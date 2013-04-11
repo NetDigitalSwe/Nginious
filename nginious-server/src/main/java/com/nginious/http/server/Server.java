@@ -85,11 +85,11 @@ public abstract class Server implements Runnable {
 	 * 
 	 * @param name server name
 	 */
-	public Server(String name) {
+	public Server(String name, String logPath) {
 		super();
 		this.name = name;
 		this.started = false;
-		this.log = MessageLog.getInstance();
+		this.log = new MessageLog(MessageLevel.EVENT, logPath);
 	}
 	
 	/**
