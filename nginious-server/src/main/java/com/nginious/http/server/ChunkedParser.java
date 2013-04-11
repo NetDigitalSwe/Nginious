@@ -49,6 +49,7 @@ class ChunkedParser {
 		this.context = context;
 	}
 	
+	@SuppressWarnings("incomplete-switch")
 	boolean parse(byte[] dataFragment) throws IOException, HttpException {
 		int pos = 0;
 		
