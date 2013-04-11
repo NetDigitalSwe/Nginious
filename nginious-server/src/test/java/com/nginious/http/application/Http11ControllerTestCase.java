@@ -48,7 +48,7 @@ public class Http11ControllerTestCase extends TestCase {
 		this.tmpDir = new File(System.getProperty("java.io.tmpdir"), "webapps");
 		tmpDir.mkdir();
 		File destFile = new File(this.tmpDir, "test.war");
-		FileUtils.copyFile("build/libs/nginious-server-0.9.1-testweb.war", destFile.getAbsolutePath());
+		FileUtils.copyFile("build/libs/nginious-server-0.9.2-testweb.war", destFile.getAbsolutePath());
 		HttpServerConfiguration config = new HttpServerConfiguration();
 		config.setWebappsDir(tmpDir.getAbsolutePath());
 		config.setPort(9000);
