@@ -24,6 +24,7 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -81,7 +82,7 @@ public class ApplicationClassLoader extends ClassLoader {
 			return true;
 		}
 		
-		for(ClassLoader subClassLoader : subClassLoaders.values()) {
+		for(ClassLoader subClassLoader : subClassLoaders.values()) {			
 			if(loader.equals(subClassLoader)) {
 				return true;
 			}
@@ -393,7 +394,7 @@ public class ApplicationClassLoader extends ClassLoader {
 		
 		private long lastModified;
 		
-		private HashSet<String> loadedClasses;
+		private HashMap<String, Long> classTstmps;
 		
 		/**
 		 * Constructs a new sub app class loader for the specified jar library or classes directory.
@@ -406,7 +407,7 @@ public class ApplicationClassLoader extends ClassLoader {
 			this.jarOrClassDir = jarOrClassDir;
 			this.isJar = jarOrClassDir.isFile();
 			this.lastModified = jarOrClassDir.lastModified();
-			this.loadedClasses = new HashSet<String>();
+			this.classTstmps = new HashMap<String, Long>();
 			
 			try {
 				URL url = jarOrClassDir.toURI().toURL();
@@ -468,7 +469,7 @@ public class ApplicationClassLoader extends ClassLoader {
 				resourceFile = new File(this.jarOrClassDir, subPath);
 				
 				if(!resourceFile.exists()) {
-					if(loadedClasses.contains(name)) {
+					if(classTstmps.containsKey(name)) {
 						return true;
 					}
 					
@@ -482,11 +483,27 @@ public class ApplicationClassLoader extends ClassLoader {
 				}
 			}
 			
-			if(resourceFile.exists() && resourceFile.lastModified() > this.lastModified) {
+			long lastModified = 0L;
+			
+			if(classTstmps.containsKey(name)) {
+				lastModified = classTstmps.get(name);
+			}
+			
+			if(resourceFile.exists() && lastModified > 0L && resourceFile.lastModified() > lastModified) {
 				return true;
 			}
 			
 			return false;
+		}
+		
+		private long getLastModified(String name) {
+			if(this.isJar) {
+				return jarOrClassDir.lastModified();
+			}
+			
+			String subPath = name.replaceAll("\\.", File.separator) + ".class";
+			File resourceFile = new File(this.jarOrClassDir, subPath);
+			return resourceFile.lastModified();
 		}
 		
 		public URL getResource(String name) {
@@ -526,7 +543,8 @@ public class ApplicationClassLoader extends ClassLoader {
 			}
 			
 			if(clazz != null) {
-				loadedClasses.add(name);
+				long lastModified = getLastModified(name);
+				classTstmps.put(name, lastModified);
 			}
 			
 			return clazz;
