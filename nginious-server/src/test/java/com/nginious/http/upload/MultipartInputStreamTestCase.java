@@ -66,6 +66,8 @@ public class MultipartInputStreamTestCase extends TestCase {
 				
 				pos += len;
 			}
+			
+			in.close();
 		}
 	}
 		
