@@ -58,11 +58,11 @@ public class Http10StaticContentTestCase extends TestCase {
 		this.server = factory.create(config);
 		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
 		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
+		server.start();
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
 		application.setBaseDir(new File("build/resources/testweb"));
 		manager.publish(application);
-		server.start();
 	}
 
 	protected void tearDown() throws Exception {
