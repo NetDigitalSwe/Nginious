@@ -33,6 +33,7 @@ import com.nginious.http.cmd.CommandLineException;
  * <li>-i [interfaces] | --interfaces=[interfaces] (all) - Comma separated list of network interfaces that server listens to.</li>
  * <li>-p [port] | --port=[port] (80) - Port that server listens to.</li>
  * <li>-d [dir] | --webappsDir=[dir] (webapps) - Directory for web applications.</li>
+ * <li>-w [webapp] | --webapp=[dir] (webapp) - Directory or web  application.</li>
  * <li>-a [password] | --adminPassword=[password] (admin) - Web applications REST service admin password.</li>
  * <li>-s [type] | --session=[type] (memory) - Session manager type (memory|cookie).</li>
  * </ul>
@@ -64,6 +65,7 @@ public class Main {
 			Runtime.getRuntime().addShutdownHook(new Thread(hook));
 		} catch(CommandLineException e) {
 			args.help(new PrintWriter(System.out));
+			System.exit(1);
 		} catch(IOException e) {
 			System.out.println("Unable to start server, see logs/server.log for more information");
 		}
