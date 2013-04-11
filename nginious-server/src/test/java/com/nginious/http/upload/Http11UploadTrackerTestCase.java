@@ -17,7 +17,12 @@
 package com.nginious.http.upload;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Random;
+
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
 import com.nginious.http.application.Application;
 import com.nginious.http.application.ApplicationManager;
@@ -26,14 +31,9 @@ import com.nginious.http.server.HttpServer;
 import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
 import com.nginious.http.server.HttpTestConnection;
-import com.nginious.http.service.TestUploadProgressController;
 import com.nginious.http.service.TestUploadController;
+import com.nginious.http.service.TestUploadProgressController;
 import com.nginious.http.service.TestUploadTrackerController;
-import com.nginious.http.upload.MultipartInputStream;
-
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
 public class Http11UploadTrackerTestCase extends TestCase {
 	
@@ -134,11 +134,13 @@ public class Http11UploadTrackerTestCase extends TestCase {
 			"Cookie: http_upload_id=<tracker>\015\012" +
 			"Content-Length: <length>";
 		
+		MultipartInputStream in = null;
+		
 		try {
 			conn = new HttpTestConnection();
 			String data = createData(1048576);
 			byte[] byteData = data.getBytes();
-			MultipartInputStream in = new MultipartInputStream("AaB03x", new ByteArrayInputStream(byteData), byteData.length);
+			in = new MultipartInputStream("AaB03x", new ByteArrayInputStream(byteData), byteData.length);
 			in.setHeader("Content-Disposition", "form-data; name=\"pics\"; filename=\"file.txt\"");
 			in.setHeader("Content-Type", "text/plain");
 			
@@ -174,6 +176,10 @@ public class Http11UploadTrackerTestCase extends TestCase {
 			conn.close();
 			conn = null;
 		} finally {
+			if(in != null) {
+				try { in.close(); } catch(IOException e) {}
+			}
+			
 			if(conn != null) {
 				conn.close();
 			}
