@@ -30,6 +30,7 @@ import com.nginious.http.HttpRequest;
 import com.nginious.http.HttpResponse;
 import com.nginious.http.HttpStatus;
 import com.nginious.http.common.PathParameters;
+import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.MessageLog;
 import com.nginious.http.stats.HttpRequestStatistics;
 import com.nginious.http.stats.WebSocketSessionStatistics;
@@ -47,6 +48,10 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	private static MessageLog log = MessageLog.getInstance();
 	
 	private String applicationsDirName;
+	
+	private String rootApplicationFileName;
+	
+	private String password;
 	
 	private String tmpDirName;
 	
@@ -70,9 +75,16 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	
 	private WebSocketSessionStatistics wsStatistics;
 	
-	public ApplicationManagerImpl(String applicationsDirName, String password) {
+	public ApplicationManagerImpl(HttpServerConfiguration configuration) {
 		super();
-		this.applicationsDirName = applicationsDirName;
+		this.applicationsDirName = configuration.getWebappsDir();
+		this.rootApplicationFileName = configuration.getWebappDirOrFile();
+		
+		if(this.rootApplicationFileName != null) {
+			this.applicationsDirName = null;
+		}
+		
+		this.password = configuration.getAdminPwd();
 		this.tmpDirName = System.getProperty("java.io.tmpdir");
 		
 		if(this.applicationsDirName != null) {
@@ -92,12 +104,7 @@ public class ApplicationManagerImpl implements ApplicationManager {
 		this.applications = new ConcurrentHashMap<String, ApplicationImpl>();
 
 		this.classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		this.controllerFactory = new ControllerServiceFactory(this.classLoader);
-		
-		this.applicationService = createApplicationService(password);
-		this.applicationsService = createApplicationsService(password);
-		this.httpStatsService = createHttpStatsService(password);
-		this.wsStatsService = createWebSocketSessionStatsService(password);
+		this.controllerFactory = new ControllerServiceFactory(this.classLoader);		
 	}
 	
 	public void setHttpRequestStatistics(HttpRequestStatistics httpStatistics) {
@@ -110,6 +117,19 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	
 	public void start() {
 		log.info("ApplicationManager", "start");
+		
+		this.applicationService = createApplicationService(this.password);
+		this.applicationsService = createApplicationsService(this.password);
+		this.httpStatsService = createHttpStatsService(this.password);
+		this.wsStatsService = createWebSocketSessionStatsService(this.password);
+		
+		if(this.rootApplicationFileName != null) {
+			try {
+				publish("root", new File(this.rootApplicationFileName));
+			} catch(ApplicationException e) {
+				log.warn("ApplicationManager", e);
+			}
+		}
 		
 		if(this.applicationsDirName == null || applicationsDirName.equals(this.tmpDirName)) {
 			return;
