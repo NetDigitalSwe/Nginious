@@ -93,8 +93,6 @@ class ApplicationConfigurator {
 	
 	private void deployFromWar(ApplicationImpl application, File warFile, HashSet<ClassInfo> classes) throws ApplicationException {
 		File tmpDir = createTempDir();
-		application.setBaseDir(tmpDir);
-		application.setWar(true);
 		boolean done = false;
 		JarFile jar = null;
 				
@@ -128,6 +126,8 @@ class ApplicationConfigurator {
 				}
 			}
 			
+			application.setBaseDir(tmpDir);
+			application.setWar(true);			
 			done = true;
 		} catch(IOException e) {
 			throw new ApplicationException("Unable to publish '" + this.name + "' from war archive " + warFile.getAbsolutePath(), e);
@@ -265,13 +265,13 @@ class ApplicationConfigurator {
 			}
 			
 			if(out != null) {
-				try { in.close(); } catch(IOException e) {}
+				try { out.close(); } catch(IOException e) {}
 			}
 		}
 	}
 	
 	private File createTempDir() {
-		File tmpDir = new File("tmp");
+		File tmpDir = new File(System.getProperty("java.io.tmpdir"));
 		StringBuffer appDirName = new StringBuffer("ProjectX_");
 		File file = new File(this.name);
 		appDirName.append(file.getName());
