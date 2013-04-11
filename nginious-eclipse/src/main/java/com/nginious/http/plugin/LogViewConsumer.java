@@ -17,33 +17,32 @@
 package com.nginious.http.plugin;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.LinkedList;
 
 import org.eclipse.jface.text.Document;
 import org.eclipse.swt.widgets.Display;
 
-import com.nginious.http.server.LogOutputConsumer;
-
-class LogViewConsumer implements LogOutputConsumer {
+class LogViewConsumer {
 	
 	private Document document;
+	
+	private String logPath;
 	
 	private LinkedList<String> lines;
 	
 	private int lineCount;
 	
-	LogViewConsumer(Document document) {
-		this.document = document;
+	private String lineSeparator;
+	
+	private RandomAccessFile file;
+	
+	LogViewConsumer(String logPath) throws IOException {
+		this.document = new Document();
+		this.logPath = logPath;
 		this.lines = new LinkedList<String>();
 		this.lineCount = 0;
-	}
-	
-	public void start() throws IOException {
-		return;
-	}
-
-	public void stop() throws IOException {
-		return;
+		this.lineSeparator = System.getProperty("line.separator");
 	}
 	
 	public void consume(byte[] logLineBytes) {
@@ -94,6 +93,56 @@ class LogViewConsumer implements LogOutputConsumer {
 	}
 
 	Document getDocument() {
+		final String text = readLastLines();
+		Display display = Display.getDefault();
+
+		display.syncExec(
+				new Runnable() {
+					public void run() {
+						try {
+							document.set(text);
+						} catch(Throwable t) {
+							t.printStackTrace();
+						}
+					}
+				});
+		
 		return this.document;
+	}
+	
+	private String readLastLines() {
+		if(this.lineCount == 1000) {
+			lines.removeFirst();
+		}
+		
+		try {
+			if(this.file == null) {
+				this.file = new RandomAccessFile(this.logPath + ".log", "r");
+			}
+			
+			boolean done = false;
+			
+			while(!done && this.lineCount < 1000) {
+				String line = file.readLine();
+				
+				if(line != null) {
+					lines.addLast(line);
+					this.lineCount++;
+				} else {
+					done = true;
+				}			
+			}
+			
+			StringBuffer text = new StringBuffer();
+			
+			for(String line : this.lines) {
+				text.append(line);
+				text.append(this.lineSeparator);
+			}
+			
+			return text.toString();
+		} catch(IOException e) {
+			return "Failed! " + e.getMessage();
+		}
 	}
 }

@@ -70,10 +70,21 @@ public class NginiousPlugin extends AbstractUIPlugin {
 	public void stop(BundleContext context) throws Exception {
 		plugin = null;
 		super.stop(context);
+		manager.stopAllServers();
 	}
 	
 	ServerManager getInstance() {
 		return this.manager;
+	}
+	
+	public static URL getJar(String name) throws IOException {
+		URL url = FileLocator.find(plugin.getBundle(), new Path("libs/" + name), null);
+		
+		if(url != null) {
+			return FileLocator.toFileURL(url);
+		}
+		
+		return null;
 	}
 	
 	public static URL getApiJar() throws IOException {

@@ -40,12 +40,6 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.text.Document;
 
-import com.nginious.http.application.ApplicationException;
-import com.nginious.http.application.ApplicationManager;
-import com.nginious.http.server.HttpServer;
-import com.nginious.http.server.HttpServerConfiguration;
-import com.nginious.http.server.HttpServerFactory;
-
 class ServerManager implements IResourceChangeListener {
 	
 	private static ServerManager manager = null;
@@ -138,22 +132,29 @@ class ServerManager implements IResourceChangeListener {
 		return open;
 	}
 	
+	void stopAllServers() {
+		logger.log("ENTER ServerManager.stopAllServers");
+		
+		for(HttpServerEnvironment env : servers.values()) {
+			HttpServerProcess serverProcess = env.getServerProcess();
+			serverProcess.stop();
+		}
+		
+		logger.log("EXIT ServerManager.stopAllServers");
+	}
+	
 	void stopServer(IProject project) {
 		logger.log("ENTER ServerManager.stopServer project={0}", project);
 		
-		try {
-			HttpServerEnvironment env = servers.remove(project.getName());
-			
-			if(env != null) {
-				HttpServer server = env.getServer();
-				server.stop();
-			}
-			
-			logger.log("EXIT SeverManager.stopServer");
-		} catch(IOException e) {
-			logger.log("ServerManager.stopServer exception");
-			// Do nothing
+		HttpServerEnvironment env = servers.remove(project.getName());
+		
+		if(env != null) {
+			HttpServerProcess serverProcess = env.getServerProcess();
+			serverProcess.stop();
 		}
+		
+		servers.clear();
+		logger.log("EXIT SeverManager.stopServer");
 	}
 	
 	void restartServer(IProject project) {
@@ -241,34 +242,22 @@ class ServerManager implements IResourceChangeListener {
 		}
 		
 		try {
-			HttpServerConfiguration config = new HttpServerConfiguration();
-			config.setPort(listenPort);
-			config.setAdminPwd(publishPassword);
-			config.setWebappsDir(null);
 			IPath projectPath = project.getLocation();
 			IPath webappsPath = projectPath.append("WebContent");
-			HttpServerFactory factory = HttpServerFactory.getInstance();
-			HttpServer server = factory.create(config);
-			LogViewConsumer accessLogConsumer = new LogViewConsumer(new Document());
-			LogViewConsumer messageLogConsumer = new LogViewConsumer(new Document());
-			server.setAccessLogConsumer(accessLogConsumer);
-			server.setMessageLogConsumer(messageLogConsumer);
-			server.start();
-			ApplicationManager manager = server.getApplicationManager();
-			manager.publish("root", webappsPath.toFile());
+			HttpServerProcess serverProcess = new HttpServerProcess(project.getName(), listenPort, publishPassword, webappsPath.toFile(), this.logger);
+			serverProcess.start();
 			
-			HttpServerEnvironment env = new HttpServerEnvironment(project, server, accessLogConsumer, messageLogConsumer);
+			LogViewConsumer accessLogConsumer = new LogViewConsumer(serverProcess.getAccessLogPath());
+			LogViewConsumer messageLogConsumer = new LogViewConsumer(serverProcess.getServerLogPath());
+			
+			HttpServerEnvironment env = new HttpServerEnvironment(project, serverProcess, accessLogConsumer, messageLogConsumer);
 			env.setPort(listenPort);
 			env.setPublishUrl(publishUrl);
 			env.setPublishUsername(publishUsername);
 			env.setPublishPassword(publishPassword);
 			servers.put(project.getName(), env);
+
 			logger.log("EXIT ServerManager.startServer");
-		} catch(ApplicationException e) {
-			String title = Messages.ServerManager_server_error_title;
-			String message = Messages.ServerManager_server_error_message + " " + project.getName();
-			MessagesUtils.displayMessageDialog(e.getMessage(), null, title, message);
-			logger.log("ServerManager.startServer exception", e);
 		} catch(IOException e) {
 			String title = Messages.ServerManager_server_error_title;
 			String message = Messages.ServerManager_server_error_message + " " + project.getName();
@@ -344,16 +333,16 @@ class ServerManager implements IResourceChangeListener {
 		
 		private String publishPassword;
 		
-		private HttpServer server;
+		private HttpServerProcess serverProcess;
 		
 		private LogViewConsumer accessLogConsumer;
 		
 		private LogViewConsumer messageLogConsumer;
 		
-		private HttpServerEnvironment(IProject project, HttpServer server, LogViewConsumer accessLogConsumer, LogViewConsumer messageLogConsumer) {
+		private HttpServerEnvironment(IProject project, HttpServerProcess serverProcess, LogViewConsumer accessLogConsumer, LogViewConsumer messageLogConsumer) {
 			super();
 			this.project = project;
-			this.server = server;
+			this.serverProcess = serverProcess;
 			this.accessLogConsumer = accessLogConsumer;
 			this.messageLogConsumer = messageLogConsumer;
 		}
@@ -382,8 +371,8 @@ class ServerManager implements IResourceChangeListener {
 			this.publishPassword = publishPassword;
 		}
 		
-		private HttpServer getServer() {
-			return this.server;
+		private HttpServerProcess getServerProcess() {
+			return this.serverProcess;
 		}
 		
 		private LogViewConsumer getMessageLogConsumer() {
