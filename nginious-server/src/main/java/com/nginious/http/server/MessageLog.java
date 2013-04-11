@@ -62,14 +62,26 @@ public class MessageLog {
 	
 	private MessageLevel level;
 	
+	private String messageLogPath;
+	
 	/**
 	 * Constructs a new message log with the specified log level.
 	 * 
 	 * @param level the log level
+	 * @param messageLogPath the message log path
 	 */
-	private MessageLog(MessageLevel level) {
+	MessageLog(MessageLevel level, String messageLogPath) {
 		super();
+		this.messageLogPath = messageLogPath;
 		this.level = level;
+		
+		if(log != null) {
+			throw new RuntimeException("Only one instance allowed");
+		}
+		
+		if(log == null) {
+			log = this;
+		}
 	}
 	
 	/**
@@ -88,10 +100,6 @@ public class MessageLog {
 	 * @return the message log
 	 */
 	public static MessageLog getInstance() {
-		if(log == null) {
-			log = new MessageLog(MessageLevel.EVENT);
-		}
-		
 		return log;
 	}
 	
@@ -112,7 +120,7 @@ public class MessageLog {
 	 */
 	void open() throws IOException {
 		if(this.consumer == null) {
-			this.consumer = new FileLogConsumer("logs/server"); 
+			this.consumer = new FileLogConsumer(this.messageLogPath);
 		}
 		
 		consumer.start();
@@ -127,6 +135,8 @@ public class MessageLog {
 		if(consumer != null) {
 			consumer.stop();
 		}
+		
+		log = null;
 	}
 	
 	/**
