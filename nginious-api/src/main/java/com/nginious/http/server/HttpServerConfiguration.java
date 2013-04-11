@@ -39,9 +39,15 @@ public class HttpServerConfiguration {
 	
 	private String webappsDir;
 	
+	private String webappDirOrFile;
+	
 	private String adminPwd;
 	
 	private String session;
+	
+	private String accessLogPath;
+	
+	private String serverLogPath;
 	
 	/**
 	 * Constructs a new HTTP server configuration.
@@ -51,8 +57,11 @@ public class HttpServerConfiguration {
 		this.interfaces = "all";
 		this.port = 80;
 		this.webappsDir = "webapps";
+		this.webappDirOrFile = null;
 		this.adminPwd = "admin";
 		this.session = "memory";
+		this.accessLogPath = "logs/access";
+		this.serverLogPath = "logs/server";
 	}
 	
 	/**
@@ -122,6 +131,28 @@ public class HttpServerConfiguration {
 	}
 	
 	/**
+	 * Returns webapp dir or file.
+	 * 
+	 * @return the webapp dir or file.
+	 */
+	public String getWebappDirOrFile() {
+		return this.webappDirOrFile;
+	}
+	
+	/**
+	 * Sets webapp dir or file to the specified value.
+	 * 
+	 * @param webappDirOrFile the webapp dir or file
+	 */
+	@CommandLine(shortName="-w", 
+			longName="--webapp", 
+			mandatory=false, 
+			description="File or directory for web application.")
+	public void setWebappDirOrFile(String webappDirOrFile) {
+		this.webappDirOrFile = webappDirOrFile;
+	}
+	
+	/**
 	 * Returns admin password.
 	 * 
 	 * @return the admin password
@@ -163,5 +194,49 @@ public class HttpServerConfiguration {
 			description="Session type (memory|cookie)")
 	public void setSession(String session) {
 		this.session = session;
+	}
+	
+	/**
+	 * Returns the access log path.
+	 * 
+	 * @return the access log path
+	 */
+	public String getAccessLogPath() {
+		return this.accessLogPath;
+	}
+	
+	/**
+	 * Sets the access log path to the specified path.
+	 * 
+	 * @param accessLogPath the access log path
+	 */
+	@CommandLine(shortName="-A",
+			longName="--accessLog",
+			mandatory=false,
+			description="Path to access log")
+	public void setAccessLogPath(String accessLogPath) {
+		this.accessLogPath = accessLogPath;
+	}
+	
+	/**
+	 * Returns the server log path
+	 * 
+	 * @return the server log path
+	 */
+	public String getServerLogPath() {
+		return this.serverLogPath;
+	}
+	
+	/**
+	 * Sets the server log path to the specified path.
+	 * 
+	 * @param serverLogPath the server log path
+	 */
+	@CommandLine(shortName="-S",
+			longName="--serverLog",
+			mandatory=false,
+			description="Path to server log")
+	public void setServerLogPath(String serverLogPath) {
+		this.serverLogPath = serverLogPath;
 	}
 }
