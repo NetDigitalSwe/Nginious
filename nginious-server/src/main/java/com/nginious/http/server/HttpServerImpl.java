@@ -86,7 +86,7 @@ public class HttpServerImpl extends Server implements HttpServer {
 	 * @param config the HTTP server configuration to use
 	 */
 	HttpServerImpl(HttpServerConfiguration config) {
-		super("Http");
+		super("Http", config.getServerLogPath());
 		this.httpRequestStatistics = new HttpRequestStatistics();
 		this.webSocketSessionStatistics = new WebSocketSessionStatistics();
 		this.trackers = new ConcurrentHashMap<String, UploadTracker>();
@@ -100,7 +100,7 @@ public class HttpServerImpl extends Server implements HttpServer {
 		}
 		
 		this.started = false;
-		this.accessLog = new AccessLog();
+		this.accessLog = new AccessLog(config.getAccessLogPath());
 		this.log = MessageLog.getInstance();
 		this.connectionTimeoutMillis = DEFAULT_CONNECTION_TIMEOUT_MILLIS;
 		setPort(config.getPort());
