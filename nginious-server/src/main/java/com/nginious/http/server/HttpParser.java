@@ -262,6 +262,7 @@ class HttpParser {
 	 * @return state of parser after parsing request data
 	 * @throws HttpException if request method line is invalid causing a HTTP error
 	 */
+	@SuppressWarnings("incomplete-switch")
 	int parseMethod(ByteBuffer data, int pos, int length) throws HttpException {
 		int lastElementPos = 0;
 		
@@ -384,6 +385,7 @@ class HttpParser {
 	 * @throws IOException if an I/O exception occurs
 	 * @throws HttpException if any of the request headers are invalid causing a HTTP error
 	 */
+	@SuppressWarnings("incomplete-switch")
 	int parseHeaders(ByteBuffer data, int pos, int length) throws IOException, HttpException {
 		int lastElementPos = pos;
 		
@@ -574,6 +576,7 @@ class HttpParser {
 	 * @throws IOException if an I/O error occurs
 	 * @throws HttpException if request body data is invalid causing a HTTP error
 	 */
+	@SuppressWarnings("incomplete-switch")
 	int parseBody(ByteBuffer data, int pos, int length) throws IOException, HttpException {
 		int bufLen = length;
 		length -= pos;
