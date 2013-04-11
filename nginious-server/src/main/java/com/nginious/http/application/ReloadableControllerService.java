@@ -24,6 +24,7 @@ import com.nginious.http.HttpRequest;
 import com.nginious.http.HttpResponse;
 import com.nginious.http.HttpStatus;
 import com.nginious.http.annotation.Controller;
+import com.nginious.http.server.MessageLog;
 
 /**
  * A reloadable controller service checks a controller class file for modifications prior to invocation of the
@@ -97,7 +98,7 @@ class ReloadableControllerService extends HttpService {
 			throw new HttpControllerRemovedException(HttpStatus.NOT_FOUND, request.getPath());
 		}
 		
-		if(classFile.lastModified() > lastModified || this.controller == null) {
+		if(classFile.lastModified() > this.lastModified || this.controller == null) {
 			loadControllerClass();
 		}
 		
@@ -135,15 +136,23 @@ class ReloadableControllerService extends HttpService {
 				this.lastModified = classFile.lastModified();
 			} catch(ClassNotFoundException e) {
 				this.exception = new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to load controller class");
+				MessageLog log = MessageLog.getInstance();
+				log.warn("Unable to load controller class", e);
 				throw this.exception;
 			} catch(IllegalAccessException e) {
 				this.exception = new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to load controller class");
+				MessageLog log = MessageLog.getInstance();
+				log.warn("Unable to load controller class", e);
 				throw this.exception;
 			} catch(InstantiationException e) {
 				this.exception = new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to load controller class");
+				MessageLog log = MessageLog.getInstance();
+				log.warn("Unable to load controller class", e);
 				throw this.exception;
 			} catch(ControllerServiceFactoryException e) {
 				this.exception = new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to load controller class");
+				MessageLog log = MessageLog.getInstance();
+				log.warn("Unable to load controller class", e);
 				throw this.exception;
 			}
 		}
