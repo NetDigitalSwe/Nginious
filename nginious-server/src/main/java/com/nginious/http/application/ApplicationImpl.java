@@ -475,7 +475,7 @@ class ApplicationImpl implements Application {
 			executableControllers.put(localPath, compilableService);
 			return service.invoke(request, response);
 		} catch(XspException e) {
-			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Compilation failed");
+			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Compilation failed", e);
 		}
 	}
 	
