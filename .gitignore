@@ -1,0 +1,11 @@
+.gradle/
+build/
+logs/
+nginious-ant/build/
+nginious-ant/libs/
+nginious-api/build/
+nginious-eclipse/build/
+nginious-eclipse/libs/
+nginious-server/build/
+nginious-server/libs/ext/
+
