@@ -419,18 +419,24 @@ public abstract class ControllerService extends HttpService {
 	 */
 	protected <T> T deserialize(Class<T> clazz, HttpRequest request) throws HttpException {
 		try {
-			Deserializer<T> deserializer = deserializerFactory.createDeserializer(clazz, request.getContentType());
+			String contentType = request.getContentType();
+			
+			if(contentType == null && request.getMethod().equals(HttpMethod.GET)) {
+				contentType = "application/x-www-form-urlencoded";
+			}
+			
+			Deserializer<T> deserializer = deserializerFactory.createDeserializer(clazz, contentType);
 			
 			if(deserializer == null) {
-				throw new HttpException(HttpStatus.BAD_REQUEST, "Invalid content type '" + request.getContentType() + "'");				
+				throw new HttpException(HttpStatus.BAD_REQUEST, "Invalid content type '" + contentType + "'");				
 			}
 			
 			T object = deserializer.deserialize(request);
 			return object;
 		} catch(SerializerException e) {
-			throw new HttpException(HttpStatus.BAD_REQUEST, "Serialization failed: " + e.getMessage(), e);
+			throw new HttpException(HttpStatus.BAD_REQUEST, "Deserialization failed: " + e.getMessage(), e);
 		} catch(SerializerFactoryException e) {
-			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Serialization failed:" + e.getMessage(), e);
+			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Deserialization failed:" + e.getMessage(), e);
 		}
 	}
 	
