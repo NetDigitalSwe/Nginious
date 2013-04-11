@@ -722,7 +722,7 @@ public class ControllerServiceFactory {
 		return signature.toString();
 	}
 	
-	Class<?> loadClass(ClassLoader loader, String className, byte[] b) {
+	Class<?> loadClass(ClassLoader loader, String className, byte[] b) throws ControllerServiceFactoryException {
     	Class<?> clazz = null;
     	
     	try {
@@ -734,12 +734,13 @@ public class ControllerServiceFactory {
     		
     		try {
     			Object[] args = new Object[] { className, b, new Integer(0), new Integer(b.length)};
-    			clazz = (Class<?>) method.invoke(loader, args);
+    			clazz = (Class<?>)method.invoke(loader, args);
     		} finally {
     			method.setAccessible(false);
     		}
         } catch (Exception e) {
         	log.warn("ControllerServiceFactory", e);
+        	throw new ControllerServiceFactoryException("Unable to load class", e);
         }
         
         return clazz;
