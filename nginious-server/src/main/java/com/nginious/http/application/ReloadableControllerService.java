@@ -42,7 +42,7 @@ class ReloadableControllerService extends HttpService {
 	
 	private ControllerServiceFactory factory;
 	
-	private ClassLoader classLoader;
+	private ApplicationClassLoader classLoader;
 	
 	private String className;
 	
@@ -62,7 +62,7 @@ class ReloadableControllerService extends HttpService {
 	 * @param className the controller class name
 	 * @param classFile the controller class file to check for modifications
 	 */
-	ReloadableControllerService(ControllerServiceFactory factory, ControllerService service, ClassLoader classLoader, String className, File classFile) {
+	ReloadableControllerService(ControllerServiceFactory factory, ControllerService service, ApplicationClassLoader classLoader, String className, File classFile) {
 		this.factory = factory;
 		this.service = service;
 		this.controller = service.getController();
@@ -93,18 +93,33 @@ class ReloadableControllerService extends HttpService {
 	 * @throws IOException if an I/O error occurs
 	 */
 	public HttpServiceResult invoke(HttpRequest request, HttpResponse response) throws HttpException, IOException {
+		return invokeRetry(request, response, true);
+	}
+	
+	private HttpServiceResult invokeRetry(HttpRequest request, HttpResponse response, boolean retry) throws HttpException, IOException {
 		if(!classFile.exists()) {
 			this.controller = null;
 			throw new HttpControllerRemovedException(HttpStatus.NOT_FOUND, request.getPath());
 		}
 		
-		if(classFile.lastModified() > this.lastModified || this.controller == null) {
+		if(!classLoader.hasLoaded(controller.getClass()) || 
+				classFile.lastModified() > this.lastModified || 
+				this.controller == null) {
 			loadControllerClass();
 		}
 		
-		return service.invoke(request, response);
+		if(retry) {
+			try {
+				return service.invoke(request, response);
+			} catch(ClassCastException e) {
+				// Retry once since exception might be caused by class loader
+				return invokeRetry(request, response, false);
+			}			
+		} else {
+			return service.invoke(request, response);			
+		}
 	}
-
+	
 	public final HttpServiceResult executeGet(HttpRequest request, HttpResponse response) throws HttpException, IOException {
 		return invoke(request, response);
 	}
