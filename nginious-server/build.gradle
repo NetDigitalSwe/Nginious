@@ -1,15 +1,6 @@
 apply plugin: 'java'	
 
 sourceSets {
-    testweb {
-        java {
-            srcDir 'src/testweb/java'
-            output.classesDir 'build/classes/testweb/classes'
-        }
-        resources {
-        	srcDir 'src/testweb/webapp'
-        }    
-    }
     testload1 {
     	java {
     		srcDir 'src/testload1/java'
@@ -27,6 +18,15 @@ sourceSets {
     	resources {
     		srcDir 'src/testload2/resources'
     	}
+    }
+    testweb {
+        java {
+            srcDir 'src/testweb/java'
+            output.classesDir 'build/classes/testweb/classes'
+        }
+        resources {
+        	srcDir 'src/testweb/webapp'
+        }    
     }
 }
 
@@ -100,7 +100,7 @@ task eclipse(type: Copy, dependsOn: testwebWar) {
     }
 }
 
-assemble.dependsOn testwebWar, testload1Jar, testload1War, testload2Jar, testload2War, eclipse
+assemble.dependsOn testload1Jar, testload1War, testload2Jar, testload2War, testwebWar, eclipse
 
 clean.dependsOn eclipseClean
 
