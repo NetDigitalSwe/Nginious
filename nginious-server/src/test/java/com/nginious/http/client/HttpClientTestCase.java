@@ -20,25 +20,21 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+
 import com.nginious.http.HttpMethod;
 import com.nginious.http.TestUtils;
 import com.nginious.http.application.Application;
 import com.nginious.http.application.ApplicationManager;
-import com.nginious.http.client.HttpClient;
-import com.nginious.http.client.HttpClientRequest;
-import com.nginious.http.client.HttpClientResponse;
 import com.nginious.http.common.FileUtils;
-import com.nginious.http.server.FileLogConsumer;
 import com.nginious.http.server.HttpServer;
 import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
 import com.nginious.http.server.HttpTestConnection;
 import com.nginious.http.service.TestBodyController;
 import com.nginious.http.service.TestMethodsController;
-
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
 public class HttpClientTestCase extends TestCase {
 	
@@ -65,11 +61,11 @@ public class HttpClientTestCase extends TestCase {
 		HttpServerConfiguration config = new HttpServerConfiguration();
 		config.setWebappsDir(tmpDir.getAbsolutePath());
 		config.setServerLogPath("build/test-server.log");
+		config.setAccessLogPath("build/test-access.log");
 		config.setPort(9000);
 		
 		HttpServerFactory factory = HttpServerFactory.getInstance();
 		this.server = factory.create(config);
-		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
 		application.addController(new TestBodyController());

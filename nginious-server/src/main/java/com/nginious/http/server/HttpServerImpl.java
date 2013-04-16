@@ -52,8 +52,6 @@ public class HttpServerImpl extends Server implements HttpServer {
 	
 	private AccessLog accessLog;
 	
-	private LogOutputConsumer accessLogConsumer;
-	
 	private ApplicationManagerImpl manager;
 	
 	private HashSet<String> hostnames;
@@ -137,15 +135,6 @@ public class HttpServerImpl extends Server implements HttpServer {
 	}
 	
 	/**
-	 * Sets this HTTP servers access log consumer to the specified consumer.
-	 * 
-	 * @param consumer the log output consumer
-	 */
-	public void setAccessLogConsumer(LogOutputConsumer consumer) {
-		this.accessLogConsumer = consumer;		
-	}
-	
-	/**
 	 * Returns application manager for this HTTP server.
 	 * 
 	 * @return the application context manager
@@ -218,10 +207,6 @@ public class HttpServerImpl extends Server implements HttpServer {
 		boolean done = false;
 		
 		try {
-			if(this.accessLogConsumer != null) {
-				accessLog.setConsumer(this.accessLogConsumer);
-			}
-			
 			this.hostnames = getHostnames();
 			sessionManager.start();
 			manager.start();

@@ -16,16 +16,13 @@
 
 package com.nginious.http.server;
 
-import com.nginious.http.application.Application;
-import com.nginious.http.application.ApplicationManager;
-import com.nginious.http.server.HttpServer;
-import com.nginious.http.server.HttpServerConfiguration;
-import com.nginious.http.server.HttpServerFactory;
-import com.nginious.http.service.TestMethodsController;
-
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+
+import com.nginious.http.application.Application;
+import com.nginious.http.application.ApplicationManager;
+import com.nginious.http.service.TestMethodsController;
 
 public class Http10MethodsTestCase extends TestCase {
 	
@@ -44,10 +41,10 @@ public class Http10MethodsTestCase extends TestCase {
 		HttpServerConfiguration config = new HttpServerConfiguration();
 		config.setWebappsDir(null);
 		config.setServerLogPath("build/test-server.log");
+		config.setAccessLogPath("build/test-access.log");
 		config.setPort(9000);
 		HttpServerFactory factory = HttpServerFactory.getInstance();
 		this.server = factory.create(config);
-		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
 		application.addController(new TestMethodsController());

@@ -19,17 +19,14 @@ package com.nginious.http.server;
 import java.io.IOException;
 import java.util.Random;
 
-import com.nginious.http.application.Application;
-import com.nginious.http.application.ApplicationManager;
-import com.nginious.http.server.HttpServer;
-import com.nginious.http.server.HttpServerConfiguration;
-import com.nginious.http.server.HttpServerFactory;
-import com.nginious.http.service.TestBodyController;
-import com.nginious.http.service.TestNoDataController;
-
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+
+import com.nginious.http.application.Application;
+import com.nginious.http.application.ApplicationManager;
+import com.nginious.http.service.TestBodyController;
+import com.nginious.http.service.TestNoDataController;
 
 public class Http10ContentTestCase extends TestCase {
 	
@@ -48,10 +45,10 @@ public class Http10ContentTestCase extends TestCase {
 		HttpServerConfiguration config = new HttpServerConfiguration();
 		config.setWebappsDir(null);
 		config.setServerLogPath("build/test-server.log");
+		config.setAccessLogPath("build/test-access.log");
 		config.setPort(9000);
 		HttpServerFactory factory = HttpServerFactory.getInstance();
 		this.server = factory.create(config);
-		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
 		application.addController(new TestBodyController());

@@ -21,7 +21,6 @@ import junit.framework.TestSuite;
 
 import org.custommonkey.xmlunit.XMLTestCase;
 
-import com.nginious.http.server.FileLogConsumer;
 import com.nginious.http.server.HttpServer;
 import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
@@ -52,10 +51,10 @@ public class NullWebAppsDirTestCase extends XMLTestCase {
 		config.setAdminPwd("admin");
 		config.setWebappsDir(null);
 		config.setServerLogPath("build/test-server.log");
+		config.setAccessLogPath("build/test-access.log");
 		config.setPort(9000);
 		HttpServerFactory factory = HttpServerFactory.getInstance();
 		server = factory.create(config);
-		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
 		server.start();
 		
 		Thread.sleep(2000L);

@@ -23,7 +23,6 @@ import java.text.SimpleDateFormat;
 import org.apache.log4j.Logger;
 
 import com.nginious.http.HttpStatus;
-import com.nginious.http.server.LogOutputConsumer;
 
 /**
  * A HTTP access log which logs HTTP requests in combined log format. Log entries are queued when added.
@@ -46,7 +45,7 @@ class AccessLog {
 	
 	private static Logger logger = Logger.getLogger(AccessLog.class);
 	
-	private LogOutputConsumer consumer;
+	private FileLogConsumer consumer;
 	
 	private String accessLogPath;
 	
@@ -58,15 +57,7 @@ class AccessLog {
 	AccessLog(String accessLogPath) {
 		super();
 		this.accessLogPath = accessLogPath;
-	}
-	
-	/**
-	 * Sets this access logs output consumer to the specified consumer.
-	 * 
-	 * @param consumer the consumer
-	 */
-	void setConsumer(LogOutputConsumer consumer) {
-		this.consumer = consumer;
+		this.consumer = new FileLogConsumer(this.accessLogPath);		
 	}
 	
 	/**
@@ -75,10 +66,7 @@ class AccessLog {
 	 * @throws IOException if unable to open access log
 	 */
 	void open() throws IOException {
-		if(this.consumer == null) {
-			this.consumer = new FileLogConsumer(this.accessLogPath);
-		}
-		
+		this.consumer = new FileLogConsumer(this.accessLogPath);
 		consumer.start();
 	}
 	

@@ -18,24 +18,19 @@ package com.nginious.http.session;
 
 import java.util.Random;
 
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+
 import com.nginious.http.HttpSession;
 import com.nginious.http.application.Application;
 import com.nginious.http.application.ApplicationManager;
-import com.nginious.http.server.FileLogConsumer;
 import com.nginious.http.server.HttpServer;
 import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
 import com.nginious.http.server.HttpTestConnection;
 import com.nginious.http.server.HttpTestRequest;
 import com.nginious.http.service.TestSessionController;
-import com.nginious.http.session.HttpCookieSessionDeserializer;
-import com.nginious.http.session.HttpCookieSessionManager;
-import com.nginious.http.session.HttpCookieSessionSerializer;
-import com.nginious.http.session.HttpSessionConstants;
-
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
 public class HttpCookieSessionTestCase extends TestCase {
 	
@@ -55,11 +50,11 @@ public class HttpCookieSessionTestCase extends TestCase {
 		HttpServerConfiguration config = new HttpServerConfiguration();
 		config.setWebappsDir(null);
 		config.setServerLogPath("build/test-server.log");
+		config.setAccessLogPath("build/test-access.log");
 		config.setSession("cookie");
 		config.setPort(9000);
 		HttpServerFactory factory = HttpServerFactory.getInstance();
 		this.server = factory.create(config);
-		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
 		application.addController(new TestSessionController());

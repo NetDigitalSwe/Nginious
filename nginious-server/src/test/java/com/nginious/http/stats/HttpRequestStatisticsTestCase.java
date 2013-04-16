@@ -24,15 +24,10 @@ import junit.framework.TestSuite;
 import org.custommonkey.xmlunit.XMLTestCase;
 
 import com.nginious.http.HttpStatus;
-import com.nginious.http.server.FileLogConsumer;
 import com.nginious.http.server.HttpServer;
 import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
 import com.nginious.http.server.HttpTestConnection;
-import com.nginious.http.stats.HttpRequestStatistics;
-import com.nginious.http.stats.HttpRequestStatisticsEntry;
-import com.nginious.http.stats.WebSocketSessionStatistics;
-import com.nginious.http.stats.WebSocketSessionStatisticsEntry;
 
 
 public class HttpRequestStatisticsTestCase extends XMLTestCase {
@@ -52,11 +47,11 @@ public class HttpRequestStatisticsTestCase extends XMLTestCase {
 		HttpServerConfiguration config = new HttpServerConfiguration();
 		config.setAdminPwd("admin");
 		config.setServerLogPath("build/test-server.log");
+		config.setAccessLogPath("build/test-access.log");
 		config.setWebappsDir(null);
 		config.setPort(9000);
 		HttpServerFactory factory = HttpServerFactory.getInstance();
 		this.server = factory.create(config);
-		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
 		server.start();
 	}
 

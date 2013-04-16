@@ -24,8 +24,6 @@ import java.util.Calendar;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import com.nginious.http.server.LogOutputConsumer;
-
 /**
  * A log consumer which writes log entries to a file. Log entries are queued when added. A separate thread 
  * takes log entries from the queue and writes them to the log file.
@@ -44,7 +42,7 @@ import com.nginious.http.server.LogOutputConsumer;
  * @author Bojan Pisler, NetDigital Sweden AB
  *
  */
-public class FileLogConsumer implements LogOutputConsumer {
+public class FileLogConsumer {
 	
 	private ArrayBlockingQueue<byte[]> queue;
 	
@@ -215,7 +213,7 @@ public class FileLogConsumer implements LogOutputConsumer {
 		 * @throws IOException if unable to create access log file
 		 */
 		private void createNew() throws IOException {
-			File outFile = new File(this.fileNamePrefix + ".log");
+			File outFile = new File(this.fileNamePrefix);
 			this.out = new FileOutputStream(outFile, true);
 		}
 		
@@ -225,11 +223,10 @@ public class FileLogConsumer implements LogOutputConsumer {
 		 */
 		private void moveCurrent() {
 			StringBuffer fileName = new StringBuffer(this.fileNamePrefix);
-			fileName.append("_");
+			fileName.append(".");
 			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 			fileName.append(format.format(this.nextRotationMillis - 1000L));
-			fileName.append(".log");
-			File curFile = new File(this.fileNamePrefix + ".log");
+			File curFile = new File(this.fileNamePrefix);
 			File rotatedFile = new File(fileName.toString());
 			curFile.renameTo(rotatedFile);
 		}
@@ -246,10 +243,9 @@ public class FileLogConsumer implements LogOutputConsumer {
 				cal.set(Calendar.MILLISECOND, 0);
 				cal.add(Calendar.DAY_OF_MONTH, -i);
 				StringBuffer fileName = new StringBuffer(this.fileNamePrefix);
-				fileName.append("_");
+				fileName.append(".");
 				SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 				fileName.append(format.format(this.nextRotationMillis - 1000L));
-				fileName.append(".log");
 				File oldFile = new File(fileName.toString());
 				oldFile.delete();
 			}

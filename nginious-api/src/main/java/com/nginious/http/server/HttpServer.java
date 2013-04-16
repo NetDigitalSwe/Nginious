@@ -66,12 +66,5 @@ public interface HttpServer {
 	 * 
 	 * @return the application manager
 	 */
-	public ApplicationManager getApplicationManager();
-	
-	/**
-	 * Sets this HTTP servers access log consumer to the specified consumer.
-	 * 
-	 * @param consumer the log output consumer
-	 */
-	public void setAccessLogConsumer(LogOutputConsumer consumer);
+	public ApplicationManager getApplicationManager();	
 }

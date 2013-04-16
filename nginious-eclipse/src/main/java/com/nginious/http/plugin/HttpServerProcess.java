@@ -87,6 +87,7 @@ class HttpServerProcess {
 		path.append(this.projectName);
 		path.append("_");
 		path.append(type);
+		path.append(".log");
 		return path.toString();		
 	}
 	

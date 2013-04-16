@@ -18,17 +18,16 @@ package com.nginious.http.application;
 
 import java.io.File;
 
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+
 import com.nginious.http.TestUtils;
 import com.nginious.http.common.FileUtils;
-import com.nginious.http.server.FileLogConsumer;
 import com.nginious.http.server.HttpServer;
 import com.nginious.http.server.HttpServerConfiguration;
 import com.nginious.http.server.HttpServerFactory;
 import com.nginious.http.server.HttpTestConnection;
-
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
 public class Http11DispatchTestCase extends TestCase {
 	
@@ -54,10 +53,10 @@ public class Http11DispatchTestCase extends TestCase {
 		HttpServerConfiguration config = new HttpServerConfiguration();
 		config.setWebappsDir("build/test-webapps");
 		config.setServerLogPath("build/test-server.log");
+		config.setAccessLogPath("build/test-access.log");
 		config.setPort(9000);
 		HttpServerFactory factory = HttpServerFactory.getInstance();
 		this.server = factory.create(config);
-		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
 		server.start();
 	}
 
