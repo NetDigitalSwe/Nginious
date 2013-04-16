@@ -8,7 +8,7 @@ import com.nginious.http.annotation.Service;
 
 class ServiceRunner {
 	
-	private ClassLoader classLoader;
+	private ApplicationClassLoader classLoader;
 	
 	private File classFile;
 	
@@ -24,7 +24,7 @@ class ServiceRunner {
 	
 	private HttpException exception;
 	
-	ServiceRunner(ClassLoader classLoader, File classFile, Object service) {
+	ServiceRunner(ApplicationClassLoader classLoader, File classFile, Object service) {
 		this.classLoader = classLoader;
 		this.classFile = classFile;
 		
@@ -44,7 +44,7 @@ class ServiceRunner {
 			return null;
 		}
 		
-		if(classFile != null && (classFile.lastModified() > lastModified || this.service == null)) {
+		if(!classLoader.hasLoaded(service.getClass()) || (classFile != null && classFile.lastModified() > this.lastModified)) {
 			loadServiceClass();
 		}
 		
