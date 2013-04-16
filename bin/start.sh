@@ -1,1 +1,1 @@
-java -jar libs/nginious-server-0.9.1.jar $@
+java -jar libs/nginious-server-0.9.2.jar $@
