@@ -291,7 +291,12 @@ class ApplicationImpl implements Application {
 	
 	public Object getService(String name) {
 		ServiceRunner runner = services.get(name);
-		return runner.getService();
+		
+		if(runner != null) {
+			return runner.getService();
+		}
+		
+		return null;
 	}
 	
 	void publish() {
