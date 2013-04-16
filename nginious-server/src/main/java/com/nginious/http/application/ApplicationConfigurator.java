@@ -217,7 +217,7 @@ class ApplicationConfigurator {
 						application.addController(controller, file, file != null);
 					} else if(clazz.isAnnotationPresent(Service.class)) {
 						Object service = clazz.newInstance();
-						application.addService(service);
+						application.addService(service, classFile.getClassFile());
 					}
 				} catch(NoClassDefFoundError e) {
 					// Ignore classes that can't be loaded
