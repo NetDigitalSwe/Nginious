@@ -13,5 +13,6 @@
 	<classpathentry kind="lib" path="nginious-server/libs/ext/xmlunit-1.2.jar"/>
 	<classpathentry kind="lib" path="nginious-ant/libs/ext/ant-1.7.0.jar"/>
 	<classpathentry kind="lib" path="nginious-server/libs/ext/junit-4.11.jar"/>
+	<classpathentry kind="lib" path="nginious-server/libs/ext/log4j-1.2.17.jar"/>
 	<classpathentry kind="output" path="nginious-server/build/eclipse"/>
 </classpath>

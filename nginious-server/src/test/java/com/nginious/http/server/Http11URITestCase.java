@@ -51,11 +51,11 @@ public class Http11URITestCase extends TestCase {
 		super.setUp();
 		HttpServerConfiguration config = new HttpServerConfiguration();
 		config.setWebappsDir(null);
+		config.setServerLogPath("build/test-server.log");
 		config.setPort(9000);
 		HttpServerFactory factory = HttpServerFactory.getInstance();
 		this.server = factory.create(config);
 		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
-		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
 		application.addController(new TestParametersController());

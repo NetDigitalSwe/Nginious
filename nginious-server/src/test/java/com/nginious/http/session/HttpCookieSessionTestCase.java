@@ -54,12 +54,12 @@ public class HttpCookieSessionTestCase extends TestCase {
         this.rnd = new Random();
 		HttpServerConfiguration config = new HttpServerConfiguration();
 		config.setWebappsDir(null);
+		config.setServerLogPath("build/test-server.log");
 		config.setSession("cookie");
 		config.setPort(9000);
 		HttpServerFactory factory = HttpServerFactory.getInstance();
 		this.server = factory.create(config);
 		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
-		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");
 		application.addController(new TestSessionController());

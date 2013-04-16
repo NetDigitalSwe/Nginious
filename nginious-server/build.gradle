@@ -32,6 +32,7 @@ sourceSets {
 
 dependencies {
 	compile group: 'asm', name: 'asm', version: '3.3.1'
+	compile group: 'log4j', name: 'log4j', version: '1.2.17'
    	compile project(':nginious-api')
    	compile files('libs/json.jar')
    	testCompile group: 'junit', name: 'junit', version: '4.+'
@@ -87,6 +88,12 @@ task eclipse(type: Copy, dependsOn: testwebWar) {
        	}
     }
 
+	configurations.compile.files { dep -> dep.name == 'log4j' }.each { file ->
+		from(file) {
+        	into ''
+       	}
+    }
+
 	configurations.testCompile.files { dep -> dep.name == 'junit' }.each { file ->
 		from(file) {
         	into ''
@@ -113,7 +120,7 @@ jar {
 		attributes("Implementation-Title": "Nginious server", 
 			"Implementation-Version": "${project.version}", 
 			"Main-Class": "com.nginious.http.server.Main",
-			"Class-Path": "nginious-api-${project.version}.jar ext/asm-3.3.1.jar ext/json.jar")
+			"Class-Path": "nginious-api-${project.version}.jar ext/asm-3.3.1.jar ext/log4j-1.2.17.jar ext/json.jar")
 	}
 }
 

@@ -51,11 +51,11 @@ public class Http11ControllerTestCase extends TestCase {
 		FileUtils.copyFile("build/libs/nginious-server-0.9.2-testweb.war", destFile.getAbsolutePath());
 		HttpServerConfiguration config = new HttpServerConfiguration();
 		config.setWebappsDir(tmpDir.getAbsolutePath());
+		config.setServerLogPath("build/test-server.log");
 		config.setPort(9000);
 		HttpServerFactory factory = HttpServerFactory.getInstance();
 		this.server = factory.create(config);
 		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
-		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		server.start();
 	}
 

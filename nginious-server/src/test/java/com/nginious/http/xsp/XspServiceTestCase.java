@@ -60,11 +60,11 @@ public class XspServiceTestCase extends TestCase {
 		FileUtils.copyDir("build/classes/testweb/classes", classesDir.getAbsolutePath());
 		HttpServerConfiguration config = new HttpServerConfiguration();
 		config.setWebappsDir(tmpDir.getAbsolutePath());
+		config.setServerLogPath("build/test-server.log");
 		config.setPort(9000);
 		HttpServerFactory factory = HttpServerFactory.getInstance();
 		this.server = factory.create(config);
 		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
-		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		server.start();
 	}
 

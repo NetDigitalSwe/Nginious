@@ -53,11 +53,11 @@ public class Http10StaticContentTestCase extends TestCase {
 		
 		HttpServerConfiguration config = new HttpServerConfiguration();
 		config.setWebappsDir("build/test-webapps");
+		config.setServerLogPath("build/test-server.log");
 		config.setPort(9000);
 		HttpServerFactory factory = HttpServerFactory.getInstance();
 		this.server = factory.create(config);
 		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
-		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		server.start();
 		ApplicationManager manager = server.getApplicationManager();
 		Application application = manager.createApplication("test");

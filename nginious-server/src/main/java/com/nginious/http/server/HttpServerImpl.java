@@ -27,9 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.nginious.http.application.ApplicationManager;
 import com.nginious.http.application.ApplicationManagerImpl;
-import com.nginious.http.server.HttpServer;
-import com.nginious.http.server.HttpServerConfiguration;
-import com.nginious.http.server.LogOutputConsumer;
 import com.nginious.http.session.HttpCookieSessionManager;
 import com.nginious.http.session.HttpInMemorySessionManager;
 import com.nginious.http.session.HttpSessionManager;
@@ -56,8 +53,6 @@ public class HttpServerImpl extends Server implements HttpServer {
 	private AccessLog accessLog;
 	
 	private LogOutputConsumer accessLogConsumer;
-	
-	private LogOutputConsumer messageLogConsumer;
 	
 	private ApplicationManagerImpl manager;
 	
@@ -101,7 +96,6 @@ public class HttpServerImpl extends Server implements HttpServer {
 		
 		this.started = false;
 		this.accessLog = new AccessLog(config.getAccessLogPath());
-		this.log = MessageLog.getInstance();
 		this.connectionTimeoutMillis = DEFAULT_CONNECTION_TIMEOUT_MILLIS;
 		setPort(config.getPort());
 	}
@@ -134,15 +128,6 @@ public class HttpServerImpl extends Server implements HttpServer {
 	}
 	
 	/**
-	 * Returns log for this HTTP server
-	 * 
-	 * @return the log
-	 */
-	MessageLog getMessageLog() {
-		return this.log;
-	}
-	
-	/**
 	 * Returns application manager for this HTTP server.
 	 * 
 	 * @return the application context manager
@@ -158,15 +143,6 @@ public class HttpServerImpl extends Server implements HttpServer {
 	 */
 	public void setAccessLogConsumer(LogOutputConsumer consumer) {
 		this.accessLogConsumer = consumer;		
-	}
-	
-	/**
-	 * Sets this HTTP servers message log consumer to the specified consumer.
-	 * 
-	 * @param consumer the log output consumer
-	 */
-	public void setMessageLogConsumer(LogOutputConsumer consumer) {
-		this.messageLogConsumer = consumer;
 	}
 	
 	/**
@@ -246,11 +222,6 @@ public class HttpServerImpl extends Server implements HttpServer {
 				accessLog.setConsumer(this.accessLogConsumer);
 			}
 			
-			if(this.messageLogConsumer != null) {
-				log.setConsumer(this.messageLogConsumer);
-			}
-			
-			super.openLog();
 			this.hostnames = getHostnames();
 			sessionManager.start();
 			manager.start();
@@ -277,11 +248,9 @@ public class HttpServerImpl extends Server implements HttpServer {
 			sessionManager.stop();
 			manager.stop();
 			accessLog.close();
-			super.closeLog();
 			return true;
 		}
 		
-		super.closeLog();
 		return false;
 	}
 	

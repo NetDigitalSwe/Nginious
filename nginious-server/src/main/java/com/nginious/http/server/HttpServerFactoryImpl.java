@@ -16,6 +16,10 @@
 
 package com.nginious.http.server;
 
+import java.util.Properties;
+
+import org.apache.log4j.PropertyConfigurator;
+
 import com.nginious.http.application.ApplicationManagerImpl;
 
 public class HttpServerFactoryImpl extends HttpServerFactory {
@@ -27,6 +31,18 @@ public class HttpServerFactoryImpl extends HttpServerFactory {
 	 * @return the created HTTP server
 	 */
 	public HttpServer create(HttpServerConfiguration configuration) {
+		Properties log4jProperties = new Properties();
+		log4jProperties.put("log4j.appender.server", "org.apache.log4j.DailyRollingFileAppender");
+		log4jProperties.put("log4j.appender.server.DatePattern", "yyyy-MM-dd");
+		log4jProperties.put("log4j.appender.server.File", configuration.getServerLogPath());
+		log4jProperties.put("log4j.appender.server.append", "true");
+		log4jProperties.put("log4j.appender.server.threshold", "INFO");
+		log4jProperties.put("log4j.appender.server.layout", "org.apache.log4j.PatternLayout");
+		log4jProperties.put("log4j.appender.server.layout.ConversionPattern", "%d %-5p [%t] %c{1} - %m%n");
+		log4jProperties.put("log4j.logger.com.nginious", "INFO, server");
+		PropertyConfigurator.configure(log4jProperties);
+		
+		
 		HttpServerImpl server = new HttpServerImpl(configuration);
 		ApplicationManagerImpl manager = new ApplicationManagerImpl(configuration);
 		server.setApplicationManager(manager);

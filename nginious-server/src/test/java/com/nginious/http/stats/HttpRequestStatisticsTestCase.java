@@ -51,12 +51,12 @@ public class HttpRequestStatisticsTestCase extends XMLTestCase {
 		super.setUp();
 		HttpServerConfiguration config = new HttpServerConfiguration();
 		config.setAdminPwd("admin");
+		config.setServerLogPath("build/test-server.log");
 		config.setWebappsDir(null);
 		config.setPort(9000);
 		HttpServerFactory factory = HttpServerFactory.getInstance();
 		this.server = factory.create(config);
 		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
-		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		server.start();
 	}
 

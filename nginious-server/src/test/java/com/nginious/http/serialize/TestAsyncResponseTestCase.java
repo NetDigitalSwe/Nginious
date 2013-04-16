@@ -54,6 +54,7 @@ public class TestAsyncResponseTestCase extends XMLTestCase {
 		
 		HttpServerConfiguration config = new HttpServerConfiguration();
 		config.setWebappsDir(tmpDir.getAbsolutePath());
+		config.setServerLogPath("build/test-server.log");
 		config.setPort(9000);
 		HttpServerFactory factory = HttpServerFactory.getInstance();
 		this.server = factory.create(config);
@@ -61,7 +62,6 @@ public class TestAsyncResponseTestCase extends XMLTestCase {
 		Application application = manager.createApplication("test");
 		application.addController(new TestAsyncRestController());
 		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
-		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		server.start();
 		manager.publish(application);
 	}

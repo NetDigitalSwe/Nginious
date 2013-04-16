@@ -19,12 +19,13 @@ package com.nginious.http.application;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
+
 import com.nginious.http.HttpException;
 import com.nginious.http.HttpRequest;
 import com.nginious.http.HttpResponse;
 import com.nginious.http.HttpStatus;
 import com.nginious.http.annotation.Controller;
-import com.nginious.http.server.MessageLog;
 
 /**
  * A reloadable controller service checks a controller class file for modifications prior to invocation of the
@@ -35,6 +36,8 @@ import com.nginious.http.server.MessageLog;
  *
  */
 class ReloadableControllerService extends HttpService {
+	
+	private static Logger logger = Logger.getLogger(ReloadableControllerService.class);
 	
 	private Object controller;
 	
@@ -151,23 +154,19 @@ class ReloadableControllerService extends HttpService {
 				this.lastModified = classFile.lastModified();
 			} catch(ClassNotFoundException e) {
 				this.exception = new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to load controller class");
-				MessageLog log = MessageLog.getInstance();
-				log.warn("Unable to load controller class", e);
+				logger.warn("Unable to load controller class", e);
 				throw this.exception;
 			} catch(IllegalAccessException e) {
 				this.exception = new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to load controller class");
-				MessageLog log = MessageLog.getInstance();
-				log.warn("Unable to load controller class", e);
+				logger.warn("Unable to load controller class", e);
 				throw this.exception;
 			} catch(InstantiationException e) {
 				this.exception = new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to load controller class");
-				MessageLog log = MessageLog.getInstance();
-				log.warn("Unable to load controller class", e);
+				logger.warn("Unable to load controller class", e);
 				throw this.exception;
 			} catch(ControllerServiceFactoryException e) {
 				this.exception = new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to load controller class");
-				MessageLog log = MessageLog.getInstance();
-				log.warn("Unable to load controller class", e);
+				logger.warn("Unable to load controller class", e);
 				throw this.exception;
 			}
 		}

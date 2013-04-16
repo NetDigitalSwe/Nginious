@@ -29,6 +29,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.log4j.LogMF;
+import org.apache.log4j.Logger;
+
 /**
  * A generic event based I/O server that accepts incoming connection requests. A new {@link Connection}
  * instance is assigned to incoming connections for handling reading and writing of data. A connection typically
@@ -62,9 +65,9 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class Server implements Runnable {
 	
-	protected String name;
+	private static Logger logger = Logger.getLogger(Server.class);
 	
-	protected MessageLog log;
+	protected String name;
 	
 	private int port;
 	
@@ -89,7 +92,6 @@ public abstract class Server implements Runnable {
 		super();
 		this.name = name;
 		this.started = false;
-		this.log = new MessageLog(MessageLevel.EVENT, logPath);
 	}
 	
 	/**
@@ -108,10 +110,8 @@ public abstract class Server implements Runnable {
 	 * @throws IOException if unable to start server
 	 */
 	public boolean start() throws IOException {
-		boolean done = false;
-		
 		try {
-			log.info(this.name, "starting...");
+			logger.info("Starting...");
 			
 			if(this.started) {
 				return false;
@@ -125,22 +125,17 @@ public abstract class Server implements Runnable {
 			InetSocketAddress address = new InetSocketAddress(port);
 			channel.socket().bind(address);
 			channel.configureBlocking(false);
-			log.info("Http", "listening " + address.getAddress().getHostAddress() + ":" + address.getPort());
+			LogMF.info(logger, "Listening {0}:{1}",  address.getAddress().getHostAddress(), address.getPort());
 			
 			this.started = true;
 			this.thread = new Thread(this);
 			thread.start();
 			
-			log.info(this.name, "started, ready for connections");
-			done = true;
+			logger.info("Started, ready for connections");
 			return true;
 		} catch(IOException e) {
-			log.error("Http", e);
+			logger.error("Unable to start server", e);
 			throw e;
-		} finally {
-			if(!done) {
-				log.close();
-			}
 		}
 	}
 	
@@ -152,7 +147,7 @@ public abstract class Server implements Runnable {
 	 * @throws IOException if unable to stop server
 	 */
 	public boolean stop() throws IOException {
-		log.info(this.name, "stopping...");
+		logger.info("Stopping...");
 		
 		if(!this.started) {
 			return false;
@@ -164,16 +159,8 @@ public abstract class Server implements Runnable {
 		
 		channel.close();
 		
-		log.info(this.name, "stopped");
+		logger.info("Stopped");
 		return true;
-	}
-	
-	void openLog() throws IOException {
-		log.open();
-	}
-	
-	void closeLog() throws IOException {
-		log.close();		
 	}
 	
 	/**
@@ -341,7 +328,7 @@ public abstract class Server implements Runnable {
 				}
 			}
 		} catch(IOException e) {
-			log.error("Http", e);
+			logger.error("IO exception", e);
 		} finally {
 			if(selector != null) {
 				try { 

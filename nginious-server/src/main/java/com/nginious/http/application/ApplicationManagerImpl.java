@@ -25,17 +25,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.log4j.LogMF;
+import org.apache.log4j.Logger;
+
 import com.nginious.http.HttpException;
 import com.nginious.http.HttpRequest;
 import com.nginious.http.HttpResponse;
 import com.nginious.http.HttpStatus;
 import com.nginious.http.common.PathParameters;
 import com.nginious.http.server.HttpServerConfiguration;
-import com.nginious.http.server.MessageLog;
 import com.nginious.http.stats.HttpRequestStatistics;
 import com.nginious.http.stats.WebSocketSessionStatistics;
 
 public class ApplicationManagerImpl implements ApplicationManager {
+	
+	private static Logger logger = Logger.getLogger(ApplicationManagerImpl.class);
 	
 	private static final String DEFAULT_BACKUP_DIR_NAME = "backup";
 	
@@ -44,8 +48,6 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	private static final String ROOT_APP = "root";
 
 	private static Object deployLock = new Object();
-	
-	private static MessageLog log = MessageLog.getInstance();
 	
 	private String applicationsDirName;
 	
@@ -93,7 +95,7 @@ public class ApplicationManagerImpl implements ApplicationManager {
 			
 			if(!backupDir.exists()) {
 				if(!backupDir.mkdir()) {
-					log.warn("ApplicationManager", "Can't create backup directory '" + this.backupDirName + "'");
+					LogMF.warn(logger, "Can't create backup dir {0}", this.backupDirName);
 					this.backupDirName = null;
 				}
 			}
@@ -116,7 +118,7 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 	
 	public void start() {
-		log.info("ApplicationManager", "start");
+		logger.info("Start");
 		
 		this.applicationService = createApplicationService(this.password);
 		this.applicationsService = createApplicationsService(this.password);
@@ -127,7 +129,7 @@ public class ApplicationManagerImpl implements ApplicationManager {
 			try {
 				publish("root", new File(this.rootApplicationFileName));
 			} catch(ApplicationException e) {
-				log.warn("ApplicationManager", e);
+				logger.warn("Unable to publish root web application", e);
 			}
 		}
 		
@@ -153,9 +155,11 @@ public class ApplicationManagerImpl implements ApplicationManager {
 					try {
 						publish(appFile.getName(), appFile);
 					} catch(ApplicationException e) {
-						log.warn("ApplicationManager", e);
+						Object[] params = { appFile.getName() };
+						LogMF.warn(logger, e, "Unable to publish {0}", params);
 					} catch(Throwable t) {
-						log.warn("ApplicationManager", t);
+						Object[] params = { appFile.getName() };
+						LogMF.warn(logger, t, "Unable to publish {0}", params);
 					}
 				} else if(appFile.isFile() && appFile.getName().endsWith(".war")) {
 					String appName = appFile.getName();
@@ -164,9 +168,11 @@ public class ApplicationManagerImpl implements ApplicationManager {
 					try {
 						publish(appName, appFile);
 					} catch(ApplicationException e) {
-						log.warn("ApplicationManagher", e);
+						Object[] params = { appFile.getName() };
+						LogMF.warn(logger, e, "Unable to publish {0}", params);
 					} catch(Throwable t) {
-						log.warn("ApplicationManager", t);
+						Object[] params = { appFile.getName() };
+						LogMF.warn(logger, t, "Unable to publish {0}", params);
 					}
 				}
 			}
@@ -174,7 +180,7 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 	
 	public void stop() {
-		log.info("ApplicationManager", "stop");
+		logger.info("Stop");
 		Set<String> names = applications.keySet();
 		
 		synchronized(deployLock) {
@@ -280,7 +286,7 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 	
 	public Application publish(Application application) throws ApplicationException {
-		log.info("ApplicationManager.publish", application.getName());
+		LogMF.info(logger, "Publish name={0}", application.getName());
 		if(applications.containsKey(application.getName())) {
 			throw new ApplicationException("Application with name '" + application.getName() + "' already exists");
 		}
@@ -292,7 +298,7 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 	
 	public Application publish(String name, File warFileOrAppDir) throws ApplicationException {
-		log.info("ApplicationManager.publish", name);
+		LogMF.info(logger, "Publish name={0}, file={1}", name, warFileOrAppDir.getAbsolutePath());
 		
 		if(this.applicationsDirName == null) {
 			throw new ApplicationException("Unable to publish application '" + name + "', no application directory configured");
@@ -308,7 +314,7 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 	
 	public Application rollback(String name) throws ApplicationException {
-		log.info("ApplicationManager.rollback", name);
+		LogMF.info(logger, "Rollback name={0}", name);
 		
 		synchronized(deployLock) {
 			ApplicationImpl prevApplication = applications.get(name);
@@ -358,7 +364,7 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 
 	public void unpublish(String name) throws ApplicationException {
-		log.info("ApplicationManager.unpublish", name);
+		LogMF.info(logger, "Unpublish name={0}", name);
 		
 		synchronized(deployLock) {
 			ApplicationImpl application = applications.remove(name);
@@ -378,7 +384,7 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 	
 	public void delete(String name) throws ApplicationException {
-		log.info("ApplicationManager.unpublish", name);
+		LogMF.info(logger, "Unpublish name={0}", name);
 		
 		synchronized(deployLock) {
 			ApplicationImpl application = applications.get(name);
@@ -465,7 +471,7 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 	
 	private ApplicationImpl create(String name, File warFileOrAppDir) throws ApplicationException {
-		log.info("ApplicationManager.create", name);
+		LogMF.info(logger, "Create name={0},  file={1}", name, warFileOrAppDir.getAbsolutePath());
 		
 		synchronized(deployLock) {
 			File destFile = new File(this.applicationsDirName, name + ".war");
@@ -485,7 +491,7 @@ public class ApplicationManagerImpl implements ApplicationManager {
 	}
 	
 	private ApplicationImpl upgrade(String name, File warFile) throws ApplicationException {
-		log.info("ApplicationManager.upgrade", name);
+		LogMF.info(logger, "Upgrade name={0}, warFile={1}", name, warFile.getAbsolutePath());
 		
 		synchronized(deployLock) {
 			ApplicationConfigurator configurator = new ApplicationConfigurator(name, warFile);

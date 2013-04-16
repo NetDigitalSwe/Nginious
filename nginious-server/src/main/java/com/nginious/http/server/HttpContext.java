@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 import com.nginious.http.HttpCookie;
 import com.nginious.http.HttpException;
 import com.nginious.http.HttpMethod;
@@ -63,9 +65,9 @@ import com.nginious.http.websocket.WebSocketSessionImpl;
  */
 class HttpContext {
 	
-	private static final int HTTP_UPLOAD_MAX_AGE = 1800;
+	private static Logger logger = Logger.getLogger(HttpContext.class);
 	
-	private static MessageLog log = MessageLog.getInstance();
+	private static final int HTTP_UPLOAD_MAX_AGE = 1800;
 	
 	private static HashSet<String> supportedHttpVersions = new HashSet<String>();
 	
@@ -359,11 +361,11 @@ class HttpContext {
 			handleAppException(request, response, e.getStatus(), e.getMessage());
 			return true;
 		} catch(IOException e) {
-			log.error("Http", e);
+			logger.error("IO Exception", e);
 			conn.close();
 			return true;
 		} catch(Exception e) {
-			log.error("Http", e);
+			logger.error("Exception", e);
 			handleAppException(request, response, HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
 			return true;
 		}
@@ -864,7 +866,7 @@ class HttpContext {
 			String encoding = getCharacterEncoding();
 			uri.decodeQuery(this.params, encoding);
 		} catch(UnsupportedEncodingException e) {
-			log.error("Http", e);
+			logger.error("Unsupported encoding", e);
 		}		
 	}
 	
@@ -883,9 +885,9 @@ class HttpContext {
 				uri.parse();
 				uri.decodeQuery(this.params, encoding);
 			} catch(UnsupportedEncodingException e) {
-				log.error("Http", e);
+				logger.error("Unsupported encoding", e);
 			} catch(URIException e) {
-				log.error("Http", e);
+				logger.error("Bad URI", e);
 			}
 		}
 		

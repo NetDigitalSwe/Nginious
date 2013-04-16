@@ -55,11 +55,11 @@ public class Http11ReloadableControllerTestCase extends TestCase {
 		FileUtils.copyFile("build/classes/testload1/classes/com/nginious/http/loader/ReloadTestController.class", destFile.getAbsolutePath());
 		HttpServerConfiguration config = new HttpServerConfiguration();
 		config.setWebappsDir(tmpDir.getAbsolutePath());
+		config.setServerLogPath("build/test-server.log");
 		config.setPort(9000);
 		HttpServerFactory factory = HttpServerFactory.getInstance();
 		this.server = factory.create(config);
 		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
-		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		server.start();
 	}
 

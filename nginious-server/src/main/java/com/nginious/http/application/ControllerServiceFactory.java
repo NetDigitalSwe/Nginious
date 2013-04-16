@@ -3,6 +3,7 @@ package com.nginious.http.application;
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.log4j.Logger;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -17,7 +18,6 @@ import com.nginious.http.annotation.Serializable;
 import com.nginious.http.annotation.Service;
 import com.nginious.http.serialize.DeserializerFactory;
 import com.nginious.http.serialize.SerializerFactory;
-import com.nginious.http.server.MessageLog;
 import com.nginious.http.websocket.WebSocketBinaryMessage;
 import com.nginious.http.websocket.WebSocketOperation;
 import com.nginious.http.websocket.WebSocketSession;
@@ -35,7 +35,7 @@ import com.nginious.http.websocket.WebSocketTextMessage;
  */
 public class ControllerServiceFactory {
 	
-	private static MessageLog log = MessageLog.getInstance();
+	private static Logger logger = Logger.getLogger(ControllerServiceFactory.class);
 	
 	private ConcurrentHashMap<Class<?>, ControllerService> controllerServices;
 	
@@ -738,8 +738,8 @@ public class ControllerServiceFactory {
     		} finally {
     			method.setAccessible(false);
     		}
-        } catch (Exception e) {
-        	log.warn("ControllerServiceFactory", e);
+        } catch(Exception e) {
+        	logger.warn("Unable to load create controll service class", e);
         	throw new ControllerServiceFactoryException("Unable to load class", e);
         }
         

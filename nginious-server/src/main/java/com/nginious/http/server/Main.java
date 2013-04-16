@@ -58,6 +58,7 @@ public class Main {
 			args.parse(argv);
 			
 			HttpServerFactory factory = HttpServerFactory.getInstance();
+			
 			server = (HttpServerImpl)factory.create(config);
 			server.start();
 			

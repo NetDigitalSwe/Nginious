@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 
+import org.apache.log4j.Logger;
+
 import com.nginious.http.HttpStatus;
 import com.nginious.http.server.LogOutputConsumer;
 
@@ -42,7 +44,7 @@ import com.nginious.http.server.LogOutputConsumer;
  */
 class AccessLog {
 	
-	private static MessageLog log = MessageLog.getInstance();
+	private static Logger logger = Logger.getLogger(AccessLog.class);
 	
 	private LogOutputConsumer consumer;
 	
@@ -143,7 +145,7 @@ class AccessLog {
 			byte[] outLine = line.toString().getBytes("iso-8859-1");
 			consumer.consume(outLine);
 		} catch(UnsupportedEncodingException e) {
-			log.warn("Http", e);
+			logger.warn("Unsupported encoding", e);
 		}
 	
 	}	

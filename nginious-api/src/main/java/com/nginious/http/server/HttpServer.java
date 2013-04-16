@@ -74,11 +74,4 @@ public interface HttpServer {
 	 * @param consumer the log output consumer
 	 */
 	public void setAccessLogConsumer(LogOutputConsumer consumer);
-	
-	/**
-	 * Sets this HTTP servers message log consumer to the specified consumer.
-	 * 
-	 * @param consumer the log output consumer
-	 */
-	public void setMessageLogConsumer(LogOutputConsumer consumer);
 }

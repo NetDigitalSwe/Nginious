@@ -51,11 +51,11 @@ public class NullWebAppsDirTestCase extends XMLTestCase {
 		HttpServerConfiguration config = new HttpServerConfiguration();
 		config.setAdminPwd("admin");
 		config.setWebappsDir(null);
+		config.setServerLogPath("build/test-server.log");
 		config.setPort(9000);
 		HttpServerFactory factory = HttpServerFactory.getInstance();
 		server = factory.create(config);
 		server.setAccessLogConsumer(new FileLogConsumer("build/test-access"));
-		server.setMessageLogConsumer(new FileLogConsumer("build/test-server"));
 		server.start();
 		
 		Thread.sleep(2000L);

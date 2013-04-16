@@ -2,12 +2,17 @@ configurations {
 	asm
 }
 
+configurations {
+	log4j
+}
+
 repositories {
 	mavenCentral()
 }
 	
 dependencies {
 	asm group: 'asm', name: 'asm', version: '3.3.1'
+	log4j group: 'log4j', name: 'log4j', version: '1.2.17'
 }
 
 subprojects {
@@ -31,6 +36,10 @@ configure(rootProject) {
 		from(configurations.asm.asPath) {
         	into ''
         }
+        
+        from(configurations.log4j.asPath) {
+        	into ''
+       	}
         
         from('nginious-server/libs/json.jar') {
         	into ''
@@ -82,6 +91,10 @@ configure(rootProject) {
         from(configurations.asm.asPath) {
         	into "${baseDir}/libs/ext"
         }
+		
+		from(configurations.log4j.asPath) {
+			into "${baseDir}/libs/ext"
+		}
 		
 		from('src/reference') {
 			into "${baseDir}/doc"
