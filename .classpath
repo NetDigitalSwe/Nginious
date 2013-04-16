@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="nginious-ant/src/main/java"/>
-	<classpathentry kind="src" path="nginious-api/src/main/java"/>
-	<classpathentry kind="src" path="nginious-server/src/main/java"/>
-	<classpathentry kind="src" path="nginious-server/src/test/java"/>
-	<classpathentry kind="src" path="nginious-server/src/testload1/java"/>
-	<classpathentry kind="src" path="nginious-server/src/testload2/java"/>
-	<classpathentry kind="src" path="nginious-server/src/testweb/java"/>
+	<classpathentry kind="src" output="nginious-ant/build/classes/main" path="nginious-ant/src/main/java"/>
+	<classpathentry kind="src" output="nginious-api/build/classes/main" path="nginious-api/src/main/java"/>
+	<classpathentry kind="src" output="nginious-server/build/classes/main" path="nginious-server/src/main/java"/>
+	<classpathentry kind="src" output="nginious-server/build/classes/test" path="nginious-server/src/test/java"/>
+	<classpathentry kind="src" output="nginious-server/build/classes/testload1/classes" path="nginious-server/src/testload1/java"/>
+	<classpathentry kind="src" output="nginious-server/build/classes/testload2/classes" path="nginious-server/src/testload2/java"/>
+	<classpathentry kind="src" output="nginious-server/build/classes/testweb/classes" path="nginious-server/src/testweb/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="nginious-server/libs/json.jar"/>
 	<classpathentry kind="lib" path="nginious-server/libs/ext/asm-3.3.1.jar"/>
 	<classpathentry kind="lib" path="nginious-server/libs/ext/xmlunit-1.2.jar"/>
 	<classpathentry kind="lib" path="nginious-ant/libs/ext/ant-1.7.0.jar"/>
 	<classpathentry kind="lib" path="nginious-server/libs/ext/junit-4.11.jar"/>
-	<classpathentry kind="output" path="nginious-server/build/classes/testweb/classes"/>
+	<classpathentry kind="output" path="nginious-server/build/eclipse"/>
 </classpath>
