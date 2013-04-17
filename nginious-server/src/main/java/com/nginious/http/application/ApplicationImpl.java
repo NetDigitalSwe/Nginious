@@ -354,43 +354,50 @@ class ApplicationImpl implements Application {
 	}
 	
 	HttpServiceResult execute(String localPath, HttpRequest request, HttpResponse response) throws HttpException, IOException {
-		HttpService httpService = executableControllers.get(localPath);
-		HttpMethod method = request.getMethod();
+		ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
 		
-		if(httpService != null && !method.equals(HttpMethod.OPTIONS)) {
-			try {
-				return httpService.invoke(request, response);
-			} catch(HttpControllerRemovedException e) {
-				executableControllers.remove(localPath);
-				throw new HttpException(e.getStatus(), e.getMessage(), e.getCause());
+		try {
+			Thread.currentThread().setContextClassLoader(this.classLoader);
+			HttpService httpService = executableControllers.get(localPath);
+			HttpMethod method = request.getMethod();
+			
+			if(httpService != null && !method.equals(HttpMethod.OPTIONS)) {
+				try {
+					return httpService.invoke(request, response);
+				} catch(HttpControllerRemovedException e) {
+					executableControllers.remove(localPath);
+					throw new HttpException(e.getStatus(), e.getMessage(), e.getCause());
+				}
 			}
-		}
-		
-		if(httpService != null && method.equals(HttpMethod.OPTIONS)) {
-			String allowed = allowedControllerMethods.get(localPath);
-			response.setStatus(HttpStatus.OK);
-			response.setContentLength(0);
-			response.addHeader("Allow", allowed);
-			return HttpServiceResult.DONE;
-		}
-		
-		if(localPath.endsWith(".xsp") && !isMemory()) {
-			return compileAndExecuteHttpService(localPath, request, response);
-		}
-		
-		if(isUnpacked() && !staticContentExists(localPath)) {
-			if(findController(localPath)) {
-				execute(localPath, request, response);
-			} else if(localPath.equals("/favicon.ico")) {
-				sendEmptyFavicon(response);
+			
+			if(httpService != null && method.equals(HttpMethod.OPTIONS)) {
+				String allowed = allowedControllerMethods.get(localPath);
+				response.setStatus(HttpStatus.OK);
+				response.setContentLength(0);
+				response.addHeader("Allow", allowed);
+				return HttpServiceResult.DONE;
+			}
+			
+			if(localPath.endsWith(".xsp") && !isMemory()) {
+				return compileAndExecuteHttpService(localPath, request, response);
+			}
+			
+			if(isUnpacked() && !staticContentExists(localPath)) {
+				if(findController(localPath)) {
+					execute(localPath, request, response);
+				} else if(localPath.equals("/favicon.ico")) {
+					sendEmptyFavicon(response);
+				} else {
+					throw new HttpException(HttpStatus.NOT_FOUND, "/" + this.name + localPath);	
+				}
 			} else {
-				throw new HttpException(HttpStatus.NOT_FOUND, "/" + this.name + localPath);	
+				executeStaticContent(request, response, localPath);
 			}
-		} else {
-			executeStaticContent(request, response, localPath);
+			
+			return HttpServiceResult.DONE;
+		} finally {
+			Thread.currentThread().setContextClassLoader(previousClassLoader);
 		}
-		
-		return HttpServiceResult.DONE;		
 	}
 	
 	static void sendEmptyFavicon(HttpResponse response) throws IOException {
