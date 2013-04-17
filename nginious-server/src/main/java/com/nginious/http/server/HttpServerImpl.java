@@ -79,7 +79,7 @@ public class HttpServerImpl extends Server implements HttpServer {
 	 * @param config the HTTP server configuration to use
 	 */
 	HttpServerImpl(HttpServerConfiguration config) {
-		super("Http", config.getServerLogPath());
+		super("Http");
 		this.httpRequestStatistics = new HttpRequestStatistics();
 		this.webSocketSessionStatistics = new WebSocketSessionStatistics();
 		this.trackers = new ConcurrentHashMap<String, UploadTracker>();
