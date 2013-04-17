@@ -2,11 +2,15 @@ package com.nginious.http.application;
 
 import java.io.File;
 
+import org.apache.log4j.Logger;
+
 import com.nginious.http.HttpException;
 import com.nginious.http.HttpStatus;
 import com.nginious.http.annotation.Service;
 
 class ServiceRunner {
+	
+	private static Logger logger = Logger.getLogger(ServiceRunner.class);
 	
 	private ApplicationClassLoader classLoader;
 	
@@ -55,7 +59,8 @@ class ServiceRunner {
 		if(this.runnable) {
 			Service mapping = service.getClass().getAnnotation(Service.class);
 			Runnable runnable = (Runnable)service;
-			this.serviceThread = new Thread(runnable);
+			ServiceRunnable serviceRunnable = new ServiceRunnable(runnable);
+			this.serviceThread = new Thread(serviceRunnable);
 			serviceThread.setName("runner-" + mapping.name());
 			serviceThread.start();
 		}
@@ -99,5 +104,22 @@ class ServiceRunner {
 				this.service = null;
 			}
 		}
-	}	
+	}
+	
+	private class ServiceRunnable implements Runnable {
+		
+		private Runnable runnable;
+		
+		private ServiceRunnable(Runnable runnable) {
+			this.runnable = runnable;
+		}
+		
+		public void run() {
+			try {
+				runnable.run();
+			} catch(Exception e) {
+				logger.warn("Failed to run service", e);
+			}
+		}
+	}
 }
