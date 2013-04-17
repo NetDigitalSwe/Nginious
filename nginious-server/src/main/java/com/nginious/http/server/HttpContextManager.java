@@ -21,8 +21,10 @@ import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.nginious.http.HttpStatus;
 
@@ -50,7 +52,10 @@ class HttpContextManager implements RejectedExecutionHandler {
 	 */
 	HttpContextManager() {
 		super();
-		this.executor = new ThreadPoolExecutor(5, 500, 10, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(5000));
+		this.executor = new ThreadPoolExecutor(5, 500, 10, 
+				TimeUnit.SECONDS, 
+				new ArrayBlockingQueue<Runnable>(5000),
+				new HttpContextThreadFactory());
 		this.pendingContexts = Collections.newSetFromMap(new ConcurrentHashMap<HttpContext,Boolean>());
 	}
 	
@@ -117,4 +122,21 @@ class HttpContextManager implements RejectedExecutionHandler {
 			}
 		}
 	}
+	
+	private class HttpContextThreadFactory implements ThreadFactory {
+		
+		private AtomicInteger threadIdCreator;
+		
+		private HttpContextThreadFactory() {
+			super();
+			this.threadIdCreator = new AtomicInteger(1);
+		}
+		
+		public Thread newThread(Runnable r) {
+			Thread thread = new Thread(r);
+			int threadId = threadIdCreator.getAndIncrement();
+			thread.setName("http-" + threadId);
+			return thread;
+		}
+	}	
 }
