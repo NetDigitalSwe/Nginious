@@ -63,7 +63,9 @@ public class Main {
 			server.start();
 			
 			ShutdownHook hook = new ShutdownHook(server);
-			Runtime.getRuntime().addShutdownHook(new Thread(hook));
+			Thread shutdownThread = new Thread(hook);
+			shutdownThread.setName("shutdown");
+			Runtime.getRuntime().addShutdownHook(shutdownThread);
 		} catch(CommandLineException e) {
 			args.help(new PrintWriter(System.out));
 			System.exit(1);
