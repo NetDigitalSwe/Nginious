@@ -119,6 +119,11 @@ class HttpServerProcess {
 		classPath.append(File.pathSeparator);
 		classPath.append(asmElement);
 		
+		URL log4jURL = NginiousPlugin.getJar("log4j-1.2.17.jar");
+		String log4jElement = createClasspathElement(log4jURL);
+		classPath.append(File.pathSeparator);
+		classPath.append(log4jElement);
+		
 		return classPath.toString();
 	}
 	
