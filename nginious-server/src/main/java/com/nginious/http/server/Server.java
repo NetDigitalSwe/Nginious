@@ -26,8 +26,10 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.LogMF;
 import org.apache.log4j.Logger;
@@ -88,7 +90,7 @@ public abstract class Server implements Runnable {
 	 * 
 	 * @param name server name
 	 */
-	public Server(String name, String logPath) {
+	public Server(String name) {
 		super();
 		this.name = name;
 		this.started = false;
@@ -118,7 +120,10 @@ public abstract class Server implements Runnable {
 			}
 			
 			int numThreads = Runtime.getRuntime().availableProcessors();
-			this.executor = new ThreadPoolExecutor(numThreads, numThreads, 0, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+			this.executor = new ThreadPoolExecutor(numThreads, numThreads, 0, 
+					TimeUnit.SECONDS, 
+					new LinkedBlockingQueue<Runnable>(), 
+					new ServerThreadFactory());
 			this.events = new ConcurrentLinkedQueue<OperationEvent>();
 			
 			this.channel = ServerSocketChannel.open();
@@ -399,6 +404,23 @@ public abstract class Server implements Runnable {
 			} catch(IOException e) {
 				// TODO, Key should be canceled here and connection closed.
 			}
+		}
+	}
+	
+	private class ServerThreadFactory implements ThreadFactory {
+		
+		private AtomicInteger threadIdCreator;
+		
+		private ServerThreadFactory() {
+			super();
+			this.threadIdCreator = new AtomicInteger(1);
+		}
+		
+		public Thread newThread(Runnable r) {
+			Thread thread = new Thread(r);
+			int threadId = threadIdCreator.getAndIncrement();
+			thread.setName("server-" + threadId);
+			return thread;
 		}
 	}
 }
