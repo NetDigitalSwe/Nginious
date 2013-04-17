@@ -76,15 +76,19 @@ class ApplicationConfigurator {
 		}
 		
 		boolean done = false;
+		ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
 		
 		try {
 			ClassLoader classLoader = application.getClassLoader(); 
+			Thread.currentThread().setContextClassLoader(classLoader);
 			findServiceClasses(application, classLoader, classes);
 			done = true;
 			return application;
 		} catch(IOException e) {
 			throw new ApplicationException("Unable to publish application '" + this.name + "'", e);
 		} finally {
+			Thread.currentThread().setContextClassLoader(previousClassLoader);
+			
 			if(!done) {
 				application.unpublish();
 			}
