@@ -118,7 +118,9 @@ class ServiceRunner {
 			try {
 				runnable.run();
 			} catch(Exception e) {
-				logger.warn("Failed to run service", e);
+				logger.error("Failed to run service", e);
+			} catch(Throwable t) {
+				logger.error("Service error", t);
 			}
 		}
 	}
