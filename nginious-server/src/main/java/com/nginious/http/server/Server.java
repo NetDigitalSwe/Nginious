@@ -369,9 +369,15 @@ public abstract class Server implements Runnable {
 	 * @param key the selection key
 	 * @throws IOException if unable to write data
 	 */
-	private void write(SelectionKey key) throws IOException {
+	private void write(SelectionKey key) {
 		Connection connector = (Connection)key.attachment();
-		connector.write();
+		
+		try {
+			connector.write();
+		} catch(IOException e) {
+			logger.warn("I/O exception on write", e);
+			connector.close();
+		}
 	}
 	
 	/**
