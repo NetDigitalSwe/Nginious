@@ -368,6 +368,10 @@ class HttpContext {
 			logger.error("Exception", e);
 			handleAppException(request, response, HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
 			return true;
+		} catch(Throwable t) {
+			logger.error("Error", t);
+			handleAppException(request, response, HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
+			return true;
 		}
 	}
 	
