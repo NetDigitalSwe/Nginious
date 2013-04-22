@@ -60,7 +60,7 @@ public class HttpServerConfiguration {
 		this.webappDirOrFile = null;
 		this.adminPwd = "admin";
 		this.session = "memory";
-		this.accessLogPath = "logs/access";
+		this.accessLogPath = "logs/access.log";
 		this.serverLogPath = "logs/server.log";
 	}
 	
