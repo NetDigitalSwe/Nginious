@@ -44,6 +44,8 @@ class PropertiesBlock {
 	
 	private ServerGroup serverGroup;
 	
+	private MemoryGroup memoryGroup;
+	
 	private int horizontalSpacing;
 	
 	private int verticalSpacing;
@@ -60,10 +62,15 @@ class PropertiesBlock {
 	
 	private String initialPublishPassword;
 	
+	private int initialMinMemory;
+	
+	private int initialMaxMemory;
+	
 	PropertiesBlock(int horizontalSpacing, int verticalSpacing, int marginWidth, int marginHeight) {
 		super();
 		this.publishGroup = new PublishGroup();
 		this.serverGroup = new ServerGroup();
+		this.memoryGroup = new MemoryGroup();
 		this.horizontalSpacing = horizontalSpacing;
 		this.verticalSpacing = verticalSpacing;
 		this.marginWidth = marginWidth;
@@ -96,6 +103,14 @@ class PropertiesBlock {
 			return true;
 		}
 		
+		if(this.initialMinMemory != memoryGroup.getMinMemory()) {
+			return true;
+		}
+		
+		if(this.initialMaxMemory != memoryGroup.getMaxMemory()) {
+			return true;
+		}
+		
 		return false;
 	}
 	
@@ -105,6 +120,22 @@ class PropertiesBlock {
 	
 	int getListenPort() {
 		return serverGroup.getListenPort();
+	}
+	
+	int getInitialMinMemory() {
+		return this.initialMinMemory;
+	}
+	
+	int getMinMemory() {
+		return memoryGroup.getMinMemory();
+	}
+	
+	int getInitialMaxMemory() {
+		return this.initialMaxMemory;
+	}
+	
+	int getMaxMemory() {
+		return memoryGroup.getMaxMemory();
 	}
 	
 	String getInitialPublishUrl() {
@@ -140,10 +171,12 @@ class PropertiesBlock {
 		String publishUrl = NginiousPlugin.DEFAULT_PUBLISH_URL;
 		String publishUsername = NginiousPlugin.DEFAULT_PUBLISH_USERNAME;
 		String publishPassword = NginiousPlugin.DEFAULT_PUBLISH_PASSWORD;
+		int minMemory = NginiousPlugin.DEFAULT_MIN_MEMORY;
+		int maxMemory = NginiousPlugin.DEFAULT_MAX_MEMORY;
 		
 		if(this.project != null) {
 			try {
-				String listenPortStr = project.getPersistentProperty(NginiousPlugin.LISTE_PORT_PROP_KEY);
+				String listenPortStr = project.getPersistentProperty(NginiousPlugin.LISTEN_PORT_PROP_KEY);
 				
 				if(listenPortStr != null) {
 					listenPort = Integer.parseInt(listenPortStr);
@@ -167,10 +200,24 @@ class PropertiesBlock {
 					publishPassword = NginiousPlugin.DEFAULT_PUBLISH_PASSWORD;
 				}
 				
+				String minMemoryStr = project.getPersistentProperty(NginiousPlugin.MIN_MEMORY_PROP_KEY);
+				
+				if(minMemoryStr != null) {
+					minMemory = Integer.parseInt(minMemoryStr);
+				}
+				
+				String maxMemoryStr = project.getPersistentProperty(NginiousPlugin.MAX_MEMORY_PROP_KEY);
+				
+				if(maxMemoryStr != null) {
+					maxMemory = Integer.parseInt(maxMemoryStr);
+				}
+				
 				this.initialListenPort = listenPort;
 				this.initialPublishUrl = publishUrl;
 				this.initialPublishUsername = publishUsername;
-				this.initialPublishPassword = publishPassword;				
+				this.initialPublishPassword = publishPassword;
+				this.initialMinMemory = minMemory;
+				this.initialMaxMemory = maxMemory;
 			} catch(CoreException e) {
 				String title = Messages.PropertiesBlock_properties_error_title;
 				String message = Messages.PropertiesBlock_properties_error_message + " " + project.getName();
@@ -187,6 +234,9 @@ class PropertiesBlock {
 		
 		Control publishControl = createPublishLayoutControl(composite, publishUrl, publishUsername, publishPassword);
 		publishControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		Control memoryControl = createMemoryLayoutControl(composite, minMemory, maxMemory);
+		memoryControl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	}
 	
 	private Control createServerLayoutControl(Composite composite, int listenPort) {
@@ -196,7 +246,11 @@ class PropertiesBlock {
 	private Control createPublishLayoutControl(Composite composite, String publishUrl, String publishUsername, String publishPassword) {
 		return publishGroup.createContent(composite, publishUrl, publishUsername, publishPassword);
 	}
-		
+	
+	private Control createMemoryLayoutControl(Composite composite, int minMemory, int maxMemory) {
+		return memoryGroup.createContent(composite, minMemory, maxMemory);
+	}
+	
 	private GridLayout initGridLayout(GridLayout layout, boolean margins) {
 		layout.horizontalSpacing = this.horizontalSpacing;
 		layout.verticalSpacing = this.verticalSpacing;
@@ -210,6 +264,124 @@ class PropertiesBlock {
 		}
 		
 		return layout;
+	}
+	
+	private final class MemoryGroup extends Observable {
+		
+		private Group group;
+		
+		private Label minMemoryLabel;
+		
+		private Text minMemoryText;
+		
+		private Label maxMemoryLabel;
+		
+		private Text maxMemoryText;
+		
+		private MemoryGroup() {
+			super();
+		}
+		
+		private int getMinMemory() {
+			return Integer.parseInt(minMemoryText.getText());
+		}
+		
+		private int getMaxMemory() {
+			return Integer.parseInt(maxMemoryText.getText());
+		}
+		
+		private Control createContent(Composite composite, int minMemory, int maxMemory) {
+			this.group = new Group(composite, SWT.NONE);
+			group.setFont(composite.getFont());
+			group.setLayout(initGridLayout(new GridLayout(6, false), true));
+			group.setText(Messages.NewProjectPageOne_Memory);
+			
+			this.minMemoryLabel= new Label(this.group, SWT.LEFT | SWT.WRAP);
+			minMemoryLabel.setFont(composite.getFont());
+			minMemoryLabel.setEnabled(true);
+			minMemoryLabel.setText(Messages.NewProjectPageOne_Min_memory);
+			GridData gd = new GridData();
+			gd.horizontalAlignment = GridData.FILL;
+			gd.grabExcessHorizontalSpace = false;
+			gd.horizontalSpan = 1;
+			minMemoryLabel.setLayoutData(gd);
+			
+			this.minMemoryText = new Text(this.group, SWT.SINGLE | SWT.BORDER);
+			minMemoryText.setTextLimit(5);
+			minMemoryText.setText(Integer.toString(minMemory));
+			
+			GC gcMin = new GC(this.minMemoryText);
+			FontMetrics fmMin = gcMin.getFontMetrics();
+			int widthMin = 6 * fmMin.getAverageCharWidth();
+			int heightMin = fmMin.getHeight();
+			gcMin.dispose();
+			Point pointMin = minMemoryText.computeSize(widthMin, heightMin);
+			
+			GridData gdMin = new GridData();
+			gdMin.horizontalAlignment = GridData.FILL;
+			gdMin.grabExcessHorizontalSpace = false;
+			gdMin.horizontalSpan = 1;
+			gdMin.widthHint = pointMin.x;
+			
+			minMemoryText.setLayoutData(gdMin);
+			
+			this.maxMemoryLabel= new Label(this.group, SWT.LEFT | SWT.WRAP);
+			maxMemoryLabel.setFont(composite.getFont());
+			maxMemoryLabel.setEnabled(true);
+			maxMemoryLabel.setText(Messages.NewProjectPageOne_Max_memory);
+			gd = new GridData();
+			gd.horizontalAlignment = GridData.FILL;
+			gd.grabExcessHorizontalSpace = false;
+			gd.horizontalSpan = 1;
+			maxMemoryLabel.setLayoutData(gd);
+			
+			this.maxMemoryText = new Text(this.group, SWT.SINGLE | SWT.BORDER);
+			maxMemoryText.setTextLimit(5);
+			maxMemoryText.setText(Integer.toString(maxMemory));
+			
+			GC gcMax = new GC(this.maxMemoryText);
+			FontMetrics fmMax = gcMax.getFontMetrics();
+			int widthMax = 6 * fmMax.getAverageCharWidth();
+			int heightMax = fmMax.getHeight();
+			gcMax.dispose();
+			Point pointMax = minMemoryText.computeSize(widthMax, heightMax);
+			
+			GridData gdMax = new GridData();
+			gdMax.horizontalAlignment = GridData.FILL;
+			gdMax.grabExcessHorizontalSpace = false;
+			gdMax.horizontalSpan = 1;
+			gdMax.widthHint = pointMax.x;
+			
+			maxMemoryText.setLayoutData(gdMax);
+			
+			minMemoryText.addListener(SWT.Verify, new Listener() {
+				public void handleEvent (Event e) {
+					String text = e.text;
+					
+					for(int i = 0; i < text.length(); i++) {
+						if(text.charAt(i) < '0' || text.charAt(i) > '9') {
+							e.doit = false;
+							return;
+						}
+					}
+				}
+			});
+			
+			maxMemoryText.addListener(SWT.Verify, new Listener() {
+				public void handleEvent (Event e) {
+					String text = e.text;
+					
+					for(int i = 0; i < text.length(); i++) {
+						if(text.charAt(i) < '0' || text.charAt(i) > '9') {
+							e.doit = false;
+							return;
+						}
+					}
+				}
+			});
+						
+			return this.group;
+		}		
 	}
 	
 	private final class PublishGroup extends Observable {
