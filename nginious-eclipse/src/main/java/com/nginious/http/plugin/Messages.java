@@ -30,6 +30,10 @@ public final class Messages extends NLS {
 	public static String NewProjectWizard_op_error_title;
 	public static String NewProjectWizard_op_error_create_message;
 	
+	public static String NewProjectPageOne_Memory;
+	public static String NewProjectPageOne_Min_memory;
+	public static String NewProjectPageOne_Max_memory;
+	
 	public static String NewProjectPageOne_Server;
 	public static String NewProjectPageOne_Listen_port;
 	public static String NewProjectPageOne_Publish;
