@@ -27,10 +27,15 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.apache.log4j.LogMF;
+import org.apache.log4j.Logger;
+
 import com.nginious.http.annotation.Controller;
 import com.nginious.http.annotation.Service;
 
 class ApplicationConfigurator {
+	
+	private static Logger logger = Logger.getLogger(ApplicationManagerImpl.class);
 	
 	private File warFileOrAppDir;
 	
@@ -211,8 +216,9 @@ class ApplicationConfigurator {
 	private void findServiceClasses(ApplicationImpl application, ClassLoader classLoader, HashSet<ClassInfo> classes) throws ApplicationException, IOException {
 		try {
 			for(ClassInfo classFile : classes) {
+				String className = classFile.getClassName();
+				
 				try {
-					String className = classFile.getClassName();
 					Class<?> clazz = classLoader.loadClass(className);
 					
 					if(clazz.isAnnotationPresent(Controller.class)) {
@@ -224,9 +230,11 @@ class ApplicationConfigurator {
 						application.addService(service, classFile.getClassFile());
 					}
 				} catch(NoClassDefFoundError e) {
-					// Ignore classes that can't be loaded
+					Object[] params = { className };
+					LogMF.warn(logger, "Unable to load class name={0}", params, e);
 				} catch(ClassNotFoundException e) {
-					// Ignore classes that can't be loaded
+					Object[] params = { className };
+					LogMF.warn(logger, "Unable to load class name={0}", params, e);
 				}
 			}
 		} catch(Exception e) {
