@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.core.resources.IFolder;
@@ -29,11 +30,14 @@ import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -46,6 +50,10 @@ class ServerManager implements IResourceChangeListener {
 	
 	private static Object lock = new Object();
 	
+	private HashSet<String> startedServers;
+	
+	private HashSet<String> startingServers;
+	
 	private ConcurrentHashMap<String, HttpServerEnvironment> servers;
 	
 	private Logger logger;
@@ -53,7 +61,10 @@ class ServerManager implements IResourceChangeListener {
 	private ServerManager() {
 		super();
 		this.servers = new ConcurrentHashMap<String, HttpServerEnvironment>();
-		int eventMask = IResourceChangeEvent.POST_CHANGE | IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.PRE_DELETE;
+		this.startedServers = new HashSet<String>();
+		this.startingServers = new HashSet<String>();
+		int eventMask = IResourceChangeEvent.POST_CHANGE | IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.PRE_DELETE |
+				IResourceChangeEvent.PRE_BUILD | IResourceChangeEvent.POST_BUILD;
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this, eventMask);
 		this.logger = new Logger("/tmp/nginious.out");
 	}
@@ -79,15 +90,25 @@ class ServerManager implements IResourceChangeListener {
 		int type = event.getType();
 		
 		switch(type) {
+		case IResourceChangeEvent.PRE_BUILD:
+			logger.log("PRE_BUILD " + event);
+			break;
+			
+		case IResourceChangeEvent.POST_BUILD:
+			logger.log("POST_BUILD " + event);
+			break;
+			
 		case IResourceChangeEvent.PRE_CLOSE:
 		case IResourceChangeEvent.PRE_DELETE:
 			IProject project = (IProject)event.getResource();
 			stopServer(project);
+			logger.log("PRE_CLOSE | PRE_DELETE " + project.getName());
 			break;
 			
 		case IResourceChangeEvent.POST_CHANGE:
 			IResourceDelta delta = event.getDelta();
 			IResourceDelta[] children = delta.getAffectedChildren();
+			logger.log("POST_CHANGE");
 			
 			if(children != null && children.length > 0) {
 				for(IResourceDelta child : children) {
@@ -97,8 +118,10 @@ class ServerManager implements IResourceChangeListener {
 						IProject changeProject = (IProject)resource;
 						
 						if(projectHasChanged(changeProject)) {
+							logger.log("POST_CHANGE before " + changeProject.getName());
 							stopServer(changeProject);
 							startServer(changeProject);
+							logger.log("POST_CHANGE after " + changeProject.getName());
 						}
 					}
 				}
@@ -128,7 +151,7 @@ class ServerManager implements IResourceChangeListener {
 		}
 		
 		boolean open = project.isOpen();
-		logger.log("EXIT ServerManager.projectHAsChanged open={0}", open);
+		logger.log("EXIT ServerManager.projectHasChanged open={0}", open);
 		return open;
 	}
 	
@@ -140,6 +163,7 @@ class ServerManager implements IResourceChangeListener {
 			serverProcess.stop();
 		}
 		
+		servers.clear();
 		logger.log("EXIT ServerManager.stopAllServers");
 	}
 	
@@ -153,7 +177,6 @@ class ServerManager implements IResourceChangeListener {
 			serverProcess.stop();
 		}
 		
-		servers.clear();
 		logger.log("EXIT SeverManager.stopServer");
 	}
 	
@@ -164,7 +187,18 @@ class ServerManager implements IResourceChangeListener {
 		logger.log("EXIT ServerManager.restartServer");
 	}
 	
-	boolean updateProjectWithPluginVersion(IProject project) {
+	void updateProjectWithPluginVersionDelayed(final IProject project) {
+		WorkspaceJob job = new WorkspaceJob("Update Nginious plugin") {
+	        public IStatus runInWorkspace(IProgressMonitor monitor) { 
+	        	updateProjectWithPluginVersion(project);
+	        	return Status.OK_STATUS;
+	        }
+	     };
+	     
+	     job.schedule();
+	}
+	
+	private boolean updateProjectWithPluginVersion(IProject project) {
 		logger.log("ENTER ServerManager.updateProjectWithPluginVersion project={0}", project);
 		
 		try {
@@ -177,7 +211,6 @@ class ServerManager implements IResourceChangeListener {
 			IClasspathEntry[] entries = javaProject.getRawClasspath();
 			ArrayList<IClasspathEntry> newEntries = new ArrayList<IClasspathEntry>();
 			boolean changed = false;
-			// javaProject.save
 			
 			for(IClasspathEntry entry : entries) {
 				if(entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
@@ -212,13 +245,37 @@ class ServerManager implements IResourceChangeListener {
 	
 	void startServer(IProject project) {
 		logger.log("ENTER ServerManager.startServer project={0}", project);
-		int listenPort = NginiousPlugin.DEFAULT_LISTEN_PORT;
-		String publishUrl = NginiousPlugin.DEFAULT_PUBLISH_URL;
-		String publishUsername = NginiousPlugin.DEFAULT_PUBLISH_USERNAME;
-		String publishPassword = NginiousPlugin.DEFAULT_PUBLISH_PASSWORD;
+		boolean done = false;
 		
 		try {
-			String listenPortStr = project.getPersistentProperty(NginiousPlugin.LISTE_PORT_PROP_KEY);
+			if(servers.containsKey(project.getName())) {
+				logger.log("EXIT ServerManager.startServer alreadyStarted");
+				return;
+			}
+			
+			synchronized(this) {
+				if(startingServers.contains(project.getName())) {
+					logger.log("EXIT ServerManager.startServer alreadyStarting");
+					return;
+				}
+				
+				startingServers.add(project.getName());
+			}
+			
+			synchronized(this.startedServers) {
+				if(!startedServers.contains(project.getName())) {
+					updateProjectWithPluginVersionDelayed(project);
+				}
+			}
+			
+			int listenPort = NginiousPlugin.DEFAULT_LISTEN_PORT;
+			int minMemory = NginiousPlugin.DEFAULT_MIN_MEMORY;
+			int maxMemory = NginiousPlugin.DEFAULT_MAX_MEMORY;
+			String publishUrl = NginiousPlugin.DEFAULT_PUBLISH_URL;
+			String publishUsername = NginiousPlugin.DEFAULT_PUBLISH_USERNAME;
+			String publishPassword = NginiousPlugin.DEFAULT_PUBLISH_PASSWORD;
+			
+			String listenPortStr = project.getPersistentProperty(NginiousPlugin.LISTEN_PORT_PROP_KEY);
 			
 			if(listenPortStr != null) {
 				listenPort = Integer.parseInt(listenPortStr);
@@ -227,6 +284,45 @@ class ServerManager implements IResourceChangeListener {
 			publishUrl = project.getPersistentProperty(NginiousPlugin.PUBLISH_URL_PROP_KEY);
 			publishUsername = project.getPersistentProperty(NginiousPlugin.PUBLISH_USERNAME_PROP_KEY);
 			publishPassword = project.getPersistentProperty(NginiousPlugin.PUBLISH_PASSWORD_PROP_KEY);
+			String minMemoryStr = project.getPersistentProperty(NginiousPlugin.MIN_MEMORY_PROP_KEY);
+			
+			if(minMemoryStr != null) {
+				minMemory = Integer.parseInt(minMemoryStr);
+			}
+			
+			String maxMemoryStr = project.getPersistentProperty(NginiousPlugin.MAX_MEMORY_PROP_KEY);
+			
+			if(maxMemoryStr != null) {
+				maxMemory = Integer.parseInt(maxMemoryStr);
+			}
+			
+			IPath projectPath = project.getLocation();
+			IPath webappsPath = projectPath.append("WebContent");
+			HttpServerProcess serverProcess = new HttpServerProcess(project.getName(), listenPort, publishPassword, 
+					minMemory, maxMemory, webappsPath.toFile(), this.logger);
+			serverProcess.start();
+			
+			LogViewConsumer accessLogConsumer = new LogViewConsumer(this.logger, serverProcess.getAccessLogPath());
+			LogViewConsumer messageLogConsumer = new LogViewConsumer(this.logger, serverProcess.getServerLogPath());
+			
+			HttpServerEnvironment env = new HttpServerEnvironment(project, serverProcess, accessLogConsumer, messageLogConsumer);
+			env.setPort(listenPort);
+			env.setPublishUrl(publishUrl);
+			env.setPublishUsername(publishUsername);
+			env.setPublishPassword(publishPassword);
+			servers.put(project.getName(), env);
+			
+			synchronized(this.startedServers) {
+				startedServers.add(project.getName());
+			}
+			
+			done = true;
+			logger.log("EXIT ServerManager.startServer");			
+		} catch(IOException e) {
+			String title = Messages.ServerManager_server_error_title;
+			String message = Messages.ServerManager_server_error_message + " " + project.getName();
+			MessagesUtils.displayMessageDialog(e.getMessage(), null, title, message);
+			logger.log("ServerManager.startServer exception", e);
 		} catch(NumberFormatException e) {
 			String title = Messages.ServerManager_listen_port_error_title;
 			String message = Messages.ServerManager_listen_port_error_message + " " + project.getName();
@@ -239,32 +335,18 @@ class ServerManager implements IResourceChangeListener {
 			logger.log("ServerManager.startServer exception", e);
 		} catch(Throwable t) {
 			logger.log("ServerManager.startServer exception", t);
-		}
-		
-		try {
-			IPath projectPath = project.getLocation();
-			IPath webappsPath = projectPath.append("WebContent");
-			HttpServerProcess serverProcess = new HttpServerProcess(project.getName(), listenPort, publishPassword, webappsPath.toFile(), this.logger);
-			serverProcess.start();
+		} finally {
+			synchronized(this) {
+				startingServers.remove(project.getName());
+			}
 			
-			LogViewConsumer accessLogConsumer = new LogViewConsumer(serverProcess.getAccessLogPath());
-			LogViewConsumer messageLogConsumer = new LogViewConsumer(serverProcess.getServerLogPath());
-			
-			HttpServerEnvironment env = new HttpServerEnvironment(project, serverProcess, accessLogConsumer, messageLogConsumer);
-			env.setPort(listenPort);
-			env.setPublishUrl(publishUrl);
-			env.setPublishUsername(publishUsername);
-			env.setPublishPassword(publishPassword);
-			servers.put(project.getName(), env);
-
-			logger.log("EXIT ServerManager.startServer");
-		} catch(IOException e) {
-			String title = Messages.ServerManager_server_error_title;
-			String message = Messages.ServerManager_server_error_message + " " + project.getName();
-			MessagesUtils.displayMessageDialog(e.getMessage(), null, title, message);
-			logger.log("ServerManager.startServer exception", e);
-		} catch(Throwable t) {
-			logger.log("ServerManager.startServer exception", t);
+			if(!done) {
+				synchronized(this.startedServers) {
+					startedServers.remove(project.getName());
+				}
+				
+				servers.remove(project.getName());
+			}
 		}
 	}
 	
@@ -385,7 +467,7 @@ class ServerManager implements IResourceChangeListener {
 		
 		private boolean hasChanged() {
 			try {
-				String newPort = project.getPersistentProperty(NginiousPlugin.LISTE_PORT_PROP_KEY);
+				String newPort = project.getPersistentProperty(NginiousPlugin.LISTEN_PORT_PROP_KEY);
 				String newPublishPassword = project.getPersistentProperty(NginiousPlugin.PUBLISH_PASSWORD_PROP_KEY);
 				
 				if(!Integer.toString(this.port).equals(newPort)) {
@@ -401,5 +483,5 @@ class ServerManager implements IResourceChangeListener {
 				return false;
 			}
 		}
-	}	
+	}
 }
