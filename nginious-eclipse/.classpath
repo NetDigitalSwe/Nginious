@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="src/main/resources/icons/"/>
 	<classpathentry exported="true" kind="lib" path="libs/log4j-1.2.17.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/nginious-api.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/nginious-server.jar"/>
