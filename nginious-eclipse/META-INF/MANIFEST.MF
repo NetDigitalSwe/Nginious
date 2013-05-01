@@ -25,4 +25,5 @@ Bundle-ClassPath: .,
  libs/asm-3.3.1.jar,
  libs/nginious-api.jar,
  libs/nginious-server.jar,
- libs/log4j-1.2.17.jar
+ libs/log4j-1.2.17.jar,
+ src/main/resources/icons/
