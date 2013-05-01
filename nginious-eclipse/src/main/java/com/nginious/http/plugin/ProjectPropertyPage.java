@@ -77,8 +77,10 @@ public class ProjectPropertyPage extends PropertyPage implements IWorkbenchPrope
 		
 		String publishUrl = block.getPublishUrl();
 		String publishUsername = block.getPublishUsername();
-		String publishPassword = block.getPublishPassword();	
-		setProjectProperties(listenPort, publishUrl, publishUsername, publishPassword);
+		String publishPassword = block.getPublishPassword();
+		int minMemory = block.getMinMemory();
+		int maxMemory = block.getMaxMemory();
+		setProjectProperties(listenPort, publishUrl, publishUsername, publishPassword, minMemory, maxMemory);
 	}
 	
 	
@@ -91,7 +93,9 @@ public class ProjectPropertyPage extends PropertyPage implements IWorkbenchPrope
 			String publishUrl = block.getInitialPublishUrl();
 			String publishUsername = block.getInitialPublishUsername();
 			String publishPassword = block.getInitialPublishPassword();	
-			setProjectProperties(listenPort, publishUrl, publishUsername, publishPassword);
+			int minMemory = block.getInitialMinMemory();
+			int maxMemory = block.getInitialMaxMemory();
+			setProjectProperties(listenPort, publishUrl, publishUsername, publishPassword, minMemory, maxMemory);
 		}
 		
 		return result;
@@ -109,8 +113,10 @@ public class ProjectPropertyPage extends PropertyPage implements IWorkbenchPrope
 			
 			String publishUrl = block.getPublishUrl();
 			String publishUsername = block.getPublishUsername();
-			String publishPassword = block.getPublishPassword();	
-			setProjectProperties(listenPort, publishUrl, publishUsername, publishPassword);
+			String publishPassword = block.getPublishPassword();
+			int minMemory = block.getMinMemory();
+			int maxMemory = block.getMaxMemory();
+			setProjectProperties(listenPort, publishUrl, publishUsername, publishPassword, minMemory, maxMemory);
 		}
 		
 		return result;
@@ -130,7 +136,8 @@ public class ProjectPropertyPage extends PropertyPage implements IWorkbenchPrope
 		return true;
 	}
 	
-	private boolean setProjectProperties(int listenPort, String publishUrl, String publishUsername, String publishPassword) {
+	private boolean setProjectProperties(int listenPort, String publishUrl, String publishUsername, 
+			String publishPassword, int minMemory, int maxMemory) {
 		IProject project = null;
 		IAdaptable element = getElement();
 		
@@ -142,10 +149,12 @@ public class ProjectPropertyPage extends PropertyPage implements IWorkbenchPrope
 		}
 		
 		try {
-			project.setPersistentProperty(NginiousPlugin.LISTE_PORT_PROP_KEY, Integer.toString(listenPort));
+			project.setPersistentProperty(NginiousPlugin.LISTEN_PORT_PROP_KEY, Integer.toString(listenPort));
 			project.setPersistentProperty(NginiousPlugin.PUBLISH_URL_PROP_KEY, publishUrl);
 			project.setPersistentProperty(NginiousPlugin.PUBLISH_USERNAME_PROP_KEY, publishUsername);
 			project.setPersistentProperty(NginiousPlugin.PUBLISH_PASSWORD_PROP_KEY, publishPassword);
+			project.setPersistentProperty(NginiousPlugin.MIN_MEMORY_PROP_KEY, Integer.toString(minMemory));
+			project.setPersistentProperty(NginiousPlugin.MAX_MEMORY_PROP_KEY, Integer.toString(maxMemory));
 			
 			if(block.hasChanged()) {
 				ServerManager manager = ServerManager.getInstance();
