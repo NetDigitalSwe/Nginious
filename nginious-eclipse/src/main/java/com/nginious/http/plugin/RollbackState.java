@@ -21,6 +21,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -61,6 +62,10 @@ public class RollbackState extends AbstractSourceProvider implements ISelectionL
 	
 	private ConcurrentHashMap<String, String> projectStates;
 	
+	private RollbackStateChecker checker;
+	
+	private Thread checkerThread;
+	
 	private IProject curProject;
 	
 	public RollbackState() {
@@ -73,6 +78,9 @@ public class RollbackState extends AbstractSourceProvider implements ISelectionL
 		}
 		
 		this.projectStates = new ConcurrentHashMap<String, String>();
+		this.checker = new RollbackStateChecker();
+		this.checkerThread = new Thread(this.checker);
+		checkerThread.start();
 	}
 	
 	static RollbackState getInstance() {
@@ -93,7 +101,9 @@ public class RollbackState extends AbstractSourceProvider implements ISelectionL
 			String state = projectStates.get(project.getName());
 			
 			if(state == null) {
-				checkState(project);
+				fireSourceChanged(ISources.WORKBENCH, STATE, INACTIVE);
+				checker.queue(project);
+				// checkState(project);
 			} else {
 				fireSourceChanged(ISources.WORKBENCH, STATE, state);
 			}
@@ -237,5 +247,37 @@ public class RollbackState extends AbstractSourceProvider implements ISelectionL
     	authorization.append("\", ");
     	authorization.append("opaque=\"5ccc069c403ebaf9f0171e9517f40e41\"");
     	return authorization.toString();
-    }    
+    }
+    
+    private class RollbackStateChecker implements Runnable {
+    	
+    	private LinkedBlockingQueue<IProject> projects; 
+    	
+    	private boolean stopped;
+    	
+    	private RollbackStateChecker() {
+    		super();
+    		this.projects = new LinkedBlockingQueue<IProject>();
+    	}
+    	
+    	private void stop() {
+    		this.stopped = true;
+    	}
+    	
+    	private void queue(IProject project) {
+    		projects.add(project);
+    	}
+    	
+    	public void run() {
+    		while(!this.stopped) {
+    			try {
+    				IProject project = projects.take();
+    				
+    				if(project != null) {
+    					RollbackState.this.checkState(project);
+    				}
+    			} catch(InterruptedException e) {}
+    		}
+    	}
+    }
 }
