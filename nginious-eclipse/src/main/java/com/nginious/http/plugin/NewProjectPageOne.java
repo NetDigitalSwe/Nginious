@@ -108,6 +108,14 @@ public class NewProjectPageOne extends NewJavaProjectWizardPageOne implements Li
 		return block.getPublishPassword();
 	}
 	
+	int getMinMemory() {
+		return block.getMinMemory();
+	}
+	
+	int getMaxMemory() {
+		return block.getMaxMemory();
+	}
+	
 	private GridLayout initGridLayout(GridLayout layout, boolean margins) {
 		layout.horizontalSpacing = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_SPACING);
 		layout.verticalSpacing = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_SPACING);
