@@ -156,10 +156,12 @@ public class NewProjectWizard extends Wizard implements INewWizard {
         	javaProject.setRawClasspath(newEntries, null);
     	    BasicNewProjectResourceWizard.updatePerspective(this.configurationElement);    
     	    
-    	    newProject.setPersistentProperty(NginiousPlugin.LISTE_PORT_PROP_KEY, Integer.toString(listenPort));
+    	    newProject.setPersistentProperty(NginiousPlugin.LISTEN_PORT_PROP_KEY, Integer.toString(listenPort));
     	    newProject.setPersistentProperty(NginiousPlugin.PUBLISH_URL_PROP_KEY, pageOne.getPublishUrl());
     	    newProject.setPersistentProperty(NginiousPlugin.PUBLISH_USERNAME_PROP_KEY, pageOne.getPublishUsername());
-    	    newProject.setPersistentProperty(NginiousPlugin.PUBLISH_PASSWORD_PROP_KEY, pageOne.getPublishPassword());    	    
+    	    newProject.setPersistentProperty(NginiousPlugin.PUBLISH_PASSWORD_PROP_KEY, pageOne.getPublishPassword());   
+    	    newProject.setPersistentProperty(NginiousPlugin.MIN_MEMORY_PROP_KEY, Integer.toString(pageOne.getMinMemory()));
+    	    newProject.setPersistentProperty(NginiousPlugin.MAX_MEMORY_PROP_KEY, Integer.toString(pageOne.getMaxMemory()));
         } catch(Exception e) {
         	throw new RuntimeException(e.getMessage(), e);
         }
