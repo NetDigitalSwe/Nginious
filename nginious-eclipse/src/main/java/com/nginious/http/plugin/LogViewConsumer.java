@@ -37,8 +37,11 @@ class LogViewConsumer {
 	
 	private RandomAccessFile file;
 	
-	LogViewConsumer(String logPath) throws IOException {
+	private Logger logger;
+	
+	LogViewConsumer(Logger logger, String logPath) throws IOException {
 		this.document = new Document();
+		this.logger = logger;
 		this.logPath = logPath;
 		this.lines = new LinkedList<String>();
 		this.lineCount = 0;
@@ -111,13 +114,15 @@ class LogViewConsumer {
 	}
 	
 	private String readLastLines() {
+		logger.log("ENTER LogViewConsumer.readLastLines");
+		
 		if(this.lineCount == 1000) {
 			lines.removeFirst();
 		}
 		
 		try {
 			if(this.file == null) {
-				this.file = new RandomAccessFile(this.logPath + ".log", "r");
+				this.file = new RandomAccessFile(this.logPath, "r");
 			}
 			
 			boolean done = false;
@@ -140,8 +145,10 @@ class LogViewConsumer {
 				text.append(this.lineSeparator);
 			}
 			
+			logger.log("EXIT LogViewConsumer.readLastLines");			
 			return text.toString();
 		} catch(IOException e) {
+			logger.log("EXIT LogViewConsumer.readLastLines exception");			
 			return "Failed! " + e.getMessage();
 		}
 	}
