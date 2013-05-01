@@ -43,7 +43,11 @@ public class NginiousPlugin extends AbstractUIPlugin {
 	
 	static final String DEFAULT_PUBLISH_PASSWORD = "admin";
 	
-	static final QualifiedName LISTE_PORT_PROP_KEY = 
+	static final int DEFAULT_MIN_MEMORY = 256;
+	
+	static final int DEFAULT_MAX_MEMORY = 512;
+	
+	static final QualifiedName LISTEN_PORT_PROP_KEY = 
 			new QualifiedName("com.nginious.http.plugin.listePort", "Listen port for HTTP server");
 	
 	static final QualifiedName PUBLISH_URL_PROP_KEY = 
@@ -54,6 +58,12 @@ public class NginiousPlugin extends AbstractUIPlugin {
 	
 	static final QualifiedName PUBLISH_PASSWORD_PROP_KEY = 
 			new QualifiedName("com.nginious.http.plugin.publishPassword", "Publish password");
+	
+	static final QualifiedName MIN_MEMORY_PROP_KEY =
+			new QualifiedName("com.nginious.http.plugin.minMemory", "Min memory");
+	
+	static final QualifiedName MAX_MEMORY_PROP_KEY =
+			new QualifiedName("com.nginious.http.plugin.maxMemory", "Max memory");
 	
 	private ServerManager manager;
 	
