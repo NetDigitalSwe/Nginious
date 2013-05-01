@@ -4,21 +4,26 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 class Logger {
 	
 	private PrintWriter writer;
 	
+	private SimpleDateFormat format;
+	
 	Logger(String fileName) {
 		try {
 			FileOutputStream out = new FileOutputStream(fileName);
 			this.writer = new PrintWriter(out);
+			this.format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 		} catch(IOException e) {}
 	}
 	
 	void log(String message, Throwable t) {
 		String threadName = Thread.currentThread().getName();
-		String log = "[" + threadName + "] " + message;
+		String log = format.format(new Date()) + " [" + threadName + "] " + message;
 		writer.println(log);
 		t.printStackTrace(this.writer);
 		writer.flush();
@@ -26,7 +31,7 @@ class Logger {
 	
 	void log(String message) {
 		String threadName = Thread.currentThread().getName();
-		String log = "[" + threadName + "] " + message;
+		String log = format.format(new Date()) + " [" + threadName + "] " + message;
 		writer.println(log);
 		writer.flush();
 	}
@@ -38,7 +43,7 @@ class Logger {
 	
 	void log(String message, Object[] params) {
 		String threadName = Thread.currentThread().getName();
-		String log = MessageFormat.format("[" + threadName + "] " + message, params);
+		String log = MessageFormat.format(format.format(new Date()) + " [" + threadName + "] " + message, params);
 		writer.println(log);
 		writer.flush();
 	}
