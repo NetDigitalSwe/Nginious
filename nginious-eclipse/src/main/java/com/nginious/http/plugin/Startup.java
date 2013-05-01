@@ -29,8 +29,7 @@ public class Startup implements IStartup {
 			ServerManager manager = ServerManager.getInstance();
 			
 			for(IProject project : projects) {
-				if(project.isOpen() && project.hasNature(NginiousPlugin.NATURE_ID)) {
-					manager.updateProjectWithPluginVersion(project);
+				if(project.hasNature(NginiousPlugin.NATURE_ID) && project.isOpen()) {
 					manager.startServer(project);
 				}
 			}
