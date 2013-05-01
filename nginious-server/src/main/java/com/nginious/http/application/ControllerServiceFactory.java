@@ -1,6 +1,7 @@
 package com.nginious.http.application;
 
 import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
@@ -61,7 +62,7 @@ public class ControllerServiceFactory {
 	}
 	
 	/**
-	 * Sets the application that invokes this controller service factory to the specified application.
+	 * Sets the application for this controller service factory to the specified application.
 	 * 
 	 * @param application the application
 	 */
@@ -113,11 +114,12 @@ public class ControllerServiceFactory {
 	        visitor.visitEnd();
 	        
 			// Override methods
+	        HashSet<Class<?>> clazzes = new HashSet<Class<?>>();
 	        StringBuffer httpMethods = new StringBuffer();
-	        overrideHttpMethod(writer, controllerClazz, "executeGet", HttpMethod.GET, httpMethods);
-	        overrideHttpMethod(writer, controllerClazz, "executePost", HttpMethod.POST, httpMethods);
-	        overrideHttpMethod(writer, controllerClazz, "executePut", HttpMethod.PUT, httpMethods);
-	        overrideHttpMethod(writer, controllerClazz, "executeDelete", HttpMethod.DELETE, httpMethods);
+	        overrideHttpMethod(writer, controllerClazz, "executeGet", HttpMethod.GET, httpMethods, clazzes);
+	        overrideHttpMethod(writer, controllerClazz, "executePost", HttpMethod.POST, httpMethods, clazzes);
+	        overrideHttpMethod(writer, controllerClazz, "executePut", HttpMethod.PUT, httpMethods, clazzes);
+	        overrideHttpMethod(writer, controllerClazz, "executeDelete", HttpMethod.DELETE, httpMethods, clazzes);
 	        overrideWebSocketMethod(writer, controllerClazz, WebSocketOperation.OPEN);
 	        overrideWebSocketMethod(writer, controllerClazz, WebSocketOperation.CLOSE);
 	        overrideWebSocketMethod(writer, controllerClazz, WebSocketOperation.TEXT);
@@ -137,6 +139,8 @@ public class ControllerServiceFactory {
 			invokerService = (ControllerService)clazz.newInstance();
 			invokerService.setController(controller);
 			invokerService.setApplication(this.application);
+			invokerService.setClassLoader(this.classLoader);
+			invokerService.setClasses(clazzes);
 			invokerService.setSerializerFactory(this.serializerFactory);
 			invokerService.setDeserializerFactory(this.deserializerFactory);
 			invokerService.setHttpMethods(httpMethods.toString());
@@ -149,12 +153,17 @@ public class ControllerServiceFactory {
 		}
 	}
 	
-	void overrideHttpMethod(ClassWriter writer, Class<?> controllerClazz, String controllerMethodName, HttpMethod httpMethod, StringBuffer httpMethods) throws ControllerServiceFactoryException {
+	void overrideHttpMethod(ClassWriter writer, 
+			Class<?> controllerClazz, 
+			String controllerMethodName, 
+			HttpMethod httpMethod, 
+			StringBuffer httpMethods,
+			HashSet<Class<?>> clazzes) throws ControllerServiceFactoryException {
 		Method method = findHttpMethod(controllerClazz, httpMethod);
 		
 		if(method != null) {
 			Request request = method.getAnnotation(Request.class);
-			createHttpMethod(writer, method, controllerClazz, controllerMethodName, request.async());
+			createHttpMethod(writer, method, controllerClazz, controllerMethodName, clazzes, request.async());
 			
 			if(httpMethods.length() > 0) {
 				httpMethods.append(", ");
@@ -194,7 +203,12 @@ public class ControllerServiceFactory {
 		}
 	}
 	
-	void createHttpMethod(ClassWriter writer, Method controllerMethod, Class<?> controllerClazz, String methodName, boolean async) throws ControllerServiceFactoryException {
+	void createHttpMethod(ClassWriter writer, 
+			Method controllerMethod, 
+			Class<?> controllerClazz, 
+			String methodName, 
+			HashSet<Class<?>> clazzes, 
+			boolean async) throws ControllerServiceFactoryException {
 		String controllerClazzName = createInternalClassName(controllerClazz);
 		String[] exceptions = { "com/nginious/http/HttpException", "java/io/IOException" };
 		MethodVisitor visitor = writer.visitMethod(Opcodes.ACC_PUBLIC, methodName, 
@@ -229,6 +243,7 @@ public class ControllerServiceFactory {
 				String parameterClazzName = createInternalClassName(parameterType);
 				visitor.visitTypeInsn(Opcodes.CHECKCAST, parameterClazzName);
 				serialize = true;
+				clazzes.add(parameterType);
 			} else if(parameterType.isAnnotationPresent(Service.class)) {
 				Service mapping = parameterType.getAnnotation(Service.class);
 				visitor.visitVarInsn(Opcodes.ALOAD, 0);
@@ -254,6 +269,7 @@ public class ControllerServiceFactory {
 			visitor.visitVarInsn(Opcodes.ALOAD, 2);
 			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "serialize", 
 			 		"(Ljava/lang/Object;Lcom/nginious/http/HttpRequest;Lcom/nginious/http/HttpResponse;)V");
+			clazzes.add(returnType);
 		} else if(!async && serialize && (returnType.equals(Void.class) || returnType.equals(void.class))) {
 			visitor.visitVarInsn(Opcodes.ALOAD, 0);
 			visitor.visitVarInsn(Opcodes.ALOAD, 2);
