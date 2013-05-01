@@ -51,8 +51,6 @@ class ReloadableControllerService extends HttpService {
 	
 	private File classFile;
 	
-	private long lastModified;
-	
 	private HttpException exception;
 	
 	/**
@@ -72,7 +70,6 @@ class ReloadableControllerService extends HttpService {
 		this.classLoader = classLoader;
 		this.className = className;
 		this.classFile = classFile;
-		this.lastModified = classFile.lastModified();
 	}
 	
 	/**
@@ -105,9 +102,7 @@ class ReloadableControllerService extends HttpService {
 			throw new HttpControllerRemovedException(HttpStatus.NOT_FOUND, request.getPath());
 		}
 		
-		if(!classLoader.hasLoaded(controller.getClass()) || 
-				classFile.lastModified() > this.lastModified || 
-				this.controller == null) {
+		if(service.anyClassChanged()) {
 			loadControllerClass();
 		}
 		
@@ -151,7 +146,6 @@ class ReloadableControllerService extends HttpService {
 				Class<?> clazz = classLoader.loadClass(className);
 				this.controller = clazz.newInstance();
 				this.service = factory.createControllerService(this.controller);
-				this.lastModified = classFile.lastModified();
 			} catch(ClassNotFoundException e) {
 				this.exception = new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to load controller class");
 				logger.warn("Unable to load controller class", e);
