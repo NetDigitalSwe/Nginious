@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.HashSet;
 
 import com.nginious.http.HttpException;
 import com.nginious.http.HttpMethod;
@@ -56,6 +57,10 @@ public abstract class ControllerService extends HttpService {
 	
 	private Application application;
 	
+	private ApplicationClassLoader classLoader;
+	
+	private HashSet<Class<?>> clazzes;
+	
 	private SerializerFactory serializerFactory;
 	
 	private DeserializerFactory deserializerFactory;
@@ -68,11 +73,29 @@ public abstract class ControllerService extends HttpService {
 	}
 	
 	/**
+	 * Sets the application for this controller service.
+	 * 
+	 * @param application the application
+	 */
+	void setApplication(Application application) {
+		this.application = application;
+	}
+	
+	/**
+	 * Returns the application for this controller service.
+	 * 
+	 * @return the application
+	 */
+	public Application getApplication() {
+		return this.application;
+	}
+	
+	/**
 	 * Sets the controller that this controller service should invoke.
 	 * 
 	 * @param controller the controller to invoke
 	 */
-	public void setController(Object controller) {
+	void setController(Object controller) {
 		this.controller = controller;
 	}
 	
@@ -104,21 +127,36 @@ public abstract class ControllerService extends HttpService {
 	}
 	
 	/**
-	 * Sets the application that this controller is running in to the specified application.
+	 * Sets the application class loader that this controller services controller was loaded with.
 	 *  
-	 * @param application the application
+	 * @param classLoader the class loader
 	 */
-	public void setApplication(Application application) {
-		this.application = application;
+	void setClassLoader(ApplicationClassLoader classLoader) {
+		this.classLoader = classLoader;
 	}
 	
 	/**
-	 * Returns the application that this controller service is running under.
+	 * Sets the classes for this controller service
 	 * 
-	 * @return the application
+	 * @param classes the classes
 	 */
-	public Application getApplication() {
-		return this.application;
+	void setClasses(HashSet<Class<?>> clazzes) {
+		this.clazzes = clazzes;
+	}
+	
+	/**
+	 * Checks if the controller class or any class that the controller depends has been modified.
+	 * 
+	 * @return <code>true</code> if any class has been modified, <code>false</code> otherwise
+	 */
+	boolean anyClassChanged() {
+		for(Class<?> clazz : this.clazzes) {
+			if(classLoader.reloadIfModified(clazz)) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	/**
@@ -352,7 +390,7 @@ public abstract class ControllerService extends HttpService {
 	 * 
 	 * See {@link com.nginious.http.serialize.SerializerFactory} for further details on the serialization mechanism.
 	 *
-	 * @param content the response content
+	 * @param bean the bean to serialize
 	 * @param request the HTTP request
 	 * @param response the HTTP response
 	 * @throws IOException if an I/O error occurs
