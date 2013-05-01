@@ -92,6 +92,33 @@ public class ApplicationClassLoader extends ClassLoader {
 	}
 	
 	/**
+	 * Return whether or not the specified class has been modified since it was loaded by this class loader.
+	 * 
+	 * @param clazz the class to check for modifications
+	 * @return <code>true</code> if the class has been modified, <code>false</code> otherwise
+	 */
+	public boolean reloadIfModified(Class<?> clazz) {
+		if(!hasLoaded(clazz)) {
+			return true;
+		}
+		
+		ClassLoader loader = clazz.getClassLoader();
+		
+		for(SubAppClassLoader subClassLoader : subClassLoaders.values()) {
+			if(loader.equals(subClassLoader)) {
+				boolean modified = subClassLoader.isModified(clazz.getName(), true);
+				
+				if(modified) {
+					reloadIfModified(subClassLoader, clazz.getName(), true);
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
 	 * Constructs a new app class loader which uses the specified parent class
 	 * loader and loads classes for the web application in the specified
 	 * web application directory.
@@ -527,7 +554,6 @@ public class ApplicationClassLoader extends ClassLoader {
 		}
 		
 		private Class<?> loadClassInternal(String name, boolean resolve) throws ClassNotFoundException {
-			// Class<?> clazz = super.loadClass(name, resolve);
 			Class<?> clazz = findLoadedClass(name);
 			
 			if(clazz == null) {
@@ -537,6 +563,7 @@ public class ApplicationClassLoader extends ClassLoader {
 					if(resolve) {
 						resolveClass(clazz);
 					}
+					
 				} catch(ClassNotFoundException e) {
 					clazz = super.loadClass(name, resolve);
 				}
