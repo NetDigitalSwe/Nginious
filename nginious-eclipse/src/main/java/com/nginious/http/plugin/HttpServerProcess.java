@@ -13,6 +13,10 @@ class HttpServerProcess {
 	
 	private int listenPort;
 	
+	private int minMemory;
+	
+	private int maxMemory;
+	
 	private String adminPassword;
 	
 	private File webappPath;
@@ -23,10 +27,13 @@ class HttpServerProcess {
 	
 	private Logger logger;
 	
-	HttpServerProcess(String projectName, int listenPort, String adminPassword, File webappPath, Logger logger) {
+	HttpServerProcess(String projectName, int listenPort, String adminPassword, 
+			int minMemory, int maxMemory, File webappPath, Logger logger) {
 		super();
 		this.projectName = projectName;
 		this.listenPort = listenPort;
+		this.minMemory = minMemory;
+		this.maxMemory = maxMemory;
 		this.adminPassword = adminPassword;
 		this.webappPath = webappPath;
 		this.accessLogPath = buildAccessLogPath();
@@ -47,7 +54,12 @@ class HttpServerProcess {
 		String javaRuntime = buildJavaRuntime();
 		String accessLog = this.accessLogPath;
 		String serverLog = this.serverLogPath;
-		String[] cmd = { javaRuntime, "-cp", classPath,
+		String minMemoryArg = "-Xms" + this.minMemory + "m";
+		String maxMemoryArg = "-Xmx" + this.maxMemory + "m";
+		String[] cmd = { javaRuntime, 
+				minMemoryArg, 
+				maxMemoryArg, 
+				"-cp", classPath,
 				"com.nginious.http.server.Main",
 				"-p", Integer.toString(this.listenPort), 
 				"-a", this.adminPassword,
