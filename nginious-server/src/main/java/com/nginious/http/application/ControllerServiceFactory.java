@@ -136,6 +136,7 @@ public class ControllerServiceFactory {
 			}
 			
 			Class<?> clazz = loadClass(controllerLoader, intInvokerClazzName.replace('/', '.'), clazzBytes);
+			clazzes.add(controllerClazz);
 			invokerService = (ControllerService)clazz.newInstance();
 			invokerService.setController(controller);
 			invokerService.setApplication(this.application);
