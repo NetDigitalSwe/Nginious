@@ -20,6 +20,8 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import com.nginious.http.annotation.Serializable;
+
 /**
  * Provides common methods used by serializer and deserializer creator classes.
  * 
@@ -82,6 +84,24 @@ class Serialization {
 	static String createPropertyNameFromMethodName(String methodName) {
 		return methodName.substring(3, 4).toLowerCase() + methodName.substring(4);
 	}	
+	
+	/**
+	 * Creates property name from the specified class name. The property is the same as the class name with the
+	 * first character in lower case.
+	 * 
+	 * @param className the given class name
+	 * @return the property name
+	 */
+	static String createPropertyNameFromClass(Class<?> beanClazz) {
+		Serializable info = beanClazz.getAnnotation(Serializable.class);
+		
+		if(info != null && !info.name().equals("")) {
+			return info.name();
+		}
+		
+		String className = beanClazz.getSimpleName();
+		return className.substring(0, 1).toLowerCase() + className.substring(1);
+	}
 	
 	/**
 	 * Uses the specified class loader to load created bytecode in a class with the specified class name.
