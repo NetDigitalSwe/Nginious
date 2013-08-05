@@ -19,13 +19,12 @@ package com.nginious.http.serialize;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.nginious.http.serialize.Serializer;
-import com.nginious.http.serialize.SerializerException;
 
 /**
  * Base class for all serializers that serialize beans to JSON format. Used as base class
@@ -40,6 +39,8 @@ public abstract class JsonSerializer<E> implements Serializer<E> {
 	private static SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 	
 	private String name;
+	
+	private Class<?> type;
 	
 	private SerializerFactory factory;
 	
@@ -57,6 +58,15 @@ public abstract class JsonSerializer<E> implements Serializer<E> {
 	 */
 	protected void setName(String name) {
 		this.name = name;
+	}
+	
+	/**
+	 * Sets the class type for the bean that this serializer serializes.
+	 * 
+	 * @param type the class type
+	 */
+	protected void setType(Class<?> type) {
+		this.type = type;
 	}
 	
 	/**
@@ -87,7 +97,18 @@ public abstract class JsonSerializer<E> implements Serializer<E> {
 	}
 	
 	/**
-	 * Serializes the specified item bean an writes the created JSON to the specified writer.
+	 * Serializes the specified item collection and writes the created JSON to the specified writer.
+	 * 
+	 * @param writer writer for writing generated JSON
+	 * @param items the item collection to serialize
+	 * @throws SerializerException if unable to serialize bean
+	 */
+	public void serialize(PrintWriter writer, Collection<E> items) throws SerializerException {
+		writer.println(serialize(items));
+	}
+	
+	/**
+	 * Serializes the specified item bean and writes the created JSON to the specified writer.
 	 * 
 	 * @param writer writer for writing generated JSON
 	 * @param item the bean to serialize
@@ -95,6 +116,26 @@ public abstract class JsonSerializer<E> implements Serializer<E> {
 	 */
 	public void serialize(PrintWriter writer, E item) throws SerializerException {
 		writer.println(serialize(item));
+	}
+	
+	/**
+	 * Serializes the specified item collection into a JSON object.
+	 * 
+	 * @param items the item collection to serialize
+	 * @return the serialized JSON object
+	 * @throws SerializerException if unable to serialize item collection
+	 */
+	public JSONObject serialize(Collection<E> items) throws SerializerException {
+		try {
+			JsonBeanCollectionSerializer<E> serializer = new JsonBeanCollectionSerializer<E>(this);
+			JSONArray outItems = serializer.serialize(items);
+			String name = Serialization.createPropertyNameFromClass(this.type) + "s";
+			JSONObject object = new JSONObject();
+			object.put(name, outItems);
+			return object;
+		} catch(JSONException e) {
+			throw new SerializerException("Can't serialize collection " + this.name);			
+		}
 	}
 	
 	/**
