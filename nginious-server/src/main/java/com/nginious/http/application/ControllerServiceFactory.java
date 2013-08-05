@@ -1,6 +1,10 @@
 package com.nginious.http.application;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,7 +17,9 @@ import org.objectweb.asm.Opcodes;
 import com.nginious.http.HttpMethod;
 import com.nginious.http.HttpRequest;
 import com.nginious.http.HttpResponse;
+import com.nginious.http.HttpSession;
 import com.nginious.http.annotation.Message;
+import com.nginious.http.annotation.Parameter;
 import com.nginious.http.annotation.Request;
 import com.nginious.http.annotation.Serializable;
 import com.nginious.http.annotation.Service;
@@ -217,6 +223,7 @@ public class ControllerServiceFactory {
 		visitor.visitCode();
 		
 		Class<?>[] parameterTypes = controllerMethod.getParameterTypes();
+		Annotation[][] parameterAnnotations = controllerMethod.getParameterAnnotations();
 		Class<?> returnType = controllerMethod.getReturnType();
 		
 		if(!returnType.equals(Void.class) && !returnType.equals(void.class)) {
@@ -229,12 +236,16 @@ public class ControllerServiceFactory {
 		visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "getController", "()Ljava/lang/Object;");
 		visitor.visitTypeInsn(Opcodes.CHECKCAST, controllerClazzName); // Cast controller object to its right type
 		boolean serialize = false;
+		int index = 0;
 		
 		for(Class<?> parameterType : parameterTypes) {
 			if(parameterType.equals(HttpRequest.class)) {
 				visitor.visitVarInsn(Opcodes.ALOAD, 1);
 			} else if(parameterType.equals(HttpResponse.class)) {
 				visitor.visitVarInsn(Opcodes.ALOAD, 2);
+			} else if(parameterType.equals(HttpSession.class)) {
+				visitor.visitVarInsn(Opcodes.ALOAD, 1);
+				visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, "com/nginious/http/HttpRequest", "getSession", "()Lcom/nginious/http/HttpSession;");
 			} else if(parameterType.isAnnotationPresent(Serializable.class)) {
 				visitor.visitVarInsn(Opcodes.ALOAD, 0);
 				visitor.visitLdcInsn(parameterType.getName());
@@ -253,9 +264,13 @@ public class ControllerServiceFactory {
 				visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, "com/nginious/http/application/Application", "getService", "(Ljava/lang/String;)Ljava/lang/Object;");
 				String parameterClazzName = createInternalClassName(parameterType);
 				visitor.visitTypeInsn(Opcodes.CHECKCAST, parameterClazzName);
+			} else if(ControllerMethodType.getControllerMethodType(parameterType) != null) {
+				addPrimitiveType(visitor, parameterType, parameterAnnotations[index]);
 			} else {
 				throw new ControllerServiceFactoryException("Unsupported parameter type: " + parameterType.getName());
 			}
+			
+			index++;
 		}
 		
 		visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, controllerClazzName, controllerMethod.getName(), controllerMethodSignature);
@@ -266,11 +281,22 @@ public class ControllerServiceFactory {
 			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "response",
 					"(Ljava/lang/String;Lcom/nginious/http/HttpRequest;Lcom/nginious/http/HttpResponse;)V");
 		} else if(!returnType.equals(Void.class) && !returnType.equals(void.class)) {
-			visitor.visitVarInsn(Opcodes.ALOAD, 1);
-			visitor.visitVarInsn(Opcodes.ALOAD, 2);
-			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "serialize", 
-			 		"(Ljava/lang/Object;Lcom/nginious/http/HttpRequest;Lcom/nginious/http/HttpResponse;)V");
-			clazzes.add(returnType);
+			Class<?> collectionType = getCollectionParameterType(controllerMethod, returnType);
+			
+			if(collectionType != null) {
+				visitor.visitLdcInsn(collectionType.getName());
+				visitor.visitVarInsn(Opcodes.ALOAD, 1);
+				visitor.visitVarInsn(Opcodes.ALOAD, 2);
+				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "serialize", 
+						"(Ljava/util/Collection;Ljava/lang/String;Lcom/nginious/http/HttpRequest;Lcom/nginious/http/HttpResponse;)V");
+				clazzes.add(collectionType);
+			} else {
+				visitor.visitVarInsn(Opcodes.ALOAD, 1);
+				visitor.visitVarInsn(Opcodes.ALOAD, 2);
+				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "serialize", 
+						"(Ljava/lang/Object;Lcom/nginious/http/HttpRequest;Lcom/nginious/http/HttpResponse;)V");
+				clazzes.add(returnType);
+			}
 		} else if(!async && serialize && (returnType.equals(Void.class) || returnType.equals(void.class))) {
 			visitor.visitVarInsn(Opcodes.ALOAD, 0);
 			visitor.visitVarInsn(Opcodes.ALOAD, 2);
@@ -305,6 +331,109 @@ public class ControllerServiceFactory {
 		visitor.visitInsn(Opcodes.ARETURN);
 		visitor.visitMaxs(7, 6);
 		visitor.visitEnd();
+	}
+	
+	private Class<?> getCollectionParameterType(Method controllerMethod, Class<?> returnType) {
+		if(Collection.class.isAssignableFrom(returnType)) {
+			Type maybeParameterizedType = controllerMethod.getGenericReturnType();
+			
+			if(maybeParameterizedType instanceof ParameterizedType) {
+				ParameterizedType type = (ParameterizedType)maybeParameterizedType;
+				Type[] argTypes = type.getActualTypeArguments();
+				return (Class<?>)argTypes[0];
+			}
+		}
+		
+		return null;
+	}
+	
+	void addPrimitiveType(MethodVisitor visitor, Class<?> parameterType, Annotation[] annotations)
+		throws ControllerServiceFactoryException {
+		String parameterName = getParameterName(annotations);
+		
+		if(parameterName == null) {
+			throw new ControllerServiceFactoryException("Not parameter annotation specified for method parameter");
+		}
+		
+		visitor.visitVarInsn(Opcodes.ALOAD, 0);
+		visitor.visitVarInsn(Opcodes.ALOAD, 1);
+		visitor.visitLdcInsn(parameterName);
+		visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, "com/nginious/http/HttpRequest", "getParameter", "(Ljava/lang/String;)Ljava/lang/String;");
+		
+		ControllerMethodType type = ControllerMethodType.getControllerMethodType(parameterType);
+		
+		switch(type) {
+		case STRING_OBJECT:
+			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "decodeObjectStringType", "(Ljava/lang/String;)Ljava/lang/String;");
+			break;
+		
+		case BOOLEAN_OBJECT:
+			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "decodeObjectBooleanType", "(Ljava/lang/String;)Ljava/lang/Boolean;");
+			break;
+			
+		case BOOLEAN:
+			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "decodePrimitiveBooleanType", "(Ljava/lang/String;)Z");
+			break;
+			
+		case BYTE_OBJECT:
+			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "decodeObjectByteType", "(Ljava/lang/String;)Ljava/lang/Byte;");
+			break;
+		
+		case BYTE:
+			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "decodePrimitiveByteType", "(Ljava/lang/String;)B");
+			break;
+		
+		case SHORT_OBJECT:
+			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "decodeObjectShortType", "(Ljava/lang/String;)Ljava/lang/Short;");
+			break;
+		
+		case SHORT:
+			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "decodePrimitiveShortType", "(Ljava/lang/String;)S");
+			break;
+		
+		case INTEGER_OBJECT:
+			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "decodeObjectIntType", "(Ljava/lang/String;)Ljava/lang/Integer;");
+			break;
+		
+		case INTEGER:
+			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "decodePrimitiveIntType", "(Ljava/lang/String;)I");
+			break;
+		
+		case LONG_OBJECT:
+			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "decodeObjectLongType", "(Ljava/lang/String;)Ljava/lang/Long;");
+			break;
+		
+		case LONG:
+			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "decodePrimitiveLongType", "(Ljava/lang/String;)J");
+			break;
+		
+		case FLOAT_OBJECT:
+			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "decodeObjectFloatType", "(Ljava/lang/String;)Ljava/lang/Float;");
+			break;
+		
+		case FLOAT:
+			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "decodePrimitiveFloatType", "(Ljava/lang/String;)F");
+			break;
+		
+		case DOUBLE_OBJECT:
+			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "decodeObjectDoubleType", "(Ljava/lang/String;)Ljava/lang/Double;");
+			break;
+		
+		case DOUBLE:
+			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "decodePrimitiveDoubleType", "(Ljava/lang/String;)D");
+			break;
+		}
+	}
+	
+	private String getParameterName(Annotation[] annotations) {
+		for(Annotation annotation : annotations) {
+			if(annotation.annotationType().equals(Parameter.class)) {
+				Parameter parameter = (Parameter)annotation;
+				return parameter.name();
+			}
+		}
+		
+		return null;
 	}
 	
 	void createWebSocketOpenMethod(ClassWriter writer, Method controllerMethod, Class<?> controllerClazz) throws ControllerServiceFactoryException {
@@ -510,6 +639,9 @@ public class ControllerServiceFactory {
 				signature.append("Lcom/nginious/http/HttpRequest;");
 			} else if(parameterType.equals(HttpResponse.class)) {
 				signature.append("Lcom/nginious/http/HttpResponse;");
+			} else if(ControllerMethodType.getControllerMethodType(parameterType) != null) {
+				ControllerMethodType type = ControllerMethodType.getControllerMethodType(parameterType);
+				signature.append(type.getSignature());
 			} else if(parameterType.isPrimitive()) {
 				String controllerClazzName = controllerClazz.getName();
 				throw new ControllerServiceFactoryException("Method " + method.getName() + " in class " + controllerClazzName + " takes incompatible type");
