@@ -37,22 +37,32 @@ public class Header {
 		STATE_START, STATE_PARAMETER_NAME, STATE_PARAMETER_VALUE, STATE_SUB_PARAMETER_NAME, STATE_SUB_PARAMETER_VALUE
 	}
 	
-	private static SimpleDateFormat rfc1123Format;
+	private static final ThreadLocal<SimpleDateFormat> rfc1123FormatLocal =
+			new ThreadLocal<SimpleDateFormat>() {
+		protected SimpleDateFormat initialValue() {
+			SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
+			format.setTimeZone(TimeZone.getTimeZone("GMT"));
+			return format;
+		}
+	};
 	
-	private static SimpleDateFormat rfc850Format;
+	private static final ThreadLocal<SimpleDateFormat> rfc850FormatLocal =
+			new ThreadLocal<SimpleDateFormat>() {
+		protected SimpleDateFormat initialValue() {
+			SimpleDateFormat format = new SimpleDateFormat("EEEE, dd-MMM-yy HH:mm:ss zzz", Locale.US);
+			format.setTimeZone(TimeZone.getTimeZone("GMT"));
+			return format;
+		}
+	};
 	
-	private static SimpleDateFormat ansiCFormat;
-	
-	static {
-		rfc1123Format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
-		rfc1123Format.setTimeZone(TimeZone.getTimeZone("GMT"));
-
-		rfc850Format = new SimpleDateFormat("EEEE, dd-MMM-yy HH:mm:ss zzz", Locale.US);
-		rfc850Format.setTimeZone(TimeZone.getTimeZone("GMT"));
-		
-		ansiCFormat = new SimpleDateFormat("EEE MMM d hh:mm:ss yyyy", Locale.US);
-		ansiCFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-	}
+	private static final ThreadLocal<SimpleDateFormat> ansiCFormatLocal =
+			new ThreadLocal<SimpleDateFormat>() {
+		protected SimpleDateFormat initialValue() {
+			SimpleDateFormat format = new SimpleDateFormat("EEE MMM d hh:mm:ss yyyy", Locale.US);
+			format.setTimeZone(TimeZone.getTimeZone("GMT"));
+			return format;
+		}
+	};
 	
 	private String name;
 	
@@ -397,15 +407,15 @@ public class Header {
      */
 	public static Date parseDate(String value) {
 		try {
-			return rfc1123Format.parse(value);
+			return rfc1123FormatLocal.get().parse(value);
 		} catch(ParseException e) {}
 		
 		try {
-			return rfc850Format.parse(value);
+			return rfc850FormatLocal.get().parse(value);
 		} catch(ParseException e) {}
 		
 		try {
-			return ansiCFormat.parse(value);
+			return ansiCFormatLocal.get().parse(value);
 		} catch(ParseException e) {}
 		
 		return null;
@@ -419,7 +429,7 @@ public class Header {
 	 * @return the date string
 	 */
 	public static String formatDate(Date date) {
-		return rfc1123Format.format(date);		
+		return rfc1123FormatLocal.get().format(date);		
 	}
 	
 	/**
@@ -449,5 +459,5 @@ public class Header {
         }
 
         return header.substring(start, end);
-    }
+    }    
 }
