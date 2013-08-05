@@ -808,6 +808,23 @@ class HttpContext {
 	}
 	
 	/**
+	 * Extracts content type value from the specified content type header value which may include a charset
+	 * field.
+	 * 
+	 * @param contentType the content type
+	 * @return the content type.
+	 */
+	private String extractContentType(String contentType) {
+		int csetIdx = contentType.lastIndexOf(";");
+		
+		if(csetIdx == -1) {
+			return contentType;
+		}
+		
+		return contentType.substring(0, csetIdx).trim();
+	}
+	
+	/**
 	 * Extracts character set name value from the specified content type header value. If no character set
 	 * is found  the default character set "iso-8859-1" is returned
 	 * 
@@ -855,7 +872,9 @@ class HttpContext {
 		
 		if(method.equals(HttpMethod.GET)) {
 			decodeGetMethodParameters();
-		} else if(method.equals(HttpMethod.POST)) {
+		} else if(method.equals(HttpMethod.POST) || 
+				method.equals(HttpMethod.PUT) || 
+				method.equals(HttpMethod.DELETE)) {
 			decodePostMethodParameters();
 		}				
 	}
@@ -881,7 +900,7 @@ class HttpContext {
 		this.params = new HashMap<String, List<String>>();
 		String contentType = getHeader("Content-Type");
 		
-		if(contentType.startsWith("application/x-www-form-urlencoded")) {
+		if(contentType != null && contentType.startsWith("application/x-www-form-urlencoded")) {
 			try {
 				String encoding = getCharacterEncoding();
 				String params = new String(content.toByteArray(), "iso-8859-1");
@@ -1041,7 +1060,13 @@ class HttpContext {
 		}
 
 		public String getContentType() {
-			return getHeader("Content-Type");
+			String contentType = getHeader("Content-Type");
+			
+			if(contentType != null) {
+				return extractContentType(contentType);
+			}
+			
+			return null;
 		}
 		
 		HttpSession getUsedSession() {
