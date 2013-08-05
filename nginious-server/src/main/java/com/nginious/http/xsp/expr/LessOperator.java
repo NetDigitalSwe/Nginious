@@ -51,7 +51,8 @@ public class LessOperator extends ComparisonOperator {
      * @return <code>true</code> if the left side argument value is less than the
      * right side argument value, <code>false</code> otherwise
      */
-     protected boolean getBooleanValue() {
+     @SuppressWarnings("incomplete-switch")
+	protected boolean getBooleanValue() {
     	Type type = resolveType(this.value1, this.value2);
     	
     	switch(type) {
@@ -72,7 +73,8 @@ public class LessOperator extends ComparisonOperator {
       * @param visitor the methos visitor
       * @param type the type
       */
-      void compile(MethodVisitor visitor, Type type) {
+      @SuppressWarnings("incomplete-switch")
+	void compile(MethodVisitor visitor, Type type) {
     	Type subType = resolveType(this.value1, this.value2);
     	
     	switch(subType) {
