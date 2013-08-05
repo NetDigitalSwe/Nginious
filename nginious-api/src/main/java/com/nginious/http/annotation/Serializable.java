@@ -33,6 +33,13 @@ import java.lang.annotation.Target;
 public @interface Serializable {
 	
 	/**
+	 * Returns name that property should be serialized to and from.
+	 * 
+	 * @return the name
+	 */
+	String name() default "";
+	
+	/**
 	 * Returns whether or not property should be serialized.
 	 * 
 	 * @return <code>true</code> if property should be serialized, <code>false</code> otherwise
