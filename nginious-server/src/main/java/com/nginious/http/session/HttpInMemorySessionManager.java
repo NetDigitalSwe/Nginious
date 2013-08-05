@@ -154,7 +154,7 @@ public class HttpInMemorySessionManager implements HttpSessionManager {
 		PathParameters params = new PathParameters(request);
 		String path = params.get(0);
 		
-		if(path == null) {
+		if(path == null || params.length() < 2) {
 			path = "/";
 		} else {
 			path = "/" + path;
