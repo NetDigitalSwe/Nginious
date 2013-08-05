@@ -142,43 +142,44 @@ class XmlSerializerCreator extends SerializerCreator<XmlSerializer<?>> {
 					if(canSerialize && method.getName().startsWith("get") && !method.getName().equals("getClass") && 
 							method.getReturnType() != null && method.getParameterTypes().length == 0) {
 						Class<?> returnType = method.getReturnType();
+						String propertyName = getPropertyName(method);
 						
 						if(returnType.isPrimitive()) {
 							if(returnType.equals(boolean.class)) {
-								createPropertySerializationCode(visitor, intSerializerClazzName, "serializeBoolean", "Z", "Z", intBeanClazzName, method.getName());
+								createPropertySerializationCode(visitor, intSerializerClazzName, "serializeBoolean", "Z", "Z", intBeanClazzName, method.getName(), propertyName);
 							} else if(returnType.equals(double.class)) {
-								createPropertySerializationCode(visitor, intSerializerClazzName, "serializeDouble", "D", "D", intBeanClazzName, method.getName());
+								createPropertySerializationCode(visitor, intSerializerClazzName, "serializeDouble", "D", "D", intBeanClazzName, method.getName(), propertyName);
 							} else if(returnType.equals(float.class)) {
-								createPropertySerializationCode(visitor, intSerializerClazzName, "serializeFloat", "F", "F", intBeanClazzName, method.getName());
+								createPropertySerializationCode(visitor, intSerializerClazzName, "serializeFloat", "F", "F", intBeanClazzName, method.getName(), propertyName);
 							} else if(returnType.equals(int.class)) {
-								createPropertySerializationCode(visitor, intSerializerClazzName, "serializeInt", "I", "I", intBeanClazzName, method.getName());
+								createPropertySerializationCode(visitor, intSerializerClazzName, "serializeInt", "I", "I", intBeanClazzName, method.getName(), propertyName);
 							} else if(returnType.equals(long.class)) {
-								createPropertySerializationCode(visitor, intSerializerClazzName, "serializeLong", "J", "J", intBeanClazzName, method.getName());
+								createPropertySerializationCode(visitor, intSerializerClazzName, "serializeLong", "J", "J", intBeanClazzName, method.getName(), propertyName);
 							} else if(returnType.equals(short.class)) {
-								createPropertySerializationCode(visitor, intSerializerClazzName, "serializeShort", "S", "S", intBeanClazzName, method.getName());
+								createPropertySerializationCode(visitor, intSerializerClazzName, "serializeShort", "S", "S", intBeanClazzName, method.getName(), propertyName);
 							}
 						} else if(Collection.class.isAssignableFrom(returnType)) {
 							Class<?> collectionType = canSerializeGenericCollectionType(method, "json");
 							
 							if(collectionType != null) {
-								createBeanCollectionSerializationCode(visitor, intBeanClazzName, method.getName(), returnType, collectionType);
+								createBeanCollectionSerializationCode(visitor, intBeanClazzName, method.getName(), propertyName, returnType, collectionType);
 							} else {
-								createObjectCollectionSerializationCode(visitor, intBeanClazzName, method.getName(), returnType);
+								createObjectCollectionSerializationCode(visitor, intBeanClazzName, method.getName(), propertyName, returnType);
 							}
 						} else if(returnType.equals(Calendar.class)) {
-							createPropertySerializationCode(visitor, intSerializerClazzName, "serializeCalendar", "Ljava/util/Calendar;", "Ljava/util/Calendar;", intBeanClazzName, method.getName());
+							createPropertySerializationCode(visitor, intSerializerClazzName, "serializeCalendar", "Ljava/util/Calendar;", "Ljava/util/Calendar;", intBeanClazzName, method.getName(), propertyName);
 						} else if(returnType.equals(Date.class)) {
-							createPropertySerializationCode(visitor, intSerializerClazzName, "serializeDate", "Ljava/util/Date;", "Ljava/util/Date;", intBeanClazzName, method.getName());
+							createPropertySerializationCode(visitor, intSerializerClazzName, "serializeDate", "Ljava/util/Date;", "Ljava/util/Date;", intBeanClazzName, method.getName(), propertyName);
 						} else if(returnType.equals(String.class)) {
-							createPropertySerializationCode(visitor, intSerializerClazzName, "serializeString", "Ljava/lang/String;", "Ljava/lang/String;", intBeanClazzName, method.getName());
+							createPropertySerializationCode(visitor, intSerializerClazzName, "serializeString", "Ljava/lang/String;", "Ljava/lang/String;", intBeanClazzName, method.getName(), propertyName);
 						} else {
 							info = returnType.getAnnotation(Serializable.class);
 							canSerialize = info != null && info.serialize() && info.types().indexOf("json") > -1;
 							
 							if(canSerialize) {
-								createBeanSerializationCode(visitor, method.getName(), returnType, intBeanClazzName);
+								createBeanSerializationCode(visitor, method.getName(), propertyName, returnType, intBeanClazzName);
 							} else {
-								createPropertySerializationCode(visitor, intSerializerClazzName, "serializeObject", "Ljava/lang/Object;", "L" + returnType.getName().replace('.', '/') + ";", intBeanClazzName, method.getName());
+								createPropertySerializationCode(visitor, intSerializerClazzName, "serializeObject", "Ljava/lang/Object;", "L" + returnType.getName().replace('.', '/') + ";", intBeanClazzName, method.getName(), propertyName);
 							}
 						}					
 					}
@@ -200,7 +201,8 @@ class XmlSerializerCreator extends SerializerCreator<XmlSerializer<?>> {
 
 				Class<?> clazz = Serialization.loadClass(controllerLoader, intSerializerClazzName.replace('/', '.'), clazzBytes);
 				serializer = (XmlSerializer<T>)clazz.newInstance();
-				serializer.setName(beanClazz.getSimpleName());
+				serializer.setName(Serialization.createPropertyNameFromClass(beanClazz));
+				serializer.setType(beanClazz);
 				serializer.setSerializerFactory(factory);
 				serializers.put(beanClazz, serializer);
 				return serializer;
@@ -220,10 +222,10 @@ class XmlSerializerCreator extends SerializerCreator<XmlSerializer<?>> {
 	 * @param methodName binary name of get method in bean
 	 * @param returnType return type of get method in bean
 	 */
-	private void createObjectCollectionSerializationCode(MethodVisitor visitor, String intBeanClazzName, String methodName, Class<?> returnType) {
+	private void createObjectCollectionSerializationCode(MethodVisitor visitor, String intBeanClazzName, String methodName, String propertyName, Class<?> returnType) {
 		visitor.visitTypeInsn(Opcodes.NEW, "com/nginious/http/serialize/XmlObjectCollectionSerializer");
 		visitor.visitInsn(Opcodes.DUP);
-		visitor.visitLdcInsn(methodName.substring(3));
+		visitor.visitLdcInsn(propertyName);
 		visitor.visitMethodInsn(Opcodes.INVOKESPECIAL, "com/nginious/http/serialize/XmlObjectCollectionSerializer", "<init>", "(Ljava/lang/String;)V");
 		visitor.visitVarInsn(Opcodes.ASTORE, 4);
 		
@@ -246,7 +248,7 @@ class XmlSerializerCreator extends SerializerCreator<XmlSerializer<?>> {
 	 * @param returnType return type of get method in bean
 	 * @param collectionBeanType class of serializable bean found in collection
 	 */
-	private void createBeanCollectionSerializationCode(MethodVisitor visitor, String intBeanClazzName, String methodName, Class<?> returnType, Class<?> collectionBeanType) {
+	private void createBeanCollectionSerializationCode(MethodVisitor visitor, String intBeanClazzName, String methodName, String propertyName, Class<?> returnType, Class<?> collectionBeanType) {
 		visitor.visitVarInsn(Opcodes.ALOAD, 0);
 		visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/serialize/XmlSerializer", "getSerializerFactory", "()Lcom/nginious/http/serialize/SerializerFactory;");
 		visitor.visitLdcInsn(collectionBeanType.getName());
@@ -256,7 +258,7 @@ class XmlSerializerCreator extends SerializerCreator<XmlSerializer<?>> {
 
 		visitor.visitTypeInsn(Opcodes.NEW, "com/nginious/http/serialize/XmlBeanCollectionSerializer");
 		visitor.visitInsn(Opcodes.DUP);
-		visitor.visitLdcInsn(methodName.substring(3));
+		visitor.visitLdcInsn(propertyName);
 		visitor.visitVarInsn(Opcodes.ALOAD, 4);
 		visitor.visitMethodInsn(Opcodes.INVOKESPECIAL, "com/nginious/http/serialize/XmlBeanCollectionSerializer", "<init>", "(Ljava/lang/String;Lcom/nginious/http/serialize/XmlSerializer;)V");
 		visitor.visitVarInsn(Opcodes.ASTORE, 5);
@@ -279,7 +281,7 @@ class XmlSerializerCreator extends SerializerCreator<XmlSerializer<?>> {
 	 * @param returnType class of serializable bean
 	 * @param intBeanClazzName binary class name of bean
 	 */
-	private void createBeanSerializationCode(MethodVisitor visitor, String returnMethodName, Class<?> returnType, String intBeanClazzName) {
+	private void createBeanSerializationCode(MethodVisitor visitor, String returnMethodName, String propertyName, Class<?> returnType, String intBeanClazzName) {
 		String intReturnClazzName = Serialization.createInternalClassName(returnType);
 		visitor.visitVarInsn(Opcodes.ALOAD, 0);
 		visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/serialize/XmlSerializer", "getSerializerFactory", "()Lcom/nginious/http/serialize/SerializerFactory;");
@@ -291,7 +293,7 @@ class XmlSerializerCreator extends SerializerCreator<XmlSerializer<?>> {
 		
 		visitor.visitVarInsn(Opcodes.ALOAD, 4);
 		visitor.visitVarInsn(Opcodes.ALOAD, 1);
-		visitor.visitLdcInsn(convertToXmlName(returnMethodName));
+		visitor.visitLdcInsn(convertToXmlName(propertyName));
 		visitor.visitVarInsn(Opcodes.ALOAD, 3);
 		visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, intBeanClazzName, returnMethodName, "()L" + intReturnClazzName + ";");
 		visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/serialize/XmlSerializer", "serialize", "(Ljavax/xml/transform/sax/TransformerHandler;Ljava/lang/String;Ljava/lang/Object;)V");
@@ -304,14 +306,14 @@ class XmlSerializerCreator extends SerializerCreator<XmlSerializer<?>> {
 	 * 
 	 * @param visitor method visitor for generating bytecode
 	 * @param clazzName binary name of serializer class being generated
-	 * @param methodName binary name of method in class {@link JsonSerializer} used for serializing property
-	 * @param methodType binary type for method in class {@link JsonSerializer} used for serializing property
+	 * @param methodName binary name of method in class {@link XmlSerializer} used for serializing property
+	 * @param propertyName name of XML element
+	 * @param methodType binary type for method in class {@link XmlSerializer} used for serializing property
 	 * @param beanType binary return type of get method in bean
 	 * @param beanClazzName binary name of bean class
 	 * @param beanMethodName binary name of get method in bean for getting method
 	 */
-	private void createPropertySerializationCode(MethodVisitor visitor, String clazzName, String methodName, String methodType, String beanType, String beanClazzName, String beanMethodName) {
-		String propertyName = Serialization.createPropertyNameFromMethodName(beanMethodName);
+	private void createPropertySerializationCode(MethodVisitor visitor, String clazzName, String methodName, String methodType, String beanType, String beanClazzName, String beanMethodName, String propertyName) {
 		visitor.visitVarInsn(Opcodes.ALOAD, 0);
 		visitor.visitVarInsn(Opcodes.ALOAD, 1);
 		visitor.visitLdcInsn(propertyName);
@@ -345,7 +347,25 @@ class XmlSerializerCreator extends SerializerCreator<XmlSerializer<?>> {
 		return visitor;
 	}
 	
-    /**
+	/**
+	 * Returns name of property to be serialized from serializable annotation if available. Otherwise
+	 * the property name is generated from the method name.
+	 * 
+	 * @param method
+	 * @return
+	 * @throws SerializerFactoryException
+	 */
+	private String getPropertyName(Method method) throws SerializerFactoryException {
+		Serializable info = method.getAnnotation(Serializable.class);
+		
+		if(info != null && !info.name().equals("")) {
+			return info.name();
+		}
+		
+		return Serialization.createPropertyNameFromMethodName(method.getName());
+	}
+	
+	/**
      * Converts the specified method name to a XML tag name for use in serialized XML.
      * 
      * @param name the name to convert
@@ -354,11 +374,11 @@ class XmlSerializerCreator extends SerializerCreator<XmlSerializer<?>> {
 	protected String convertToXmlName(String name) {
 		StringBuffer xmlName = new StringBuffer();
 		
-		for(int i = 3; i < name.length(); i++) {
+		for(int i = 0; i < name.length(); i++) {
 			char ch = name.charAt(i);
 			
 			if(Character.isUpperCase(ch)) {
-				if(i > 3) {
+				if(i > 0) {
 					xmlName.append('-');
 				}
 				
