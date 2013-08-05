@@ -192,7 +192,8 @@ class StaticPart extends ChildPart {
      * @param type the type
      * @throws XspException if unable to create bytecode
      */
-    void compile(MethodVisitor visitor, Type type) throws XspException {
+    @SuppressWarnings("incomplete-switch")
+	void compile(MethodVisitor visitor, Type type) throws XspException {
     	switch(type) {
     	case BOOLEAN:
     		boolean booleanValue = Boolean.parseBoolean(getStringContent());
