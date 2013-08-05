@@ -19,6 +19,7 @@ package com.nginious.http.serialize;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 
 import javax.xml.transform.OutputKeys;
@@ -30,9 +31,6 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
-
-import com.nginious.http.serialize.Serializer;
-import com.nginious.http.serialize.SerializerException;
 
 /**
  * Base class for all serializers that serialize beans to XML format. Used as base class
@@ -47,6 +45,8 @@ public abstract class XmlSerializer<E> implements Serializer<E> {
 	private static SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 	
 	private String name;
+	
+	private Class<?> type;
 	
 	private SerializerFactory factory;
 	
@@ -64,6 +64,15 @@ public abstract class XmlSerializer<E> implements Serializer<E> {
 	 */
 	protected void setName(String name) {
 		this.name = convertToXmlName(name);
+	}
+	
+	/**
+	 * Sets the class type for the bean that this serializer serializes.
+	 * 
+	 * @param type the class type
+	 */
+	protected void setType(Class<?> type) {
+		this.type = type;
 	}
 	
 	/**
@@ -92,7 +101,21 @@ public abstract class XmlSerializer<E> implements Serializer<E> {
 	public String getMimeType() {
 		return "text/xml";
 	}
-
+	
+	/**
+	 * Serializes the specified collection of items and writes the created XML to the specified writer.
+	 * 
+	 * @param writer writer for writing generated XML
+	 * @param items the items to serialize
+	 * @throws SerializerException if unable to serialize bean
+	 */
+	public void serialize(PrintWriter writer, Collection<E> items) throws SerializerException {
+		TransformerHandler handler = createTransformerHandler(writer);
+		String name = Serialization.createPropertyNameFromClass(this.type) + "s";
+		XmlBeanCollectionSerializer<E> serializer = new XmlBeanCollectionSerializer<E>(name, this);
+		serializer.serialize(handler, items);
+	}
+	
 	/**
 	 * Serializes the specified item bean an writes the created XML to the specified writer.
 	 * 
