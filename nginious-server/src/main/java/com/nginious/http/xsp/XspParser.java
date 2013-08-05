@@ -104,7 +104,8 @@ class XspParser {
      * @param parentPart the parent part to add all created parts to
      * @throws XspException if unable to parse the XSP page part
      */
-    private void parse(String srcFilePath, byte[] b, int start, int end, ParentPart parentPart) throws XspException {
+    @SuppressWarnings("incomplete-switch")
+	private void parse(String srcFilePath, byte[] b, int start, int end, ParentPart parentPart) throws XspException {
         State state = State.START;
         int pos = start;
         int partStart = start;
