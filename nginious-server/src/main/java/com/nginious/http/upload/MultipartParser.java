@@ -234,7 +234,8 @@ public class MultipartParser implements UploadTracker {
      * @param dataFragment the data fragment to parse
      * @return position in data fragment up to which this method has parsed
      */
-    private int parseBoundary(byte[] dataFragment) {
+    @SuppressWarnings("incomplete-switch")
+	private int parseBoundary(byte[] dataFragment) {
     	int boundaryPos = 0;
     	int pos = 0;
     	
@@ -288,6 +289,7 @@ public class MultipartParser implements UploadTracker {
      * @return position in data fragment up to which this method has parsed
      * @throws HttpException if any of the parsed headers are invalid
      */
+	@SuppressWarnings("incomplete-switch")
 	private int parseHeaders(byte[] dataFragment, int pos) throws HttpException {
 		int startHeaderPos = -1;
 		
@@ -539,6 +541,7 @@ public class MultipartParser implements UploadTracker {
 	 * @return position in the data fragment up to which this method has parsed
 	 * @throws IOException if an I/O exception occurs while parsing body content
 	 */
+	@SuppressWarnings("incomplete-switch")
 	int parseBody(byte[] dataFragment, int pos) throws IOException {
 		int startBodyPos = pos;
 		int boundaryPos = 0;
