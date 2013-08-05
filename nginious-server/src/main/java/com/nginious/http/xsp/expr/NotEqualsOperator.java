@@ -44,7 +44,8 @@ public class NotEqualsOperator extends ComparisonOperator {
      * 
      * @return <code>true</code> if values are not equal, <code>false</code> if equal
      */
-    protected boolean getBooleanValue() {
+    @SuppressWarnings("incomplete-switch")
+	protected boolean getBooleanValue() {
     	Type type = resolveType(this.value1, this.value2);
     	
     	switch(type) {
@@ -69,7 +70,8 @@ public class NotEqualsOperator extends ComparisonOperator {
      * @param visitor method visitor
      * @param type the type
      */
-    void compile(MethodVisitor visitor, Type type) {
+    @SuppressWarnings("incomplete-switch")
+	void compile(MethodVisitor visitor, Type type) {
     	Type subType = resolveType(this.value1, this.value2);
     	
     	switch(subType) {
