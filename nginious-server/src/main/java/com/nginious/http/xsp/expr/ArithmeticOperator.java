@@ -55,7 +55,8 @@ public abstract class ArithmeticOperator extends Value {
      * 
      * @return the result value
      */
-    protected Value evaluate() {
+    @SuppressWarnings("incomplete-switch")
+	protected Value evaluate() {
     	Type type = getType();
     	Value returnValue = null;
     	
@@ -77,7 +78,8 @@ public abstract class ArithmeticOperator extends Value {
      * 
      * @return a result value as a string
      */
-    protected String getStringValue() {
+    @SuppressWarnings("incomplete-switch")
+	protected String getStringValue() {
     	Type type = getType();
     	String value = null;
     	
