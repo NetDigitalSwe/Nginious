@@ -18,6 +18,7 @@ package com.nginious.http.websocket;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.nginious.http.application.ControllerService;
 import com.nginious.http.server.Connection;
@@ -32,6 +33,8 @@ import com.nginious.http.stats.WebSocketSessionStatistics;
  */
 public class WebSocketSessionImpl implements WebSocketSession {
 	
+	private static AtomicLong uniqueIdentifierGenerator = new AtomicLong(0L);
+	
 	private enum State {
 		CONNECTING, OPEN, CLOSING, CLOSED;
 	}
@@ -39,6 +42,8 @@ public class WebSocketSessionImpl implements WebSocketSession {
 	private int BUFFER_SIZE = 8192;
 	
 	private int HEADER_SIZE = 4;
+	
+	private Long uniqueIdentifier;
 	
 	private ControllerService service;
 	
@@ -57,6 +62,7 @@ public class WebSocketSessionImpl implements WebSocketSession {
 	 * @param statistics the web socket service statistics
 	 */
 	public WebSocketSessionImpl(WebSocketSessionStatistics statistics) {
+		this.uniqueIdentifier = new Long(uniqueIdentifierGenerator.incrementAndGet());
 		this.statistics = statistics;
 		this.state = State.CONNECTING;
 	}
@@ -305,5 +311,27 @@ public class WebSocketSessionImpl implements WebSocketSession {
 				conn.switchToRead();
 			}
 		}
+	}
+	
+	/**
+	 * Returns the hash code for this web socket session.
+	 * 
+	 * @return the hash code
+	 */
+	public int hashCode() {
+		return uniqueIdentifier.hashCode();
+	}
+	
+	/**
+	 * Returns whether or not the specified object is equal to this web socket session. Two web socket sessions
+	 * are considered equal if they have the same identifier.
+	 */
+	public boolean equals(Object obj) {
+		if(obj instanceof WebSocketSessionImpl) {
+			WebSocketSessionImpl other = (WebSocketSessionImpl)obj;
+			return other.uniqueIdentifier.longValue() == this.uniqueIdentifier.longValue();
+		}
+		
+		return super.equals(obj);
 	}
 }
