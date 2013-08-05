@@ -35,7 +35,7 @@ import com.nginious.http.annotation.Service;
 
 class ApplicationConfigurator {
 	
-	private static Logger logger = Logger.getLogger(ApplicationManagerImpl.class);
+	private static Logger logger = Logger.getLogger(ApplicationConfigurator.class);
 	
 	private File warFileOrAppDir;
 	
@@ -229,12 +229,22 @@ class ApplicationConfigurator {
 						Object service = clazz.newInstance();
 						application.addService(service, classFile.getClassFile());
 					}
-				} catch(NoClassDefFoundError e) {
-					Object[] params = { className };
-					LogMF.warn(logger, "Unable to load class name={0}", params, e);
+				} catch(NoClassDefFoundError e) {					
+					if(logger.isTraceEnabled()) {
+						Object[] params = { className };
+						LogMF.trace(logger, e, "Unable to load class name={0}", params);
+					} else {
+						Object[] params = { className, e.getMessage() };
+						LogMF.warn(logger, "Unable to load class name={0}, message={1}", params);
+					}
 				} catch(ClassNotFoundException e) {
-					Object[] params = { className };
-					LogMF.warn(logger, "Unable to load class name={0}", params, e);
+					if(logger.isTraceEnabled()) {
+						Object[] params = { className };
+						LogMF.trace(logger, e, "Unable to load class name={0}", params);
+					} else {
+						Object[] params = { className, e.getMessage() };
+						LogMF.warn(logger, "Unable to load class name={0}, message={1}", params);
+					}
 				}
 			}
 		} catch(Exception e) {
