@@ -216,6 +216,14 @@ public class ExampleRestController {
 							</thead>
 							<tbody>
 								<tr>
+									<td>name</td>
+									<td>String</td>
+									<td>
+										Name of property that class or method should be serialized to. If no value is set then the property name
+										is derived from the method or class name.
+									</td>
+								</tr>
+								<tr>
 									<td>serialize</td>
 									<td>boolean</td>
 									<td>
@@ -253,7 +261,7 @@ public class ExampleRestController {
 					<p>
 						<div class="example-contents">
 							<pre class="programlisting">
-<span class="hl-string">@Serializable
+<span class="hl-string">@Serializable(name = "testBean")
 public class ExampleBean {
   
   private String name;
@@ -273,6 +281,7 @@ public class ExampleBean {
     this.name = name;
   }
   
+  @Serializable(name = "testValue")
   public String getValue() {
     return this.value;
   }
