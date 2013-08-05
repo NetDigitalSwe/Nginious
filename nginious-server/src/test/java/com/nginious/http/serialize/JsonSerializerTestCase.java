@@ -171,6 +171,125 @@ public class JsonSerializerTestCase extends TestCase {
 		assertEquals("2011-08-25T08:52:23+02:00", inBeanJson.getString("ninth"));
 	}
 	
+	public void testNamedJsonSerializer() throws Exception {
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ");
+		NamedBean bean = new NamedBean();
+		bean.setBooleanValue(true);
+		bean.setDoubleValue(0.451);
+		bean.setFloatValue(1.34f);
+		bean.setIntValue(3400100);
+		bean.setLongValue(3400100200L);
+		bean.setShortValue((short)32767);
+		bean.setStringValue("String");		
+		bean.setDateValue(format.parse("2011-08-24T08:50:23+0200"));
+		Date calDate = format.parse("2011-08-24T08:52:23+0200");
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(calDate);
+		bean.setCalendarValue(cal);
+		bean.setObjectValue(TimeZone.getDefault());
+		
+		InBean inBean = new InBean();
+		inBean.setFirst(true);
+		inBean.setSecond(0.567d);
+		inBean.setThird(0.342f);
+		inBean.setFourth(100);
+		inBean.setFifth(3400200100L);
+		inBean.setSixth((short)32767);
+		inBean.setSeventh("String");
+		inBean.setEight(format.parse("2011-08-25T08:50:23+0200"));
+		cal = Calendar.getInstance();
+		calDate = format.parse("2011-08-25T08:52:23+0200");
+		cal.setTime(calDate);
+		inBean.setNinth(cal);
+		bean.setBeanValue(inBean);
+		
+		List<InBean> beanList = new ArrayList<InBean>();
+		beanList.add(inBean);
+		beanList.add(inBean);
+		bean.setBeanListValue(beanList);
+		
+		List<String> stringList = new ArrayList<String>();
+		stringList.add("One");
+		stringList.add("Two");
+		stringList.add("Three");
+		bean.setStringListValue(stringList);
+		
+		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
+		SerializerFactory serializerFactory = new SerializerFactory(classLoader);
+		Serializer<NamedBean> serializer = serializerFactory.createSerializer(NamedBean.class, "application/json");
+		assertEquals("application/json", serializer.getMimeType());
+		
+		StringWriter strWriter = new StringWriter();
+		PrintWriter writer = new PrintWriter(strWriter);
+		
+		serializer.serialize(writer, bean);
+		writer.flush();
+		JSONObject json = new JSONObject(strWriter.toString());
+		assertNotNull(json);
+		assertTrue(json.has("testNamedBean"));
+		json = json.getJSONObject("testNamedBean");
+		
+		assertEquals(true, json.getBoolean("testBooleanValue"));
+		assertEquals(0.451, json.getDouble("testDoubleValue"));
+		assertEquals(1.34f, (float)json.getDouble("testFloatValue"));
+		assertEquals(3400100, json.getInt("testIntValue"));
+		assertEquals(3400100200L, json.getLong("testLongValue"));
+		assertEquals(32767, (short)json.getInt("testShortValue"));
+		assertEquals("String", json.getString("testStringValue"));
+		assertEquals("2011-08-24T08:50:23+02:00", json.getString("testDateValue"));
+		assertEquals("2011-08-24T08:52:23+02:00", json.getString("testCalendarValue"));
+		assertEquals(TimeZone.getDefault().toString(), json.getString("testObjectValue"));
+
+		assertTrue(json.has("testBeanValue"));
+		JSONObject inBeanJson = json.getJSONObject("testBeanValue");
+		assertTrue(inBeanJson.has("inBean"));
+		inBeanJson = inBeanJson.getJSONObject("inBean");
+		assertEquals(true, inBeanJson.getBoolean("first"));
+		assertEquals(0.567, inBeanJson.getDouble("second"));
+		assertEquals(0.342f, (float)inBeanJson.getDouble("third"));
+		assertEquals(100, inBeanJson.getInt("fourth"));
+		assertEquals(3400200100L, inBeanJson.getLong("fifth"));
+		assertEquals(32767, (short)inBeanJson.getInt("sixth"));
+		assertEquals("String", inBeanJson.getString("seventh"));
+		assertEquals("2011-08-25T08:50:23+02:00", inBeanJson.getString("eight"));
+		assertEquals("2011-08-25T08:52:23+02:00", inBeanJson.getString("ninth"));
+
+		assertTrue(json.has("testStringListValue"));
+		JSONArray stringListJson = json.getJSONArray("testStringListValue");
+		assertEquals("One", stringListJson.get(0));
+		assertEquals("Two", stringListJson.get(1));
+		assertEquals("Three", stringListJson.get(2));
+		
+		assertTrue(json.has("testBeanListValue"));
+		JSONArray beanListJson = json.getJSONArray("testBeanListValue");
+		
+		inBeanJson = beanListJson.getJSONObject(0);
+		assertTrue(inBeanJson.has("inBean"));
+		inBeanJson = inBeanJson.getJSONObject("inBean");
+		assertEquals(true, inBeanJson.getBoolean("first"));
+		assertEquals(0.567, inBeanJson.getDouble("second"));
+		assertEquals(0.342f, (float)inBeanJson.getDouble("third"));
+		assertEquals(100, inBeanJson.getInt("fourth"));
+		assertEquals(3400200100L, inBeanJson.getLong("fifth"));
+		assertEquals(32767, (short)inBeanJson.getInt("sixth"));
+		assertEquals("String", inBeanJson.getString("seventh"));
+		assertEquals("2011-08-25T08:50:23+02:00", inBeanJson.getString("eight"));
+		assertEquals("2011-08-25T08:52:23+02:00", inBeanJson.getString("ninth"));
+
+		inBeanJson = beanListJson.getJSONObject(1);
+		assertTrue(inBeanJson.has("inBean"));
+		inBeanJson = inBeanJson.getJSONObject("inBean");
+		assertEquals(true, inBeanJson.getBoolean("first"));
+		assertEquals(0.567, inBeanJson.getDouble("second"));
+		assertEquals(0.342f, (float)inBeanJson.getDouble("third"));
+		assertEquals(100, inBeanJson.getInt("fourth"));
+		assertEquals(3400200100L, inBeanJson.getLong("fifth"));
+		assertEquals(32767, (short)inBeanJson.getInt("sixth"));
+		assertEquals("String", inBeanJson.getString("seventh"));
+		assertEquals("2011-08-25T08:50:23+02:00", inBeanJson.getString("eight"));
+		assertEquals("2011-08-25T08:52:23+02:00", inBeanJson.getString("ninth"));
+	}
+	
 	public void testEmptyJsonSerializer() throws Exception {
 		SerializableBean bean = new SerializableBean();
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
