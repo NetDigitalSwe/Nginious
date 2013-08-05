@@ -65,7 +65,8 @@ public class MinFunction extends Function {
      * 
      * @return the result of evaluating this function
      */
-    protected Value evaluate() {
+    @SuppressWarnings("incomplete-switch")
+	protected Value evaluate() {
     	Type type = resolveType(this.value1, this.value2);
     	Value returnValue = null;
     	
@@ -105,7 +106,8 @@ public class MinFunction extends Function {
      * 
      * @return the string result of evaluating this function
      */
-    protected String getStringValue() {
+    @SuppressWarnings("incomplete-switch")
+	protected String getStringValue() {
     	Type type = resolveType(this.value1, this.value2);
     	String value = null;
     	
