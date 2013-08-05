@@ -20,6 +20,9 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import com.nginious.http.HttpMethod;
 import com.nginious.http.HttpStatus;
 import com.nginious.http.server.HttpTestRequest;
@@ -58,6 +61,47 @@ public class ControllerTestCase extends TestCase {
 		invoker.invoke(request, response);
 		assertEquals(HttpStatus.OK, response.getStatus());
 		System.out.println(new String(response.getContent()));
+	}
+	
+	public void testReturnControllerOne() throws Exception {
+		TestReturnController controller = new TestReturnController();
+		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
+		ControllerServiceFactory factory = new ControllerServiceFactory(classLoader);
+		ControllerService invoker = factory.createControllerService(controller);
+		HttpTestRequest request = new HttpTestRequest();
+		request.setMethod(HttpMethod.GET);
+		request.addHeader("Content-Type", "application/x-www-form-urlencoded");
+		request.addHeader("Accept", "application/json");
+		HttpTestResponse response = new HttpTestResponse();
+		invoker.invoke(request, response);
+		assertEquals(HttpStatus.OK, response.getStatus());
+		JSONObject object = new JSONObject(new String(response.getContent()));
+		assertTrue(object.has("testControllerBean"));
+		JSONObject bean = object.getJSONObject("testControllerBean");
+		assertEquals(bean.get("one"), "one");
+		assertEquals(bean.get("two"), 2);
+	}
+	
+	public void testReturnControllerList() throws Exception {
+		TestReturnController controller = new TestReturnController();
+		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
+		ControllerServiceFactory factory = new ControllerServiceFactory(classLoader);
+		ControllerService invoker = factory.createControllerService(controller);
+		HttpTestRequest request = new HttpTestRequest();
+		request.setMethod(HttpMethod.POST);
+		request.addHeader("Content-Type", "application/x-www-form-urlencoded");
+		request.addHeader("Accept", "application/json");
+		HttpTestResponse response = new HttpTestResponse();
+		invoker.invoke(request, response);
+		assertEquals(HttpStatus.OK, response.getStatus());
+		JSONObject object = new JSONObject(new String(response.getContent()));
+		assertTrue(object.has("testControllerBeans"));
+		JSONArray array = object.getJSONArray("testControllerBeans");
+		assertEquals(1, array.length());
+		object = array.getJSONObject(0);
+		JSONObject bean = object.getJSONObject("testControllerBean");
+		assertEquals(bean.get("one"), "first");
+		assertEquals(bean.get("two"), 20);
 	}
 	
 	public static Test suite() {
