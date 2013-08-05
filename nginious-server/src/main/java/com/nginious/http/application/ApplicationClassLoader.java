@@ -78,6 +78,10 @@ public class ApplicationClassLoader extends ClassLoader {
 	public boolean hasLoaded(Class<?> clazz) {
 		ClassLoader loader = clazz.getClassLoader();
 		
+		if(loader == null) {
+			return false;
+		}
+		
 		if(loader.equals(this)) {
 			return true;
 		}
@@ -549,12 +553,18 @@ public class ApplicationClassLoader extends ClassLoader {
 			return super.getResources(name);
 		}
 		
+	    public Class<?> loadClass(String name) throws ClassNotFoundException {
+	        return loadClass(name, false);
+	    }
+		
 		protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
 			return ApplicationClassLoader.this.loadClassInternal(name, resolve);
 		}
 		
 		private Class<?> loadClassInternal(String name, boolean resolve) throws ClassNotFoundException {
-			Class<?> clazz = findLoadedClass(name);
+			Class<?> clazz = null;
+			
+			clazz = findLoadedClass(name);
 			
 			if(clazz == null) {
 				try {
