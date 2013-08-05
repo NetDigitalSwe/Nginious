@@ -231,7 +231,7 @@
 public class ExampleController {
   
   @Request(methods = { HttpMethod.GET })
-  public void doGet(HttpRequest req, HttpResponse; resp) throws HttpException, IOException {
+  public void doGet(HttpRequest req, HttpResponse resp) throws HttpException, IOException {
     resp.setContentType("text/plain");
     resp.setCharacterEncoding("utf-8");
     resp.setContentLength(13);
@@ -373,10 +373,66 @@ public class ExampleController {
 									</td>
 								</tr>
 								<tr>
+									<td class="nowrap">HttpSession</td>
+									<td>
+										An instance of <a href="api/com/nginious/http/HttpSession.html">HttpSession</a>. If a session does not exist
+										one is created.
+									</td>
+								</tr>
+								<tr>
 									<td class="nowrap">Service</td>
 									<td>
 										Any object annotated with the <a href="api/com/nginious/http/annotation/Service.html">Service</a>
 										annotation.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">java.lang.Boolean | boolean</td>
+									<td>
+										A boolean object or primitive type annotated with the <a href="api/com/nginious/http/annotation/Parameter.html">Parameter</a>
+										annotation. The parameter annotation maps the method parameter to a HTTP request parameter.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">java.lang.Byte | byte</td>
+									<td>
+										A byte object or primitive type annotated with the <a href="api/com/nginious/http/annotation/Parameter.html">Parameter</a>
+										annotation. The parameter annotation maps the method parameter to a HTTP request parameter.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">java.lang.Short | short</td>
+									<td>
+										A short object or primitive type annotated with the <a href="api/com/nginious/http/annotation/Parameter.html">Parameter</a>
+										annotation. The parameter annotation maps the method parameter to a HTTP request parameter.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">java.lang.Integer | int</td>
+									<td>
+										An integer object or primitive type annotated with the <a href="api/com/nginious/http/annotation/Parameter.html">Parameter</a>
+										annotation. The parameter annotation maps the method parameter to a HTTP request parameter.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">java.lang.Long | long</td>
+									<td>
+										A long object or primitive type annotated with the <a href="api/com/nginious/http/annotation/Parameter.html">Parameter</a>
+										annotation. The parameter annotation maps the method parameter to a HTTP request parameter.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">java.lang.Float | float</td>
+									<td>
+										A float object or primitive type annotated with the <a href="api/com/nginious/http/annotation/Parameter.html">Parameter</a>
+										annotation. The parameter annotation maps the method parameter to a HTTP request parameter.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">java.lang.Double | double</td>
+									<td>
+										A double object or primitive type annotated with the <a href="api/com/nginious/http/annotation/Parameter.html">Parameter</a>
+										annotation. The parameter annotation maps the method parameter to a HTTP request parameter.
 									</td>
 								</tr>
 							</tbody>
