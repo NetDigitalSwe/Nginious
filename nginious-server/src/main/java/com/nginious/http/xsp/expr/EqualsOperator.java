@@ -43,7 +43,8 @@ public class EqualsOperator extends ComparisonOperator {
      * 
      * @return <code>true</code> if values are equal, <code>false</code> otherwise
      */    
-    protected boolean getBooleanValue() {
+    @SuppressWarnings("incomplete-switch")
+	protected boolean getBooleanValue() {
     	Type type = resolveType(this.value1, this.value2);
     	
     	switch(type) {
@@ -68,7 +69,8 @@ public class EqualsOperator extends ComparisonOperator {
      * @param visitor method visitor
      * @param type the type
      */
-    void compile(MethodVisitor visitor, Type type) {
+    @SuppressWarnings("incomplete-switch")
+	void compile(MethodVisitor visitor, Type type) {
     	Type subType = resolveType(this.value1, this.value2);
     	
     	switch(subType) {
