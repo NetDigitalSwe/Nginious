@@ -17,6 +17,7 @@
 package com.nginious.http.serialize;
 
 import java.io.PrintWriter;
+import java.util.Collection;
 
 /**
  * A serializer serializes a bean into serialized form. Example formats are JSON and XML. A serializer
@@ -35,6 +36,16 @@ public interface Serializer<E> {
 	 * @return the mime type.
 	 */
 	public String getMimeType();
+	
+	/**
+	 * Serializes the specified item collection. The serialized collection is written using the specified
+	 * writer.
+	 * 
+	 * @param writer the writer used for writing serialized items
+	 * @param items the items to serialize
+	 * @throws SerializerException if unable to serialize items
+	 */
+	public void serialize(PrintWriter writer, Collection<E> items) throws SerializerException;
 	
 	/**
 	 * Serializes the specified bean item. The serialized bean is written using the specified writer.
