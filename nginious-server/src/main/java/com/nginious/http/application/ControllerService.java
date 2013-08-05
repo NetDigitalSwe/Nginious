@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.Collection;
 import java.util.HashSet;
 
 import com.nginious.http.HttpException;
@@ -380,6 +381,63 @@ public abstract class ControllerService extends HttpService {
 	}
 	
 	/**
+	 * Called by subclasses to handled bean collection based responses from controllers. Controllers may return responses as 
+	 * return values from the invoked method. An appropriate serializer is created or selected based on the following rules.
+	 * 
+	 * <ul>
+	 *   <li>The accept header in the HTTP request is inspected to determine the preferred format of the client.</li>
+	 *   <li>The {@link com.nginious.http.annotation.Serializable} annotation of the bean is inspected.</li>
+	 * </ul>
+	 * 
+	 * See {@link com.nginious.http.serialize.SerializerFactory} for further details on the serialization mechanism.
+	 *
+	 * @param bean the bean collection to serialize
+	 * @param beanClassName name of bean class
+	 * @param request the HTTP request
+	 * @param response the HTTP response
+	 * @throws IOException if an I/O error occurs
+	 * @throws HttpException if a HTTP exception occurs while processing the response data
+	 */
+	protected <T> void serialize(Collection<T> items, String beanClassName, HttpRequest request, HttpResponse response) throws HttpException, IOException {
+		try {
+			if(items != null) {
+				@SuppressWarnings("unchecked")
+				Class<T> beanClazz = (Class<T>)classLoader.loadClass(beanClassName);
+				String acceptHeader = request.getHeader("Accept");
+				Serializer<T> serializer = serializerFactory.createSerializer(beanClazz, acceptHeader);
+				
+				if(serializer == null) {
+					throw new HttpException(HttpStatus.BAD_REQUEST, "No acceptable content type in '" + acceptHeader + "'");
+				}
+				
+				response.setContentType(serializer.getMimeType());
+				response.setCharacterEncoding("utf-8");
+				
+				ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+				OutputStreamWriter outWriter = new OutputStreamWriter(byteOut, "utf-8");
+				PrintWriter writer = new PrintWriter(outWriter);
+				serializer.serialize(writer, items);
+				writer.flush();
+				
+				byte[] data = byteOut.toByteArray();
+				response.setContentLength(data.length);
+				OutputStream out = response.getOutputStream();
+				out.write(data);				
+			} else {
+				serializeVoid(response);
+			}
+		} catch(ClassNotFoundException e) {
+			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Serialization failed", e);			
+		} catch(UnsupportedEncodingException e) {
+			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Serialization failed", e);
+		} catch(SerializerException e) {
+			throw new HttpException(HttpStatus.BAD_REQUEST, "Serialization failed: " + e.getMessage(), e);
+		} catch(SerializerFactoryException e) {
+			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Serialization failed: " + e.getMessage(), e);
+		}		
+	}
+	
+	/**
 	 * Called by subclasses to handled bean based responses from controllers. Controllers may return responses as return values
 	 * from the invoked method. An appropriate serializer is created or selected based on the following rules.
 	 * 
@@ -476,6 +534,114 @@ public abstract class ControllerService extends HttpService {
 		} catch(SerializerFactoryException e) {
 			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Deserialization failed:" + e.getMessage(), e);
 		}
+	}
+	
+	protected Boolean decodeObjectBooleanType(String value) {
+		return new Boolean(value);
+	}
+	
+	protected boolean decodePrimitiveBooleanType(String value) {
+		return Boolean.parseBoolean(value);
+	}
+	
+	protected Byte decodeObjectByteType(String value) {
+		try {
+			return new Byte(value);
+		} catch(NumberFormatException e) {
+			return null;
+		}
+	}
+	
+	protected byte decodePrimitiveByteType(String value) {
+		try {
+			return Byte.parseByte(value);
+		} catch(NumberFormatException e) {
+			return 0;
+		}
+	}
+	
+	protected Short decodeObjectShortType(String value) {
+		try {
+			return new Short(value);
+		} catch(NumberFormatException e) {
+			return null;
+		}
+	}
+	
+	protected short decodePrimitiveShortType(String value) {
+		try {
+			return Short.parseShort(value);
+		} catch(NumberFormatException e) {
+			return 0;
+		}
+	}
+	
+	protected Integer decodeObjectIntType(String value) {
+		try {
+			return new Integer(value);
+		} catch(NumberFormatException e) {
+			return null;
+		}
+	}
+	
+	protected int decodePrimitiveIntType(String value) {
+		try {
+			return Integer.parseInt(value);
+		} catch(NumberFormatException e) {
+			return 0;
+		}
+	}
+	
+	protected Long decodeObjectLongType(String value) {
+		try {
+			return new Long(value);
+		} catch(NumberFormatException e) {
+			return null;
+		}
+	}
+	
+	protected long decodePrimitiveLongType(String value) {
+		try {
+			return Long.parseLong(value);
+		} catch(NumberFormatException e) {
+			return 0L;
+		}
+	}
+	
+	protected Float decodeObjectFloatType(String value) {
+		try {
+			return new Float(value);
+		} catch(NumberFormatException e) {
+			return null;
+		}
+	}
+	
+	protected float decodePrimitiveFloatType(String value) {
+		try {
+			return Float.parseFloat(value);
+		} catch(NumberFormatException e) {
+			return 0.0f;
+		}
+	}
+	
+	protected Double decodeObjectDoubleType(String value) {
+		try {
+			return new Double(value);
+		} catch(NumberFormatException e) {
+			return null;
+		}
+	}
+	
+	protected double decodePrimitiveDoubleType(String value) {
+		try {
+			return Double.parseDouble(value);
+		} catch(NumberFormatException e) {
+			return 0.0d;
+		}
+	}
+	
+	protected String decodeObjectStringType(String value) {
+		return value;
 	}
 	
 	protected void sendTextMessage(String data, WebSocketSession session) throws WebSocketException, IOException {
