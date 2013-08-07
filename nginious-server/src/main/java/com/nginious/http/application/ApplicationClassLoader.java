@@ -70,6 +70,21 @@ public class ApplicationClassLoader extends ClassLoader {
 	}
 	
 	/**
+	 * Constructs a new app class loader which uses the specified parent class
+	 * loader and loads classes for the web application in the specified
+	 * web application directory.
+	 * 
+	 * @param parent the parent class loaader
+	 * @param webAppDir the web application directory
+	 */
+	public ApplicationClassLoader(ClassLoader parent, File webAppDir) {
+		super(parent);
+		this.parent = parent;
+		this.subClassLoaders = new ConcurrentHashMap<File, SubAppClassLoader>();
+		setWebAppDir(webAppDir);
+	}
+	
+	/**
 	 * Returns whether or not this class loader has loaded the specified class or not.
 	 * 
 	 * @param clazz the class to check
@@ -120,21 +135,6 @@ public class ApplicationClassLoader extends ClassLoader {
 		}
 		
 		return false;
-	}
-	
-	/**
-	 * Constructs a new app class loader which uses the specified parent class
-	 * loader and loads classes for the web application in the specified
-	 * web application directory.
-	 * 
-	 * @param parent the parent class loaader
-	 * @param webAppDir the web application directory
-	 */
-	public ApplicationClassLoader(ClassLoader parent, File webAppDir) {
-		super(parent);
-		this.parent = parent;
-		this.subClassLoaders = new ConcurrentHashMap<File, SubAppClassLoader>();
-		setWebAppDir(webAppDir);
 	}
 	
 	void setWebAppDir(File webAppDir) {
@@ -553,29 +553,23 @@ public class ApplicationClassLoader extends ClassLoader {
 			return super.getResources(name);
 		}
 		
+
 	    public Class<?> loadClass(String name) throws ClassNotFoundException {
 	        return loadClass(name, false);
 	    }
 		
-		protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+	    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
 			return ApplicationClassLoader.this.loadClassInternal(name, resolve);
 		}
 		
 		private Class<?> loadClassInternal(String name, boolean resolve) throws ClassNotFoundException {
-			Class<?> clazz = null;
-			
-			clazz = findLoadedClass(name);
+			Class<?> clazz = findLoadedClass(name);
 			
 			if(clazz == null) {
-				try {
-					clazz = findClass(name);
-					
-					if(resolve) {
-						resolveClass(clazz);
-					}
-					
-				} catch(ClassNotFoundException e) {
-					clazz = super.loadClass(name, resolve);
+				clazz = findClass(name);
+				
+				if(resolve) {
+					resolveClass(clazz);
 				}
 			}
 			
