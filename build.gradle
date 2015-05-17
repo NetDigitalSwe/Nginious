@@ -21,10 +21,6 @@ subprojects {
 	repositories {
 		mavenCentral()
 	}
-	
-	tasks.withType(Compile) {
-		options.encoding = 'utf-8'
-	}
 }
 
 configure(rootProject) {
