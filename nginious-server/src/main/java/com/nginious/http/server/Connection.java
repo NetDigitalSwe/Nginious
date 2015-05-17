@@ -282,8 +282,22 @@ public abstract class Connection {
 	 * close flag once all data is written.
 	 */
 	public void close() {
+		close(false);
+	}
+	
+	/**
+	 * Raises the close flag and queues a close operation with the server. The write
+	 * queue is optionally flushed.
+	 * 
+	 * @param flushPendingWrites <code>true</code> if write queue should be flushed, <code>false</code> otherwise
+	 */
+	protected void close(boolean flushPendingWrites) {
 		// Raise close flag and let server close on next write operation
 		this.closed = true;
+		
+		if(flushPendingWrites) {
+			pendingWrites.clear();
+		}
 		
 		if(pendingWrites.isEmpty()) {
 			server.queueClose(this);
