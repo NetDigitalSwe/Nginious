@@ -67,7 +67,7 @@ public class XmlDeserializerTestCase extends XMLTestCase {
 		request.addHeader("Accept", "text/xml");
 		
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		DeserializerFactory deserializerFactory = new DeserializerFactory(classLoader);
+		DeserializerFactoryImpl deserializerFactory = new DeserializerFactoryImpl(classLoader);
 		Deserializer<SerializableBean> deserializer = deserializerFactory.createDeserializer(SerializableBean.class, "text/xml");
 		assertEquals("text/xml", deserializer.getMimeType());
 		SerializableBean bean = deserializer.deserialize(request);
@@ -83,13 +83,82 @@ public class XmlDeserializerTestCase extends XMLTestCase {
 		assertEquals("2011-08-24T08:52:23+02:00", formatDate(bean.getCalendarValue().getTime()));
 	}
 	
+	public void testXmlArrayDeserialization() throws Exception {
+		HttpTestRequest request = new HttpTestRequest();
+		request.setMethod(HttpMethod.GET);
+		request.addHeader("Content-Type", "text/xml");
+		
+		String content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
+	    content += "<serializable-array-bean>";
+	    content += "<boolean-array-value><value>true</value><value>false</value></boolean-array-value>";
+		content += "<double-array-value><value>1.1</value><value>1.2</value></double-array-value>";
+		content += "<float-array-value><value>1.12</value><value>1.22</value></float-array-value>";
+		content += "<int-array-value><value>2</value><value>3</value></int-array-value>";
+		content += "<long-array-value><value>4</value><value>3</value></long-array-value>";
+		content += "<short-array-value><value>6</value><value>7</value></short-array-value>";
+		content += "<string-array-value><value>One</value><value>Two</value><value>Three</value></string-array-value>";
+		content += "</serializable-array-bean>";
+		
+		request.setContent(content.getBytes());
+		request.addHeader("Accept", "text/xml");
+		
+		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
+		DeserializerFactoryImpl deserializerFactory = new DeserializerFactoryImpl(classLoader);
+		Deserializer<SerializableArrayBean> deserializer = deserializerFactory.createDeserializer(SerializableArrayBean.class, "text/xml");
+		assertEquals("text/xml", deserializer.getMimeType());
+		SerializableArrayBean bean = deserializer.deserialize(request);
+		
+		boolean[] bValues = bean.getBooleanArrayValue();
+		assertNotNull(bValues);
+		assertEquals(2, bValues.length);
+		assertTrue(bValues[0]);
+		assertFalse(bValues[1]);
+		
+		double[] dValues = bean.getDoubleArrayValue();
+		assertNotNull(dValues);
+		assertEquals(2, dValues.length);
+		assertEquals(1.1, dValues[0]);
+		assertEquals(1.2, dValues[1]);
+		
+		float[] fValues = bean.getFloatArrayValue();
+		assertNotNull(fValues);
+		assertEquals(2, fValues.length);
+		assertEquals((float)1.12, fValues[0]);
+		assertEquals((float)1.22, fValues[1]);
+		
+		int[] iValues = bean.getIntArrayValue();
+		assertNotNull(iValues);
+		assertEquals(2, iValues.length);
+		assertEquals(2, iValues[0]);
+		assertEquals(3, iValues[1]);
+		
+		long[] lValues = bean.getLongArrayValue();
+		assertNotNull(lValues);
+		assertEquals(2, lValues.length);
+		assertEquals(4L, lValues[0]);
+		assertEquals(3L, lValues[1]);
+		
+		short[] sValues = bean.getShortArrayValue();
+		assertNotNull(sValues);
+		assertEquals(2, sValues.length);
+		assertEquals((short)6, sValues[0]);
+		assertEquals((short)7, sValues[1]);
+		
+		String[] values = bean.getStringArrayValue();
+		assertNotNull(values);
+		assertEquals(3, values.length);
+		assertEquals("One", values[0]);
+		assertEquals("Two", values[1]);
+		assertEquals("Three", values[2]);
+	}
+	
 	public void testXmlDeserializationBadValues() throws Exception {
 		HttpTestRequest request = new HttpTestRequest();
 		request.setMethod(HttpMethod.GET);
 		request.addHeader("Content-Type", "text/xml");
 		
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		DeserializerFactory deserializerFactory = new DeserializerFactory(classLoader);
+		DeserializerFactoryImpl deserializerFactory = new DeserializerFactoryImpl(classLoader);
 		Deserializer<SerializableBean> deserializer = deserializerFactory.createDeserializer(SerializableBean.class, "text/xml");
 		assertEquals("text/xml", deserializer.getMimeType());
 		
@@ -235,7 +304,7 @@ public class XmlDeserializerTestCase extends XMLTestCase {
 		request.addHeader("Accept", "text/xml");
 		
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		DeserializerFactory deserializerFactory = new DeserializerFactory(classLoader);
+		DeserializerFactoryImpl deserializerFactory = new DeserializerFactoryImpl(classLoader);
 		Deserializer<SerializableBean> deserializer = deserializerFactory.createDeserializer(SerializableBean.class, "text/xml");
 		SerializableBean bean = deserializer.deserialize(request);
 		assertNull(bean);
@@ -251,8 +320,8 @@ public class XmlDeserializerTestCase extends XMLTestCase {
 		assertNotNull(bean);
 		
 		assertEquals(false, bean.getBooleanValue());
-		assertEquals(0.0d, bean.getDoubleValue());
-		assertEquals(0.0f, bean.getFloatValue());
+		assertEquals(Double.NaN, bean.getDoubleValue());
+		assertEquals(Float.NaN, bean.getFloatValue());
 		assertEquals(0, bean.getIntValue());
 		assertEquals(0L, bean.getLongValue());
 		assertEquals(0, bean.getShortValue());
@@ -275,7 +344,7 @@ public class XmlDeserializerTestCase extends XMLTestCase {
 		request.setContent(content.getBytes());
 				
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		DeserializerFactory deserializerFactory = new DeserializerFactory(classLoader);
+		DeserializerFactoryImpl deserializerFactory = new DeserializerFactoryImpl(classLoader);
 		Deserializer<XmlAnnotatedBean> deserializer = deserializerFactory.createDeserializer(XmlAnnotatedBean.class, "text/xml");
 		assertEquals("text/xml", deserializer.getMimeType());
 		XmlAnnotatedBean bean = deserializer.deserialize(request);
@@ -307,7 +376,7 @@ public class XmlDeserializerTestCase extends XMLTestCase {
 		request.addHeader("Accept", "text/xml");
 		
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		DeserializerFactory deserializerFactory = new DeserializerFactory(classLoader);
+		DeserializerFactoryImpl deserializerFactory = new DeserializerFactoryImpl(classLoader);
 		Deserializer<InBean> deserializer = deserializerFactory.createDeserializer(InBean.class, "text/xml");
 		Deserializer<InBean> deserializer2 = deserializerFactory.createDeserializer(InBean.class, "text/xml");
 		assertTrue(deserializer == deserializer2);

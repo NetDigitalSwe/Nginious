@@ -96,7 +96,7 @@ public class JsonSerializerTestCase extends TestCase {
 		bean.setStringListValue(stringList);
 		
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		SerializerFactory serializerFactory = new SerializerFactory(classLoader);
+		SerializerFactoryImpl serializerFactory = new SerializerFactoryImpl(classLoader);
 		Serializer<SerializableBean> serializer = serializerFactory.createSerializer(SerializableBean.class, "application/json");
 		assertEquals("application/json", serializer.getMimeType());
 		
@@ -215,7 +215,7 @@ public class JsonSerializerTestCase extends TestCase {
 		bean.setStringListValue(stringList);
 		
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		SerializerFactory serializerFactory = new SerializerFactory(classLoader);
+		SerializerFactoryImpl serializerFactory = new SerializerFactoryImpl(classLoader);
 		Serializer<NamedBean> serializer = serializerFactory.createSerializer(NamedBean.class, "application/json");
 		assertEquals("application/json", serializer.getMimeType());
 		
@@ -293,7 +293,7 @@ public class JsonSerializerTestCase extends TestCase {
 	public void testEmptyJsonSerializer() throws Exception {
 		SerializableBean bean = new SerializableBean();
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		SerializerFactory serializerFactory = new SerializerFactory(classLoader);
+		SerializerFactoryImpl serializerFactory = new SerializerFactoryImpl(classLoader);
 		Serializer<SerializableBean> serializer = serializerFactory.createSerializer(SerializableBean.class, "application/json");
 		assertEquals("application/json", serializer.getMimeType());
 		

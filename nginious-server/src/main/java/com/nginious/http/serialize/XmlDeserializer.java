@@ -16,13 +16,17 @@
 
 package com.nginious.http.serialize;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.lang.reflect.ParameterizedType;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Stack;
 import java.util.TimeZone;
 
@@ -31,8 +35,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import com.nginious.http.HttpRequest;
-import com.nginious.http.serialize.Deserializer;
-import com.nginious.http.serialize.SerializerException;
 
 /**
  * Base class for all deserializers that deserialize beans from XML format. Used as base class
@@ -66,10 +68,11 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 	public String getMimeType() {
 		return "text/xml";
 	}
-
+	
 	/**
 	 * Deserializes a bean from the XML body content in the specified HTTP request.
 	 * 
+	 * @param request the HTTP request
 	 * @return the deserialized bean
 	 * @throws SerializerException if unable to deserialize bean
 	 */
@@ -78,12 +81,37 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 			return null;
 		}
 		
+		try {
+			return deserialize(request.getReader());
+		} catch(IOException e) {
+			throw new SerializerException("Can't deserialize object " + this.baseName, e);
+		}			
+	}
+	
+	/**
+	 * Deserializes a beran form the XML body content in the specified message.
+	 * 
+	 * @param message the message
+	 * @return the deserialized bean
+	 * @throws SerializerException if unable to deserialize bean
+	 */
+	public E deserialize(String message) throws SerializerException {
+		if(message.length() == 0) {
+			return null;
+		}
+		
+		StringReader reader = new StringReader(message);
+		BufferedReader inReader = new BufferedReader(reader);
+		return deserialize(inReader);
+	}
+
+	private E deserialize(BufferedReader inReader) throws SerializerException {
 		XMLStreamReader reader = null;
 		
 		try {
 			XMLInputFactory factory = XMLInputFactory.newInstance();
-			reader = factory.createXMLStreamReader(request.getReader());
-			HashMap<String, String> nameValues = new HashMap<String, String>();
+			reader = factory.createXMLStreamReader(inReader);
+			HashMap<String, List<String>> nameValues = new HashMap<String, List<String>>();
 			Stack<String> elements = new Stack<String>();
 			String name = null;
 			String value = null;
@@ -94,17 +122,20 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 				
 				switch(type) {
 				case XMLStreamReader.START_ELEMENT:
-					name = reader.getLocalName().toLowerCase();
+					String startName = reader.getLocalName().toLowerCase();
 					
 					if(first) {
-						if(!name.equals(this.baseName)) {
+						if(!startName.equals(this.baseName)) {
 							throw new SerializerException("Can't find object '" + name + " in XML data");
 						}
 						
 						first = false;
 					}
 					
-					elements.push(name);
+					if(!startName.equals("value")) {
+						elements.push(startName);
+						name = startName;
+					}
 					break;
 					
 				case XMLStreamReader.CHARACTERS:
@@ -115,14 +146,26 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 				
 				case XMLStreamReader.END_ELEMENT:
 					String endName = reader.getLocalName().toLowerCase();
-					name = elements.pop();
 					
-					if(!endName.equals(name)) {
-						throw new SerializerException("Can't find end tag '" + name + "' (" + endName + ") in XML data");
+					if(!endName.equals("value")) {
+						String testName = elements.pop();
+						
+						if(!endName.equals(testName)) {
+							throw new SerializerException("Can't find end tag '" + testName + "' (" + endName + ") in XML data");
+						}
 					}
 					
 					if(value != null) {
-						nameValues.put(endName, value);
+						List<String> values = null;
+						
+						if(nameValues.containsKey(name)) {
+							values = nameValues.get(name);
+						} else {
+							values = new ArrayList<String>();
+							nameValues.put(name, values);
+						}
+						
+						values.add(value);
 					}
 					
 					value = null;
@@ -133,8 +176,6 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 			return deserialize(nameValues);
 		} catch(XMLStreamException e) {
 			throw new SerializerException("Can't deserialize object " + this.baseName, e);			
-		} catch(IOException e) {
-			throw new SerializerException("Can't deserialize object " + this.baseName, e);
 		}
 	}
 	
@@ -145,7 +186,30 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 	 * @return the deserialized bean
 	 * @throws SerializerException if unable to deserialize bean
 	 */
-	protected abstract E deserialize(HashMap<String, String> nameValues) throws SerializerException;
+	protected abstract E deserialize(HashMap<String, List<String>> nameValues) throws SerializerException;
+	
+	/**
+	 * Deserializes property with the specified name in the specified name values map into a boolean array.
+	 * 
+	 * @param nameValues name values map
+	 * @param name the property name
+	 * @return the deserialized value or <code>null</code> if property doesn't exist
+	 * @throws SerializerException if unable to deserialize value
+	 */
+	protected boolean[] deserializeBooleanArray(HashMap<String, List<String>> nameValues, String name) throws SerializerException {
+		if(!nameValues.containsKey(name)) {
+			return null;
+		}
+		
+		List<String> values = nameValues.remove(name);
+		boolean[] outValues = new boolean[values.size()];
+		
+		for(int i = 0; i < outValues.length; i++) {
+			outValues[i] = Boolean.parseBoolean(values.get(i));
+		}
+		
+		return outValues;
+	}
 	
 	/**
 	 * Deserializes property with the specified name from the specified name value map into a boolean value.
@@ -155,8 +219,12 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 	 * @return the deserialized boolean value or <code>false</code> if property doesn't exist
 	 * @throws SerializerException if unable to deserialize boolean property
 	 */
-	protected boolean deserializeBoolean(HashMap<String, String> nameValues, String name) throws SerializerException {
-		String value = nameValues.remove(name);
+	protected boolean deserializeBoolean(HashMap<String, List<String>> nameValues, String name) throws SerializerException {
+		if(!nameValues.containsKey(name)) {
+			return false;
+		}
+		
+		String value = nameValues.remove(name).get(0);
 		return value != null && (value.equals("true") || value.equals("1"));
 	}
 	
@@ -169,12 +237,12 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 	 * @return the deserialized calendar or <code>null</code> if property doesn't exist
 	 * @throws SerializerException if unable to deserialize calendar
 	 */
-	protected Calendar deserializeCalendar(HashMap<String, String> nameValues, String name) throws SerializerException {
+	protected Calendar deserializeCalendar(HashMap<String, List<String>> nameValues, String name) throws SerializerException {
 		if(!nameValues.containsKey(name)) {
 			return null;
 		}
 		
-		String value = nameValues.get(name);
+		String value = nameValues.get(name).get(0);
 		
 		if(value == null) {
 			return null;
@@ -202,12 +270,12 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 	 * @return the deserialized data or <code>null</code> if property doesn't exist
 	 * @throws SerializerException if unable to deserialize date
 	 */
-	protected Date deserializeDate(HashMap<String, String> nameValues, String name) throws SerializerException {
+	protected Date deserializeDate(HashMap<String, List<String>> nameValues, String name) throws SerializerException {
 		if(!nameValues.containsKey(name)) {
 			return null;
 		}
 		
-		String value = nameValues.get(name);
+		String value = nameValues.get(name).get(0);
 		
 		if(value.matches(".*[+-][0-9]{2}:[0-9]{2}$")) {
 			int lastIndex = value.lastIndexOf(':');
@@ -234,6 +302,29 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 	}
 	
 	/**
+	 * Deserializes property with the specified name in the specified name values map into a double array.
+	 * 
+	 * @param nameValues name values map
+	 * @param name the property name
+	 * @return the deserialized value or <code>null</code> if property doesn't exist
+	 * @throws SerializerException if unable to deserialize value
+	 */
+	protected double[] deserializeDoubleArray(HashMap<String, List<String>> nameValues, String name) throws SerializerException {
+		if(!nameValues.containsKey(name)) {
+			return null;
+		}
+		
+		List<String> values = nameValues.remove(name);
+		double[] outValues = new double[values.size()];
+		
+		for(int i = 0; i < outValues.length; i++) {
+			outValues[i] = Double.parseDouble(values.get(i));
+		}
+		
+		return outValues;
+	}
+	
+	/**
 	 * Deserializes property with the specified name from the specified name value map into a double.
 	 * 
 	 * @param nameValues name values map
@@ -241,8 +332,12 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 	 * @return the deserialized double or <code>0.0d</code> if property doesn't exist
 	 * @throws SerializerException if unable to deserialize value
 	 */
-	protected double deserializeDouble(HashMap<String, String> nameValues, String name) throws SerializerException {
-		String value = nameValues.remove(name);
+	protected double deserializeDouble(HashMap<String, List<String>> nameValues, String name) throws SerializerException {
+		if(!nameValues.containsKey(name)) {
+			return Double.NaN;
+		}
+		
+		String value = nameValues.remove(name).get(0);
 		
 		if(value != null) {
 			try {
@@ -256,6 +351,29 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 	}
 	
 	/**
+	 * Deserializes property with the specified name in the specified name values map into a float array.
+	 * 
+	 * @param nameValues name values map
+	 * @param name the property name
+	 * @return the deserialized value or <code>null</code> if property doesn't exist
+	 * @throws SerializerException if unable to deserialize value
+	 */
+	protected float[] deserializeFloatArray(HashMap<String, List<String>> nameValues, String name) throws SerializerException {
+		if(!nameValues.containsKey(name)) {
+			return null;
+		}
+		
+		List<String> values = nameValues.remove(name);
+		float[] outValues = new float[values.size()];
+		
+		for(int i = 0; i < outValues.length; i++) {
+			outValues[i] = Float.parseFloat(values.get(i));
+		}
+		
+		return outValues;
+	}
+	
+	/**
 	 * Deserializes property with the specified name from the specified name values map into a float.
 	 * 
 	 * @param nameValues name values map
@@ -263,8 +381,12 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 	 * @return the deserialized float or <code>0.0f</code> if property doesn't exist
 	 * @throws SerializerException if unable to deserialize value
 	 */
-	protected float deserializeFloat(HashMap<String, String> nameValues, String name) throws SerializerException {
-		String value = nameValues.remove(name);
+	protected float deserializeFloat(HashMap<String, List<String>> nameValues, String name) throws SerializerException {
+		if(!nameValues.containsKey(name)) {
+			return Float.NaN;
+		}
+		
+		String value = nameValues.remove(name).get(0);
 		
 		if(value != null) {
 			try {
@@ -278,6 +400,29 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 	}
 	
 	/**
+	 * Deserializes property with the specified name in the specified name values map into a integer array.
+	 * 
+	 * @param nameValues name values map
+	 * @param name the property name
+	 * @return the deserialized value or <code>null</code> if property doesn't exist
+	 * @throws SerializerException if unable to deserialize value
+	 */
+	protected int[] deserializeIntArray(HashMap<String, List<String>> nameValues, String name) throws SerializerException {
+		if(!nameValues.containsKey(name)) {
+			return null;
+		}
+		
+		List<String> values = nameValues.remove(name);
+		int[] outValues = new int[values.size()];
+		
+		for(int i = 0; i < outValues.length; i++) {
+			outValues[i] = Integer.parseInt(values.get(i));
+		}
+		
+		return outValues;
+	}
+	
+	/**
 	 * Deserializes property with the specified name from the specified name values map into a integer.
 	 * 
 	 * @param nameValues name values map
@@ -285,18 +430,41 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 	 * @return the deserialized integer or <code>0</code> if property doesn't exist
 	 * @throws SerializerException uf unable to deserialize value
 	 */
-	protected int deserializeInt(HashMap<String, String> nameValues, String name) throws SerializerException {
-		String value = nameValues.remove(name);
-		
-		if(value != null) {
-			try {
-				return Integer.parseInt(value);
-			} catch(NumberFormatException e) {
-				throw new SerializerException("Can't deserialize int property " + name +" (" + value + ")", e);
-			}
+	protected int deserializeInt(HashMap<String, List<String>> nameValues, String name) throws SerializerException {
+		if(!nameValues.containsKey(name)) {
+			return 0;
 		}
 		
-		return 0;
+		String value = nameValues.remove(name).get(0);;
+		
+		try {
+			return Integer.parseInt(value);
+		} catch(NumberFormatException e) {
+			throw new SerializerException("Can't deserialize int property " + name +" (" + value + ")", e);
+		}
+	}
+	
+	/**
+	 * Deserializes property with the specified name in the specified name values map into a long array.
+	 * 
+	 * @param nameValues name values map
+	 * @param name the property name
+	 * @return the deserialized value or <code>null</code> if property doesn't exist
+	 * @throws SerializerException if unable to deserialize value
+	 */
+	protected long[] deserializeLongArray(HashMap<String, List<String>> nameValues, String name) throws SerializerException {
+		if(!nameValues.containsKey(name)) {
+			return null;
+		}
+		
+		List<String> values = nameValues.remove(name);
+		long[] outValues = new long[values.size()];
+		
+		for(int i = 0; i < outValues.length; i++) {
+			outValues[i] = Long.parseLong(values.get(i));
+		}
+		
+		return outValues;
 	}
 	
 	/**
@@ -307,18 +475,41 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 	 * @return the deserialized value or <code>0</code> if property doesn't exist
 	 * @throws SerializerException if unable to deserialize value
 	 */
-	protected long deserializeLong(HashMap<String, String> nameValues, String name) throws SerializerException {
-		String value = nameValues.remove(name);
-		
-		if(value != null) {
-			try {
-				return Long.parseLong(value);
-			} catch(NumberFormatException e) {
-				throw new SerializerException("Can't deserialize long property " + name + " (" + value + ")", e);
-			}
+	protected long deserializeLong(HashMap<String, List<String>> nameValues, String name) throws SerializerException {
+		if(!nameValues.containsKey(name)) {
+			return 0L;
 		}
 		
-		return 0;		
+		String value = nameValues.remove(name).get(0);
+		
+		try {
+			return Long.parseLong(value);
+		} catch(NumberFormatException e) {
+			throw new SerializerException("Can't deserialize long property " + name + " (" + value + ")", e);
+		}
+	}
+	
+	/**
+	 * Deserializes property with the specified name in the specified name values map into a short array.
+	 * 
+	 * @param nameValues name values map
+	 * @param name the property name
+	 * @return the deserialized value or <code>null</code> if property doesn't exist
+	 * @throws SerializerException if unable to deserialize value
+	 */
+	protected short[] deserializeShortArray(HashMap<String, List<String>> nameValues, String name) throws SerializerException {
+		if(!nameValues.containsKey(name)) {
+			return null;
+		}
+		
+		List<String> values = nameValues.remove(name);
+		short[] outValues = new short[values.size()];
+		
+		for(int i = 0; i < outValues.length; i++) {
+			outValues[i] = Short.parseShort(values.get(i));
+		}
+		
+		return outValues;
 	}
 	
 	/**
@@ -329,18 +520,35 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 	 * @return the deserialized value or <code>0</code> if property doesn't exist
 	 * @throws SerializerException if unable to deserialize value
 	 */
-	protected short deserializeShort(HashMap<String, String> nameValues, String name) throws SerializerException {
-		String value = nameValues.remove(name);
-		
-		if(value != null) {
-			try {
-				return Short.parseShort(value);
-			} catch(NumberFormatException e) {
-				throw new SerializerException("Can't deserialize short property " + name + " (" + value + ")", e);
-			}
+	protected short deserializeShort(HashMap<String, List<String>> nameValues, String name) throws SerializerException {
+		if(!nameValues.containsKey(name)) {
+			return 0;
 		}
 		
-		return 0;		
+		String value = nameValues.remove(name).get(0);
+		
+		try {
+			return Short.parseShort(value);
+		} catch(NumberFormatException e) {
+			throw new SerializerException("Can't deserialize short property " + name + " (" + value + ")", e);
+		}
+	}
+	
+	/**
+	 * Deserializes property with the specified name in the specified name values map into a string array.
+	 * 
+	 * @param nameValues name values map
+	 * @param name the property name
+	 * @return the deserialized value or <code>null</code> if property doesn't exist
+	 * @throws SerializerException if unable to deserialize value
+	 */
+	protected String[] deserializeStringArray(HashMap<String, List<String>> nameValues, String name) throws SerializerException {
+		if(!nameValues.containsKey(name)) {
+			return null;
+		}
+		
+		List<String> values = nameValues.remove(name);
+		return values.toArray(new String[values.size()]);
 	}
 	
 	/**
@@ -351,8 +559,12 @@ public abstract class XmlDeserializer<E> implements Deserializer<E> {
 	 * @return the deserialized value or <code>null</code> if property doesn't exist
 	 * @throws SerializerException if unable to deserialize value
 	 */
-	protected String deserializeString(HashMap<String, String> nameValues, String name) throws SerializerException {
-		return nameValues.remove(name);
+	protected String deserializeString(HashMap<String, List<String>> nameValues, String name) throws SerializerException {
+		if(!nameValues.containsKey(name)) {
+			return null;
+		}
+		
+		return nameValues.remove(name).get(0);
 	}
 	
     /**

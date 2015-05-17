@@ -25,6 +25,8 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.log4j.Logger;
+
 import com.nginious.http.application.ApplicationManager;
 import com.nginious.http.application.ApplicationManagerImpl;
 import com.nginious.http.session.HttpCookieSessionManager;
@@ -42,6 +44,8 @@ import com.nginious.http.upload.UploadTracker;
  */
 public class HttpServerImpl extends Server implements HttpServer {
 	
+	private static Logger logger = Logger.getLogger(HttpServerImpl.class);
+
 	private static final long DEFAULT_CONNECTION_TIMEOUT_MILLIS = 30000L;
 	
 	private boolean started;

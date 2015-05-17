@@ -31,7 +31,7 @@ import com.nginious.http.stats.WebSocketSessionStatistics;
  * @author Bojan Pisler, NetDigital Sweden AB
  *
  */
-public class WebSocketSessionImpl implements WebSocketSession {
+public class WebSocketSessionImpl implements WebSocketSession, Comparable<WebSocketSessionImpl> {
 	
 	private static AtomicLong uniqueIdentifierGenerator = new AtomicLong(0L);
 	
@@ -313,6 +313,24 @@ public class WebSocketSessionImpl implements WebSocketSession {
 		}
 	}
 	
+	/**
+	 * Compares this web socket session to the specified web socket session
+	 */
+	public int compareTo(WebSocketSessionImpl other) {
+		long identifier = uniqueIdentifier.longValue();
+		long otherIdentifier = other.uniqueIdentifier.longValue();
+		
+		if(identifier == otherIdentifier) {
+			return 0;
+		}
+		
+		if(identifier > otherIdentifier) {
+			return 1;
+		}
+		
+		return -1;
+	}
+
 	/**
 	 * Returns the hash code for this web socket session.
 	 * 

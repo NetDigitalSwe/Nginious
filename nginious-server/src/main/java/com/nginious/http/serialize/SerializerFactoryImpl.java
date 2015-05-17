@@ -29,7 +29,7 @@ import com.nginious.http.server.HeaderParameters;
  * @author Bojan Pisler, NetDigital Sweden AB
  *
  */
-public class SerializerFactory {
+public class SerializerFactoryImpl implements SerializerFactory {
 	
 	private JsonSerializerCreator jsonCreator;
 	
@@ -40,7 +40,7 @@ public class SerializerFactory {
 	 * 
 	 * @param classLoader the class loader to use for loading created serializer classes
 	 */
-	public SerializerFactory(ApplicationClassLoader classLoader) {
+	public SerializerFactoryImpl(ApplicationClassLoader classLoader) {
 		super();
 		this.jsonCreator = new JsonSerializerCreator(classLoader);
 		this.xmlCreator = new XmlSerializerCreator(classLoader);

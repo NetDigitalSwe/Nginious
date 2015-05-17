@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -16,10 +17,12 @@ import com.nginious.http.HttpResponse;
 import com.nginious.http.HttpStatus;
 import com.nginious.http.serialize.Deserializer;
 import com.nginious.http.serialize.DeserializerFactory;
+import com.nginious.http.serialize.DeserializerFactoryImpl;
 import com.nginious.http.serialize.Serializer;
 import com.nginious.http.serialize.SerializerException;
 import com.nginious.http.serialize.SerializerFactory;
 import com.nginious.http.serialize.SerializerFactoryException;
+import com.nginious.http.serialize.SerializerFactoryImpl;
 import com.nginious.http.websocket.StatusCode;
 import com.nginious.http.websocket.WebSocketBinaryMessage;
 import com.nginious.http.websocket.WebSocketException;
@@ -62,9 +65,9 @@ public abstract class ControllerService extends HttpService {
 	
 	private HashSet<Class<?>> clazzes;
 	
-	private SerializerFactory serializerFactory;
+	private SerializerFactoryImpl serializerFactory;
 	
-	private DeserializerFactory deserializerFactory;
+	private DeserializerFactoryImpl deserializerFactory;
 	
 	/**
 	 * Constructs a new empty controller service.
@@ -114,7 +117,7 @@ public abstract class ControllerService extends HttpService {
 	 * 
 	 * @param serializerFactory the serializer factory
 	 */
-	void setSerializerFactory(SerializerFactory serializerFactory) {
+	void setSerializerFactory(SerializerFactoryImpl serializerFactory) {
 		this.serializerFactory = serializerFactory;
 	}
 	
@@ -123,8 +126,17 @@ public abstract class ControllerService extends HttpService {
 	 * 
 	 * @param deserializerFactory the deserializer factory
 	 */
-	void setDeserializerFactory(DeserializerFactory deserializerFactory) {
+	void setDeserializerFactory(DeserializerFactoryImpl deserializerFactory) {
 		this.deserializerFactory = deserializerFactory;
+	}
+	
+	/**
+	 * Returns the deserializer factory for this controller service.
+	 * 
+	 * @return the deserializer factory
+	 */
+	protected DeserializerFactory getDeserializerFactory() {
+		return this.deserializerFactory;
 	}
 	
 	/**
@@ -134,6 +146,15 @@ public abstract class ControllerService extends HttpService {
 	 */
 	void setClassLoader(ApplicationClassLoader classLoader) {
 		this.classLoader = classLoader;
+	}
+	
+	/**
+	 * Returns the serializer factory for this controller service.
+	 * 
+	 * @return the serializer factory
+	 */
+	protected SerializerFactory getSerializerFactory() {
+		return this.serializerFactory;
 	}
 	
 	/**
@@ -200,10 +221,10 @@ public abstract class ControllerService extends HttpService {
 			result = executeGet(request, response);			
 		} else if(method.equals(HttpMethod.GET)) {
 			String value = request.getHeader("Upgrade");
-					
+			
 			if(value != null && value.toLowerCase().equals("websocket")) {
 				WebSocketSession session = (WebSocketSession)request.getAttribute("se.netdigital.http.websocket.WebSocketSession");
-				executeOpen(request, response, session);
+				result = executeOpen(request, response, session);
 			} else {
 				result = executeGet(request, response);
 			}
@@ -301,7 +322,7 @@ public abstract class ControllerService extends HttpService {
 	 * @throws HttpException if the HTTP request is invalid or if the service unable to process the request
 	 * @throws IOException if an I/O error occurs
 	 */
-	public void executeOpen(HttpRequest request, HttpResponse response, WebSocketSession session) throws HttpException, IOException {
+	public HttpServiceResult executeOpen(HttpRequest request, HttpResponse response, WebSocketSession session) throws HttpException, IOException {
 		throw new HttpException(HttpStatus.METHOD_NOT_ALLOWED, "Open websocket method not allowed");
 	}
 	
@@ -385,11 +406,55 @@ public abstract class ControllerService extends HttpService {
 	 * return values from the invoked method. An appropriate serializer is created or selected based on the following rules.
 	 * 
 	 * <ul>
+	 *   <li>The specified content type.</li>
+	 *   <li>The {@link com.nginious.http.annotation.Serializable} annotation of the bean is inspected.</li>
+	 * </ul>
+	 * 
+	 * See {@link com.nginious.http.serialize.SerializerFactoryImpl} for further details on the serialization mechanism.
+	 *
+	 * @param bean the bean collection to serialize
+	 * @param beanClassName name of bean class
+	 * @param contentType the content type
+	 * @throws WebSocketException if unable to serialize bean
+	 */
+	protected <T> String serialize(Collection<T> items, String beanClassName, String contentType) throws WebSocketException {
+		try {
+			if(items != null) {
+				@SuppressWarnings("unchecked")
+				Class<T> beanClazz = (Class<T>)classLoader.loadClass(beanClassName);
+				Serializer<T> serializer = serializerFactory.createSerializer(beanClazz, contentType);
+				
+				if(serializer == null) {
+					throw new WebSocketException(StatusCode.INTERNAL_SERVER_ERROR, "Content type not supported '" + contentType + "'");
+				}
+				
+				StringWriter outWriter = new StringWriter();
+				PrintWriter writer = new PrintWriter(outWriter);
+				serializer.serialize(writer, items);
+				writer.flush();
+				return outWriter.toString();
+			} else {
+				return null;
+			}
+		} catch(ClassNotFoundException e) {
+			throw new WebSocketException(StatusCode.INTERNAL_SERVER_ERROR, "Serialization failed", e);			
+		} catch(SerializerException e) {
+			throw new WebSocketException(StatusCode.INTERNAL_SERVER_ERROR, "Serialization failed: " + e.getMessage(), e);			 
+		} catch(SerializerFactoryException e) {
+			throw new WebSocketException(StatusCode.INTERNAL_SERVER_ERROR, "Serialization failed: " + e.getMessage(), e);			
+		}
+	}
+	
+	/**
+	 * Called by subclasses to handled bean collection based responses from controllers. Controllers may return responses as 
+	 * return values from the invoked method. An appropriate serializer is created or selected based on the following rules.
+	 * 
+	 * <ul>
 	 *   <li>The accept header in the HTTP request is inspected to determine the preferred format of the client.</li>
 	 *   <li>The {@link com.nginious.http.annotation.Serializable} annotation of the bean is inspected.</li>
 	 * </ul>
 	 * 
-	 * See {@link com.nginious.http.serialize.SerializerFactory} for further details on the serialization mechanism.
+	 * See {@link com.nginious.http.serialize.SerializerFactoryImpl} for further details on the serialization mechanism.
 	 *
 	 * @param bean the bean collection to serialize
 	 * @param beanClassName name of bean class
@@ -438,6 +503,47 @@ public abstract class ControllerService extends HttpService {
 	}
 	
 	/**
+	 * Called by subclasses to handle bean based responses from controllers. Controllers may returns responses as returns values
+	 * from the invoked method. An appropriate serializer is created or selected based on the following rules.
+	 * 
+	 * <ul>
+	 *   <li>The specified content type is inspected to determine the preferred format.</li>
+	 *   <li>The {@link com.nginious.http.annotation.Serializable} annotation of the bean is inspected.</li>
+	 * </ul>
+	 * 
+	 * See {@link com.nginious.http.serialize.SerializerFactoryImpl} for further details on the serialization mechanism.
+	 *
+	 * @param bean the bean to serialize
+	 * @param contentType the content type
+	 * @throws WebSocketException if unable to serialize response data
+	 */
+	protected <T> String serialize(T bean, String contentType) throws WebSocketException {
+		try {
+			if(bean != null) {
+				@SuppressWarnings("unchecked")
+				Class<T> beanClazz = (Class<T>)bean.getClass();
+				Serializer<T> serializer = serializerFactory.createSerializer(beanClazz, contentType);
+				
+				if(serializer == null) {
+					throw new WebSocketException(StatusCode.INTERNAL_SERVER_ERROR, "Content type not supported '" + contentType + "'");
+				}
+				
+				StringWriter outWriter = new StringWriter();
+				PrintWriter writer = new PrintWriter(outWriter);
+				serializer.serialize(writer, bean);
+				writer.flush();
+				return outWriter.toString();
+			} else {
+				return null;
+			}
+		} catch(SerializerException e) {
+			throw new WebSocketException(StatusCode.INTERNAL_SERVER_ERROR, "Serialization failed: " + e.getMessage(), e);
+		} catch(SerializerFactoryException e) {
+			throw new WebSocketException(StatusCode.INTERNAL_SERVER_ERROR, "Serialization failed: " + e.getMessage(), e);
+		}		
+	}
+	
+	/**
 	 * Called by subclasses to handled bean based responses from controllers. Controllers may return responses as return values
 	 * from the invoked method. An appropriate serializer is created or selected based on the following rules.
 	 * 
@@ -446,7 +552,7 @@ public abstract class ControllerService extends HttpService {
 	 *   <li>The {@link com.nginious.http.annotation.Serializable} annotation of the bean is inspected.</li>
 	 * </ul>
 	 * 
-	 * See {@link com.nginious.http.serialize.SerializerFactory} for further details on the serialization mechanism.
+	 * See {@link com.nginious.http.serialize.SerializerFactoryImpl} for further details on the serialization mechanism.
 	 *
 	 * @param bean the bean to serialize
 	 * @param request the HTTP request
@@ -533,6 +639,39 @@ public abstract class ControllerService extends HttpService {
 			throw new HttpException(HttpStatus.BAD_REQUEST, "Deserialization failed: " + e.getMessage(), e);
 		} catch(SerializerFactoryException e) {
 			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Deserialization failed:" + e.getMessage(), e);
+		}
+	}
+	
+	/**
+	 * Deserializes data from the specified message on the specified class type. Returns an object of the
+	 * specified class type with properties filled in from data in the specified message.
+	 * 
+	 * @param clazz the class type
+	 * @param message the message
+	 * @param contentType the content type of the message
+	 * @return the deserialized object
+	 * @throws WebSocketException if unable to deserialize object
+	 */
+	protected <T> T deserialize(Class<T> clazz, WebSocketTextMessage message, String contentType) throws WebSocketException {
+		try {
+			if(contentType == null) {
+				contentType = "application/xml";
+			}
+			
+			Deserializer<T> deserializer = deserializerFactory.createDeserializer(clazz, contentType);
+			
+			if(deserializer == null) {
+				throw new WebSocketException(StatusCode.UNSUPPORTED_DATA, "Invalid content type '" + contentType + "'");
+			}
+			
+			T object = deserializer.deserialize(message.getMessage());
+			return object;
+		} catch(SerializerException e) {
+			e.printStackTrace();
+			throw new WebSocketException(StatusCode.INVALID_FRAME_PAYLOAD_DATA, "Deserialization failed: " + e.getMessage(), e);
+		} catch(SerializerFactoryException e) {
+			e.printStackTrace();
+			throw new WebSocketException(StatusCode.INTERNAL_SERVER_ERROR, "Deserialization failed: " + e.getMessage(), e);
 		}
 	}
 	

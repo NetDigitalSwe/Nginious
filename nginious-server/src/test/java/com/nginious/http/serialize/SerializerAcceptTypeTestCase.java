@@ -43,7 +43,7 @@ public class SerializerAcceptTypeTestCase extends TestCase {
 	public void testSerializerAcceptType() throws Exception {
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
 		
-		SerializerFactory serializerFactory = new SerializerFactory(classLoader);
+		SerializerFactoryImpl serializerFactory = new SerializerFactoryImpl(classLoader);
 		Serializer<SerializableBean> serializer = serializerFactory.createSerializer(SerializableBean.class, null);
 		assertEquals("application/json", serializer.getMimeType());
 

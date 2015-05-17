@@ -42,14 +42,14 @@ public class SerializerTestCase extends TestCase {
 	
 	public void testInvalidAcceptSerializer() throws Exception {
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		SerializerFactory serializerFactory = new SerializerFactory(classLoader);
+		SerializerFactoryImpl serializerFactory = new SerializerFactoryImpl(classLoader);
 		Serializer<SerializableBean> serializer = serializerFactory.createSerializer(SerializableBean.class, "text/nonexistent");
 		assertNull(serializer);
 	}
 	
 	public void testMissingAcceptSerializer() throws Exception {
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		SerializerFactory serializerFactory = new SerializerFactory(classLoader);
+		SerializerFactoryImpl serializerFactory = new SerializerFactoryImpl(classLoader);
 		Serializer<SerializableBean> serializer = serializerFactory.createSerializer(SerializableBean.class, null);
 		assertEquals("application/json", serializer.getMimeType());
 	}

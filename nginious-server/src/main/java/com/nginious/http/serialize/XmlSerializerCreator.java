@@ -109,7 +109,7 @@ class XmlSerializerCreator extends SerializerCreator<XmlSerializer<?>> {
 	 * @throws SerializerFactoryException if unable to create serializer or class is not a bean
 	 */
 	@SuppressWarnings("unchecked")
-	<T> XmlSerializer<T> create(SerializerFactory factory, Class<T> beanClazz) throws SerializerFactoryException {
+	<T> XmlSerializer<T> create(SerializerFactoryImpl factory, Class<T> beanClazz) throws SerializerFactoryException {
 		XmlSerializer<T> serializer = (XmlSerializer<T>)serializers.get(beanClazz);
 		
 		if(serializer != null) {
@@ -250,10 +250,10 @@ class XmlSerializerCreator extends SerializerCreator<XmlSerializer<?>> {
 	 */
 	private void createBeanCollectionSerializationCode(MethodVisitor visitor, String intBeanClazzName, String methodName, String propertyName, Class<?> returnType, Class<?> collectionBeanType) {
 		visitor.visitVarInsn(Opcodes.ALOAD, 0);
-		visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/serialize/XmlSerializer", "getSerializerFactory", "()Lcom/nginious/http/serialize/SerializerFactory;");
+		visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/serialize/XmlSerializer", "getSerializerFactory", "()Lcom/nginious/http/serialize/SerializerFactoryImpl;");
 		visitor.visitLdcInsn(collectionBeanType.getName());
 		visitor.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;");
-		visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/serialize/SerializerFactory", "createXmlSerializer", "(Ljava/lang/Class;)Lcom/nginious/http/serialize/XmlSerializer;");
+		visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/serialize/SerializerFactoryImpl", "createXmlSerializer", "(Ljava/lang/Class;)Lcom/nginious/http/serialize/XmlSerializer;");
 		visitor.visitVarInsn(Opcodes.ASTORE, 4);
 
 		visitor.visitTypeInsn(Opcodes.NEW, "com/nginious/http/serialize/XmlBeanCollectionSerializer");
@@ -284,11 +284,11 @@ class XmlSerializerCreator extends SerializerCreator<XmlSerializer<?>> {
 	private void createBeanSerializationCode(MethodVisitor visitor, String returnMethodName, String propertyName, Class<?> returnType, String intBeanClazzName) {
 		String intReturnClazzName = Serialization.createInternalClassName(returnType);
 		visitor.visitVarInsn(Opcodes.ALOAD, 0);
-		visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/serialize/XmlSerializer", "getSerializerFactory", "()Lcom/nginious/http/serialize/SerializerFactory;");
+		visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/serialize/XmlSerializer", "getSerializerFactory", "()Lcom/nginious/http/serialize/SerializerFactoryImpl;");
 		visitor.visitLdcInsn(returnType.getName());
 		visitor.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;");
 
-		visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/serialize/SerializerFactory", "createXmlSerializer", "(Ljava/lang/Class;)Lcom/nginious/http/serialize/XmlSerializer;");
+		visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/serialize/SerializerFactoryImpl", "createXmlSerializer", "(Ljava/lang/Class;)Lcom/nginious/http/serialize/XmlSerializer;");
 		visitor.visitVarInsn(Opcodes.ASTORE, 4);
 		
 		visitor.visitVarInsn(Opcodes.ALOAD, 4);

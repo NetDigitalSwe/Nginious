@@ -23,8 +23,6 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import com.nginious.http.HttpRequest;
-import com.nginious.http.serialize.Deserializer;
-import com.nginious.http.serialize.SerializerException;
 
 /**
  * Base class for all deserializers that deserialize beans from URI query parameter format. Used as base class
@@ -56,10 +54,50 @@ public abstract class QueryDeserializer<E> implements Deserializer<E> {
 	/**
 	 * Deserializes a bean from URI query parameters in the specified HTTP request.
 	 * 
+	 * @param the message to deserialize
 	 * @return the deserialized bean
 	 * @throws SerializerException if unable to deserialize bean
 	 */
 	public abstract E deserialize(HttpRequest request) throws SerializerException;
+	
+	/**
+	 * Deserializes a bean from URI query parameters in the specified message.
+	 * 
+	 * @param message the message to deserialize
+	 * @return the deserialized bean
+	 * @throws SerializerException if unable to deserialize bean 
+	 */
+	public E deserialize(String message) throws SerializerException {
+		throw new SerializerException("Content type 'application/x-www-form-urlencoded' not supported for message deserialization");
+	}
+	
+	/**
+	 * Deserializes parameters with the specified name from the specified HTTP request into a boolean array.
+	 * 
+	 * @param request the HTTP request
+	 * @param name the URI query parameter name
+	 * @return the deserialized array or <code>null</code> if parameter doesn't exist
+	 * @throws SerializerException if unable to deserialize value
+	 */
+	protected boolean[] deserializeBooleanArray(HttpRequest request, String name) throws SerializerException {
+		try {
+			String[] values = request.getParameterValues(name);
+			
+			if(values != null) {
+				boolean[] outArray = new boolean[values.length];
+				
+				for(int i = 0; i < values.length; i++) {
+					outArray[i] = Boolean.parseBoolean(values[i]);
+				}
+				
+				return outArray;
+			}
+			
+			return null;
+		} catch(NumberFormatException e) {
+			throw new SerializerException("Can't deserialize boolean array property " + name, e);			
+		}
+	}
 	
 	/**
 	 * Deserializes URI query parameter with the specified name from the specified HTTP request.
@@ -143,6 +181,34 @@ public abstract class QueryDeserializer<E> implements Deserializer<E> {
 	}
 	
 	/**
+	 * Deserializes parameters with the specified name from the specified HTTP request into a double array.
+	 * 
+	 * @param request the HTTP request
+	 * @param name the URI query parameter name
+	 * @return the deserialized array or <code>null</code> if parameter doesn't exist
+	 * @throws SerializerException if unable to deserialize value
+	 */
+	protected double[] deserializeDoubleArray(HttpRequest request, String name) throws SerializerException {
+		try {
+			String[] values = request.getParameterValues(name);
+			
+			if(values != null) {
+				double[] outArray = new double[values.length];
+				
+				for(int i = 0; i < values.length; i++) {
+					outArray[i] = Double.parseDouble(values[i]);
+				}
+				
+				return outArray;
+			}
+			
+			return null;
+		} catch(NumberFormatException e) {
+			throw new SerializerException("Can't deserialize double array property " + name, e);			
+		}
+	}
+	
+	/**
 	 * Deserializes URI query parameter with the specified name from the specified HTTP request into a double.
 	 * 
 	 * @param request the HTTP request
@@ -162,6 +228,34 @@ public abstract class QueryDeserializer<E> implements Deserializer<E> {
 		}
 		
 		return 0.0d;
+	}
+	
+	/**
+	 * Deserializes parameters with the specified name from the specified HTTP request into a float array.
+	 * 
+	 * @param request the HTTP request
+	 * @param name the URI query parameter name
+	 * @return the deserialized array or <code>null</code> if parameter doesn't exist
+	 * @throws SerializerException if unable to deserialize value
+	 */
+	protected float[] deserializeFloatArray(HttpRequest request, String name) throws SerializerException {
+		try {
+			String[] values = request.getParameterValues(name);
+			
+			if(values != null) {
+				float[] outArray = new float[values.length];
+				
+				for(int i = 0; i < values.length; i++) {
+					outArray[i] = Float.parseFloat(values[i]);
+				}
+				
+				return outArray;
+			}
+			
+			return null;
+		} catch(NumberFormatException e) {
+			throw new SerializerException("Can't deserialize float array property " + name, e);			
+		}
 	}
 	
 	/**
@@ -187,6 +281,34 @@ public abstract class QueryDeserializer<E> implements Deserializer<E> {
 	}
 	
 	/**
+	 * Deserializes parameters with the specified name from the specified HTTP request into a integer array.
+	 * 
+	 * @param request the HTTP request
+	 * @param name the URI query parameter name
+	 * @return the deserialized array or <code>null</code> if parameter doesn't exist
+	 * @throws SerializerException if unable to deserialize value
+	 */
+	protected int[] deserializeIntArray(HttpRequest request, String name) throws SerializerException {
+		try {
+			String[] values = request.getParameterValues(name);
+			
+			if(values != null) {
+				int[] outArray = new int[values.length];
+				
+				for(int i = 0; i < values.length; i++) {
+					outArray[i] = Integer.parseInt(values[i]);
+				}
+				
+				return outArray;
+			}
+			
+			return null;
+		} catch(NumberFormatException e) {
+			throw new SerializerException("Can't deserialize integer array property " + name, e);			
+		}
+	}
+	
+	/**
 	 * Deserializes URI query parameter with the specified name from the specified HTTP request into a integer.
 	 * 
 	 * @param request the HTTP request
@@ -206,6 +328,34 @@ public abstract class QueryDeserializer<E> implements Deserializer<E> {
 		}
 		
 		return 0;
+	}
+	
+	/**
+	 * Deserializes parameters with the specified name from the specified HTTP request into a long array.
+	 * 
+	 * @param request the HTTP request
+	 * @param name the URI query parameter name
+	 * @return the deserialized array or <code>null</code> if parameter doesn't exist
+	 * @throws SerializerException if unable to deserialize value
+	 */
+	protected long[] deserializeLongArray(HttpRequest request, String name) throws SerializerException {
+		try {
+			String[] values = request.getParameterValues(name);
+			
+			if(values != null) {
+				long[] outArray = new long[values.length];
+				
+				for(int i = 0; i < values.length; i++) {
+					outArray[i] = Long.parseLong(values[i]);
+				}
+				
+				return outArray;
+			}
+			
+			return null;
+		} catch(NumberFormatException e) {
+			throw new SerializerException("Can't deserialize long array property " + name, e);			
+		}
 	}
 	
 	/**
@@ -231,6 +381,34 @@ public abstract class QueryDeserializer<E> implements Deserializer<E> {
 	}
 	
 	/**
+	 * Deserializes parameters with the specified name from the specified HTTP request into a short array.
+	 * 
+	 * @param request the HTTP request
+	 * @param name the URI query parameter name
+	 * @return the deserialized array or <code>null</code> if parameter doesn't exist
+	 * @throws SerializerException if unable to deserialize value
+	 */
+	protected short[] deserializeShortArray(HttpRequest request, String name) throws SerializerException {
+		try {
+			String[] values = request.getParameterValues(name);
+			
+			if(values != null) {
+				short[] outArray = new short[values.length];
+				
+				for(int i = 0; i < values.length; i++) {
+					outArray[i] = Short.parseShort(values[i]);
+				}
+				
+				return outArray;
+			}
+			
+			return null;
+		} catch(NumberFormatException e) {
+			throw new SerializerException("Can't deserialize short array property " + name, e);			
+		}
+	}
+	
+	/**
 	 * Deserializes URI query parameter with the specified name from the specified HTTP request into a short.
 	 * 
 	 * @param request the HTTP request
@@ -250,6 +428,18 @@ public abstract class QueryDeserializer<E> implements Deserializer<E> {
 		}
 		
 		return 0;		
+	}
+	
+	/**
+	 * Deserializes URI query parameters with the specified name from the specified HTTP request into a string array.
+	 * 
+	 * @param request the HTTP request
+	 * @param name the URI query parameter name
+	 * @return the deserialized array or <code>null</code> if property doesn't exist
+	 * @throws SerializerException if unable to deserialize value
+	 */
+	protected String[] deserializeStringArray(HttpRequest request, String name) throws SerializerException {
+		return request.getParameterValues(name);
 	}
 	
 	/**

@@ -142,7 +142,25 @@ class JsonDeserializerCreator extends DeserializerCreator<JsonDeserializer<?>> {
 						Class<?>[] parameterTypes = method.getParameterTypes();
 						Class<?> parameterType = parameterTypes[0];
 						
-						if(parameterType.isPrimitive()) {
+						if(parameterType.isArray()) {
+							Class<?> arrayType = parameterType.getComponentType();
+							
+							if(arrayType.equals(boolean.class)) {
+								createPropertyDeserializationCode(visitor, intDeserializerClazzName, "deserializeBooleanArray", "[Z", "[Z", intBeanClazzName, method.getName());
+							} else if(arrayType.equals(double.class)) {
+								createPropertyDeserializationCode(visitor, intDeserializerClazzName, "deserializeDoubleArray", "[D", "[D", intBeanClazzName, method.getName());
+							} else if(arrayType.equals(float.class)) {
+								createPropertyDeserializationCode(visitor, intDeserializerClazzName, "deserializeFloatArray", "[F", "[F", intBeanClazzName, method.getName());
+							} else if(arrayType.equals(int.class)) {
+								createPropertyDeserializationCode(visitor, intDeserializerClazzName, "deserializeIntArray", "[I", "[I", intBeanClazzName, method.getName());
+							} else if(arrayType.equals(long.class)) {
+								createPropertyDeserializationCode(visitor, intDeserializerClazzName, "deserializeLongArray", "[J", "[J", intBeanClazzName, method.getName());
+							} else if(arrayType.equals(short.class)) {
+								createPropertyDeserializationCode(visitor, intDeserializerClazzName, "deserializeShortArray", "[S", "[S", intBeanClazzName, method.getName());
+							} else if(arrayType.equals(String.class)) {
+								createPropertyDeserializationCode(visitor, intDeserializerClazzName, "deserializeStringArray", "[Ljava/lang/String;", "[Ljava/lang/String;", intBeanClazzName, method.getName());
+							}
+						} else if(parameterType.isPrimitive()) {
 							if(parameterType.equals(boolean.class)) {
 								createPropertyDeserializationCode(visitor, intDeserializerClazzName, "deserializeBoolean", "Z", "Z", intBeanClazzName, method.getName());
 							} else if(parameterType.equals(double.class)) {

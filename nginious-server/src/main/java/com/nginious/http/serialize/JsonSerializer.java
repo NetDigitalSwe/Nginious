@@ -42,7 +42,7 @@ public abstract class JsonSerializer<E> implements Serializer<E> {
 	
 	private Class<?> type;
 	
-	private SerializerFactory factory;
+	private SerializerFactoryImpl factory;
 	
 	/**
 	 * Constructs a new JSON serializer.
@@ -83,7 +83,7 @@ public abstract class JsonSerializer<E> implements Serializer<E> {
 	 * 
 	 * @param factory the serializer factory
 	 */
-	protected void setSerializerFactory(SerializerFactory factory) {
+	protected void setSerializerFactory(SerializerFactoryImpl factory) {
 		this.factory = factory;
 	}
 	
@@ -92,7 +92,7 @@ public abstract class JsonSerializer<E> implements Serializer<E> {
 	 * 
 	 * @return the serializer factory
 	 */
-	protected SerializerFactory getSerializerFactory() {
+	protected SerializerFactoryImpl getSerializerFactory() {
 		return this.factory;
 	}
 	

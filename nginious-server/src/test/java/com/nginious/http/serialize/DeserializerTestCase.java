@@ -63,7 +63,7 @@ public class DeserializerTestCase extends TestCase {
 		request.addHeader("Accept", "text/xml");
 		
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		DeserializerFactory deserializerFactory = new DeserializerFactory(classLoader);
+		DeserializerFactoryImpl deserializerFactory = new DeserializerFactoryImpl(classLoader);
 		Deserializer<SerializableBean> deserializer = deserializerFactory.createDeserializer(SerializableBean.class, "application/json");
 		assertEquals("application/json", deserializer.getMimeType());
 		SerializableBean bean = deserializer.deserialize(request);
@@ -98,7 +98,7 @@ public class DeserializerTestCase extends TestCase {
 		request.addHeader("Accept", "text/xml");
 		
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		DeserializerFactory deserializerFactory = new DeserializerFactory(classLoader);
+		DeserializerFactoryImpl deserializerFactory = new DeserializerFactoryImpl(classLoader);
 		Deserializer<SerializableBean> deserializer = deserializerFactory.createDeserializer(SerializableBean.class, "text/nonexistent");
 		assertNull(deserializer);
 	}

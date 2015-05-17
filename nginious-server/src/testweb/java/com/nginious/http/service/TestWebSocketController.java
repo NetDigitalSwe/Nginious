@@ -38,26 +38,23 @@ public class TestWebSocketController {
 	
 	@Message(operations = { WebSocketOperation.OPEN} )
 	public void executeOpen(HttpRequest request, HttpResponse response, WebSocketSession session) throws HttpException, IOException {
-		System.out.println("websocket open");
 		return;
 	}
 	
 	@Message(operations = { WebSocketOperation.BINARY })
-	public void executeBinaryMessage(WebSocketBinaryMessage message, WebSocketSession session) throws WebSocketException, IOException {
-		System.out.println("websocket binary message");
+	public byte[] executeBinaryMessage(WebSocketBinaryMessage message, WebSocketSession session) throws WebSocketException, IOException {
 		byte[] payload = message.getMessage();
-		session.sendBinaryData(payload);
+		return payload;
 	}
 
 	@Message(operations = { WebSocketOperation.TEXT })
-	public void executeTextMessage(WebSocketTextMessage message, WebSocketSession session) throws WebSocketException, IOException {
-		System.out.println("websocket text message");
+	public String executeTextMessage(WebSocketTextMessage message, WebSocketSession session) throws WebSocketException, IOException {
 		String payload = message.getMessage();
-		session.sendTextData(payload);
+		return payload;
 	}
 	
 	@Message(operations = { WebSocketOperation.CLOSE })
 	public void executeClose(WebSocketSession session) throws WebSocketException {
-		System.out.println("websocket close");		
+		return;
 	}
 }

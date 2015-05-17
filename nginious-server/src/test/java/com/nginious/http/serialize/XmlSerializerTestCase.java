@@ -32,7 +32,7 @@ import org.custommonkey.xmlunit.XMLTestCase;
 
 import com.nginious.http.application.ApplicationClassLoader;
 import com.nginious.http.serialize.Serializer;
-import com.nginious.http.serialize.SerializerFactory;
+import com.nginious.http.serialize.SerializerFactoryImpl;
 
 public class XmlSerializerTestCase extends XMLTestCase {
 	
@@ -96,7 +96,7 @@ public class XmlSerializerTestCase extends XMLTestCase {
 		bean.setStringListValue(stringList);
 		
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		SerializerFactory serializerFactory = new SerializerFactory(classLoader);
+		SerializerFactoryImpl serializerFactory = new SerializerFactoryImpl(classLoader);
 		Serializer<SerializableBean> serializer = serializerFactory.createSerializer(SerializableBean.class, "text/xml, application/json; q=0.9");
 		assertEquals("text/xml", serializer.getMimeType());
 		
@@ -200,7 +200,7 @@ public class XmlSerializerTestCase extends XMLTestCase {
 		bean.setStringListValue(stringList);
 		
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		SerializerFactory serializerFactory = new SerializerFactory(classLoader);
+		SerializerFactoryImpl serializerFactory = new SerializerFactoryImpl(classLoader);
 		Serializer<NamedBean> serializer = serializerFactory.createSerializer(NamedBean.class, "text/xml, application/json; q=0.9");
 		assertEquals("text/xml", serializer.getMimeType());
 		
@@ -265,7 +265,7 @@ public class XmlSerializerTestCase extends XMLTestCase {
 	public void testEmptyXmlSerializer() throws Exception {
 		SerializableBean bean = new SerializableBean();
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		SerializerFactory serializerFactory = new SerializerFactory(classLoader);
+		SerializerFactoryImpl serializerFactory = new SerializerFactoryImpl(classLoader);
 		Serializer<SerializableBean> serializer = serializerFactory.createSerializer(SerializableBean.class, "text/xml");
 		assertEquals("text/xml", serializer.getMimeType());
 		

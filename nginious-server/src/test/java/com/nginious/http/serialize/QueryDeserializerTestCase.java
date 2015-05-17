@@ -61,7 +61,7 @@ public class QueryDeserializerTestCase extends TestCase {
 		request.addParameter("ninth", "2011-08-24T08:52:23+02:00");
 		
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		DeserializerFactory deserializerFactory = new DeserializerFactory(classLoader);
+		DeserializerFactoryImpl deserializerFactory = new DeserializerFactoryImpl(classLoader);
 		Deserializer<InBean> deserializer = deserializerFactory.createDeserializer(InBean.class, "application/x-www-form-urlencoded");
 		assertEquals("application/x-www-form-urlencoded", deserializer.getMimeType());
 		InBean bean = deserializer.deserialize(request);
@@ -75,6 +75,84 @@ public class QueryDeserializerTestCase extends TestCase {
 		assertEquals("String", bean.getSeventh());
 		assertEquals("2011-08-24T08:50:23+02:00", formatDate(bean.getEight()));
 		assertEquals("2011-08-24T08:52:23+02:00", formatDate(bean.getNinth().getTime()));
+	}
+	
+	public void testQueryArrayDeserialization() throws Exception {
+		HttpTestRequest request = new HttpTestRequest();
+		request.setMethod(HttpMethod.GET);
+		request.addHeader("Content-Type", "application/x-www-form-urlencoded");
+		request.addHeader("Accept", "text/xml");
+		request.addParameter("boolean_array_value", "true");
+		request.addParameter("boolean_array_value", "false");
+
+		request.addParameter("double_array_value", "1.1");
+		request.addParameter("double_array_value", "1.2");
+		
+		request.addParameter("float_array_value", "1.12");
+		request.addParameter("float_array_value", "1.22");
+
+		request.addParameter("int_array_value", "2");
+		request.addParameter("int_array_value", "3");
+		
+		request.addParameter("long_array_value", "4");
+		request.addParameter("long_array_value", "3");
+		
+		request.addParameter("short_array_value", "6");
+		request.addParameter("short_array_value", "7");
+		
+		request.addParameter("string_array_value", "One");
+		request.addParameter("string_array_value", "Two");
+		request.addParameter("string_array_value", "Three");
+		
+		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
+		DeserializerFactoryImpl deserializerFactory = new DeserializerFactoryImpl(classLoader);
+		Deserializer<SerializableArrayBean> deserializer = 
+				deserializerFactory.createDeserializer(SerializableArrayBean.class, "application/x-www-form-urlencoded");
+		assertEquals("application/x-www-form-urlencoded", deserializer.getMimeType());
+		SerializableArrayBean bean = deserializer.deserialize(request);
+		
+		boolean[] bValues = bean.getBooleanArrayValue();
+		assertNotNull(bValues);
+		assertEquals(2, bValues.length);
+		assertTrue(bValues[0]);
+		assertFalse(bValues[1]);
+		
+		double[] dValues = bean.getDoubleArrayValue();
+		assertNotNull(dValues);
+		assertEquals(2, dValues.length);
+		assertEquals(1.1, dValues[0]);
+		assertEquals(1.2, dValues[1]);
+		
+		float[] fValues = bean.getFloatArrayValue();
+		assertNotNull(fValues);
+		assertEquals(2, fValues.length);
+		assertEquals((float)1.12, fValues[0]);
+		assertEquals((float)1.22, fValues[1]);
+		
+		int[] iValues = bean.getIntArrayValue();
+		assertNotNull(iValues);
+		assertEquals(2, iValues.length);
+		assertEquals(2, iValues[0]);
+		assertEquals(3, iValues[1]);
+		
+		long[] lValues = bean.getLongArrayValue();
+		assertNotNull(lValues);
+		assertEquals(2, lValues.length);
+		assertEquals(4L, lValues[0]);
+		assertEquals(3L, lValues[1]);
+		
+		short[] sValues = bean.getShortArrayValue();
+		assertNotNull(sValues);
+		assertEquals(2, sValues.length);
+		assertEquals((short)6, sValues[0]);
+		assertEquals((short)7, sValues[1]);
+		
+		String[] values = bean.getStringArrayValue();
+		assertNotNull(values);
+		assertEquals(3, values.length);
+		assertEquals("One", values[0]);
+		assertEquals("Two", values[1]);
+		assertEquals("Three", values[2]);
 	}
 	
 	public void testQueryDeserializationBadValues() throws Exception {
@@ -93,7 +171,7 @@ public class QueryDeserializerTestCase extends TestCase {
 		request.addParameter("ninth", "2011-08-24T08:52:23+02:00");
 		
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		DeserializerFactory deserializerFactory = new DeserializerFactory(classLoader);
+		DeserializerFactoryImpl deserializerFactory = new DeserializerFactoryImpl(classLoader);
 		Deserializer<InBean> deserializer = deserializerFactory.createDeserializer(InBean.class, "application/x-www-form-urlencoded");
 		
 		request.setParameter("second", "X");
@@ -167,7 +245,7 @@ public class QueryDeserializerTestCase extends TestCase {
 		request.addHeader("Accept", "text/xml");
 		
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		DeserializerFactory deserializerFactory = new DeserializerFactory(classLoader);
+		DeserializerFactoryImpl deserializerFactory = new DeserializerFactoryImpl(classLoader);
 		Deserializer<InBean> deserializer = deserializerFactory.createDeserializer(InBean.class, "application/x-www-form-urlencoded");
 		InBean bean = deserializer.deserialize(request);
 		
@@ -193,7 +271,7 @@ public class QueryDeserializerTestCase extends TestCase {
 		request.addParameter("third", "three");
 		
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		DeserializerFactory deserializerFactory = new DeserializerFactory(classLoader);
+		DeserializerFactoryImpl deserializerFactory = new DeserializerFactoryImpl(classLoader);
 		Deserializer<QueryAnnotatedBean> deserializer = deserializerFactory.createDeserializer(QueryAnnotatedBean.class, "application/x-www-form-urlencoded");
 		assertEquals("application/x-www-form-urlencoded", deserializer.getMimeType());
 		QueryAnnotatedBean bean = deserializer.deserialize(request);
@@ -220,7 +298,7 @@ public class QueryDeserializerTestCase extends TestCase {
 		request.addParameter("ninth", "2011-08-24T08:52:23+02:00");
 		
 		ApplicationClassLoader classLoader = new ApplicationClassLoader(Thread.currentThread().getContextClassLoader());
-		DeserializerFactory deserializerFactory = new DeserializerFactory(classLoader);
+		DeserializerFactoryImpl deserializerFactory = new DeserializerFactoryImpl(classLoader);
 		Deserializer<InBean> deserializer = deserializerFactory.createDeserializer(InBean.class, "application/x-www-form-urlencoded");
 		Deserializer<InBean> deserializer2 = deserializerFactory.createDeserializer(InBean.class, "application/x-www-form-urlencoded");
 		assertTrue(deserializer == deserializer2);

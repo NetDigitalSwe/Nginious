@@ -42,4 +42,13 @@ public interface Deserializer<E> {
 	 * @throws SerializerException if unable to deserialize bean
 	 */
 	public E deserialize(HttpRequest request) throws SerializerException;
+	
+	/**
+	 * Deserialized the bean from the specified message.
+	 * 
+	 * @param message the given message where data for the serialized bean can be found
+	 * @return the deserialized bean
+	 * @throws SerializerException if unable to deserialize bean
+	 */
+	public E deserialize(String message) throws SerializerException;
 }

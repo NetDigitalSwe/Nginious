@@ -24,7 +24,7 @@ import com.nginious.http.application.ApplicationClassLoader;
  * @author Bojan Pisler, NetDigital Sweden AB
  *
  */
-public class DeserializerFactory {
+public class DeserializerFactoryImpl implements DeserializerFactory {
 	
 	private XmlDeserializerCreator xmlCreator;
 	
@@ -37,7 +37,7 @@ public class DeserializerFactory {
 	 * 
 	 * @param classLoader the class loader to use for loading created deserializer classes
 	 */
-	public DeserializerFactory(ApplicationClassLoader classLoader) {
+	public DeserializerFactoryImpl(ApplicationClassLoader classLoader) {
 		super();
 		this.xmlCreator = new XmlDeserializerCreator(classLoader);
 		this.jsonCreator = new JsonDeserializerCreator(classLoader);

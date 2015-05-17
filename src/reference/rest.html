@@ -154,6 +154,48 @@ public class ExampleRestController {
 										header of the request before calling the method.
 									</td>
 								</tr>
+								<tr>
+									<td class="nowrap">String</td>
+									<td>
+										A string object parameter annotated with the <a href="api/com/nginious/http/annotation/Parameter.html">Parameter</a>
+										annotation which maps the argument to a HTTP request parameter. The HTTP request parameter is automatically
+										converted by the server before calling the method.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">Date</td>
+									<td>
+										A date object parameter annotated with the <a href="api/com/nginious/http/annotation/Parameter.html">Parameter</a>
+										annotation which maps the argument to a HTTP request parameter. The HTTP request parameter is automatically
+										converted by the server before calling the method. The date must be formatted in standard ISO8601 format.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">Calendar</td>
+									<td>
+										A calendar object parameter annotated with the <a href="api/com/nginious/http/annotation/Parameter.html">Parameter</a>
+										annotation which maps the argument to a HTTP request parameter. The HTTP request parameter is automatically
+										converted by the server before calling the method. The date must be formatted in standard ISO8601 format.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">Primitive types<br />(boolean, short, int, long, float, double)</td>
+									<td>
+										All Java primitive type arguments can be annotated with the
+										<a href="api/com/nginious/http/annotation/Parameter.html">Parameter</a> which maps the
+										argument to a HTTP request parameter. The HTTP request parameter is automatically
+										converted by the server before calling the method.
+									</td>
+								</tr>
+								<tr>
+									<td class="nowrap">Primitive arrays<br />(boolean[], short[], int[], long[], float[], double[])</td>
+									<td>
+										All Java primitive array type arguments can be annotated with the
+										<a href="api/com/nginious/http/annotation/Parameter.html">Parameter</a> which maps the
+										argument to a HTTP request parameter name. All HTTP request parameters with the
+										specified name are automatically converted by the server before calling the method.
+									</td>
+								</tr>
 							</tbody>
 						</table>
 					</div>					

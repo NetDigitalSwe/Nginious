@@ -24,7 +24,9 @@ import com.nginious.http.annotation.Request;
 import com.nginious.http.annotation.Serializable;
 import com.nginious.http.annotation.Service;
 import com.nginious.http.serialize.DeserializerFactory;
+import com.nginious.http.serialize.DeserializerFactoryImpl;
 import com.nginious.http.serialize.SerializerFactory;
+import com.nginious.http.serialize.SerializerFactoryImpl;
 import com.nginious.http.websocket.WebSocketBinaryMessage;
 import com.nginious.http.websocket.WebSocketOperation;
 import com.nginious.http.websocket.WebSocketSession;
@@ -50,9 +52,9 @@ public class ControllerServiceFactory {
 	
 	private ApplicationClassLoader classLoader;
 	
-	private SerializerFactory serializerFactory;
+	private SerializerFactoryImpl serializerFactory;
 	
-	private DeserializerFactory deserializerFactory;
+	private DeserializerFactoryImpl deserializerFactory;
 	
 	/**
 	 * Constructs a new controller service factory which uses the specified application class loader
@@ -63,8 +65,8 @@ public class ControllerServiceFactory {
 	public ControllerServiceFactory(ApplicationClassLoader classLoader) {
 		this.controllerServices = new ConcurrentHashMap<Class<?>, ControllerService>();
 		this.classLoader = classLoader;
-		this.serializerFactory = new SerializerFactory(this.classLoader);
-		this.deserializerFactory = new DeserializerFactory(this.classLoader);
+		this.serializerFactory = new SerializerFactoryImpl(this.classLoader);
+		this.deserializerFactory = new DeserializerFactoryImpl(this.classLoader);
 	}
 	
 	/**
@@ -126,10 +128,10 @@ public class ControllerServiceFactory {
 	        overrideHttpMethod(writer, controllerClazz, "executePost", HttpMethod.POST, httpMethods, clazzes);
 	        overrideHttpMethod(writer, controllerClazz, "executePut", HttpMethod.PUT, httpMethods, clazzes);
 	        overrideHttpMethod(writer, controllerClazz, "executeDelete", HttpMethod.DELETE, httpMethods, clazzes);
-	        overrideWebSocketMethod(writer, controllerClazz, WebSocketOperation.OPEN);
-	        overrideWebSocketMethod(writer, controllerClazz, WebSocketOperation.CLOSE);
-	        overrideWebSocketMethod(writer, controllerClazz, WebSocketOperation.TEXT);
-	        overrideWebSocketMethod(writer, controllerClazz, WebSocketOperation.BINARY);
+	        overrideWebSocketMethod(writer, controllerClazz, WebSocketOperation.OPEN, null);
+	        overrideWebSocketMethod(writer, controllerClazz, WebSocketOperation.CLOSE, null);
+	        overrideWebSocketMethod(writer, controllerClazz, WebSocketOperation.TEXT, clazzes);
+	        overrideWebSocketMethod(writer, controllerClazz, WebSocketOperation.BINARY, null);
 			
 			writer.visitEnd();
 			byte[] clazzBytes = writer.toByteArray();
@@ -186,7 +188,7 @@ public class ControllerServiceFactory {
 		}
 	}
 	
-	void overrideWebSocketMethod(ClassWriter writer, Class<?> controllerClazz, WebSocketOperation operation) throws ControllerServiceFactoryException {
+	void overrideWebSocketMethod(ClassWriter writer, Class<?> controllerClazz, WebSocketOperation operation, HashSet<Class<?>> clazzes) throws ControllerServiceFactoryException {
 		Method method = findWebSocketMethod(controllerClazz, operation);
 		
 		if(method != null) {
@@ -200,7 +202,7 @@ public class ControllerServiceFactory {
 				break;
 				
 			case TEXT:
-				createWebSocketTextMessageMethod(writer, method, controllerClazz);
+				createWebSocketTextMessageMethod(writer, method, controllerClazz, clazzes);
 				break;
 				
 			case BINARY:
@@ -246,6 +248,14 @@ public class ControllerServiceFactory {
 			} else if(parameterType.equals(HttpSession.class)) {
 				visitor.visitVarInsn(Opcodes.ALOAD, 1);
 				visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, "com/nginious/http/HttpRequest", "getSession", "()Lcom/nginious/http/HttpSession;");
+			} else if(parameterType.equals(SerializerFactory.class)) {
+				visitor.visitVarInsn(Opcodes.ALOAD, 0);
+				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", 
+						"getSerializerFactory", "()Lcom/nginious/http/serialize/SerializerFactory;");
+			} else if(parameterType.equals(DeserializerFactory.class)) {
+				visitor.visitVarInsn(Opcodes.ALOAD, 0);
+				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", 
+						"getDeserializerFactory", "()Lcom/nginious/http/serialize/DeserializerFactory;");				
 			} else if(parameterType.isAnnotationPresent(Serializable.class)) {
 				visitor.visitVarInsn(Opcodes.ALOAD, 0);
 				visitor.visitLdcInsn(parameterType.getName());
@@ -440,7 +450,7 @@ public class ControllerServiceFactory {
 		String controllerClazzName = createInternalClassName(controllerClazz);
 		String[] exceptions = { "com/nginious/http/HttpException", "java/io/IOException" };
 		MethodVisitor visitor = writer.visitMethod(Opcodes.ACC_PUBLIC, "executeOpen", 
-				"(Lcom/nginious/http/HttpRequest;Lcom/nginious/http/HttpResponse;Lcom/nginious/http/websocket/WebSocketSession;)V", null, exceptions);
+				"(Lcom/nginious/http/HttpRequest;Lcom/nginious/http/HttpResponse;Lcom/nginious/http/websocket/WebSocketSession;)Lcom/nginious/http/application/HttpServiceResult;", null, exceptions);
 		visitor.visitCode();
 		
 		visitor.visitVarInsn(Opcodes.ALOAD, 1);
@@ -469,9 +479,9 @@ public class ControllerServiceFactory {
 			} else if(parameterType.isAnnotationPresent(Service.class)) {
 				Service mapping = parameterType.getAnnotation(Service.class);
 				visitor.visitVarInsn(Opcodes.ALOAD, 0);
-				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "getApplication", "()Lcom/nginious/http/application/ApplicationImpl;");
+				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "getApplication", "()Lcom/nginious/http/application/Application;");
 				visitor.visitLdcInsn(mapping.name());
-				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ApplicationImpl", "getService", "(Ljava/lang/String;)Ljava/lang/Object;");
+				visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, "com/nginious/http/application/Application", "getService", "(Ljava/lang/String;)Ljava/lang/Object;");
 				String parameterClazzName = createInternalClassName(parameterType);
 				visitor.visitTypeInsn(Opcodes.CHECKCAST, parameterClazzName);				
 			} else {
@@ -480,7 +490,8 @@ public class ControllerServiceFactory {
 		}
 		
 		visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, controllerClazzName, controllerMethod.getName(), controllerMethodSignature);
-		visitor.visitInsn(Opcodes.RETURN);
+		visitor.visitFieldInsn(Opcodes.GETSTATIC, "com/nginious/http/application/HttpServiceResult", "CONTINUE", "Lcom/nginious/http/application/HttpServiceResult;");
+		visitor.visitInsn(Opcodes.ARETURN);
 		visitor.visitMaxs(7, 6);
 		visitor.visitEnd();
 	}
@@ -504,9 +515,9 @@ public class ControllerServiceFactory {
 			} else if(parameterType.isAnnotationPresent(Service.class)) {
 				Service mapping = parameterType.getAnnotation(Service.class);
 				visitor.visitVarInsn(Opcodes.ALOAD, 0);
-				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "getApplication", "()Lcom/nginious/http/application/ApplicationImpl;");
+				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "getApplication", "()Lcom/nginious/http/application/Application;");
 				visitor.visitLdcInsn(mapping.name());
-				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ApplicationImpl", "getService", "(Ljava/lang/String;)Ljava/lang/Object;");
+				visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, "com/nginious/http/application/Application", "getService", "(Ljava/lang/String;)Ljava/lang/Object;");
 				String parameterClazzName = createInternalClassName(parameterType);
 				visitor.visitTypeInsn(Opcodes.CHECKCAST, parameterClazzName);				
 			} else {
@@ -520,7 +531,7 @@ public class ControllerServiceFactory {
 		visitor.visitEnd();
 	}
 	
-	void createWebSocketTextMessageMethod(ClassWriter writer, Method controllerMethod, Class<?> controllerClazz) throws ControllerServiceFactoryException {
+	void createWebSocketTextMessageMethod(ClassWriter writer, Method controllerMethod, Class<?> controllerClazz, HashSet<Class<?>> clazzes) throws ControllerServiceFactoryException {
 		String controllerClazzName = createInternalClassName(controllerClazz);
 		String[] exceptions = { "com/nginious/http/websocket/WebSocketException" };
 		MethodVisitor visitor = writer.visitMethod(Opcodes.ACC_PUBLIC, "executeTextMessage", 
@@ -529,12 +540,16 @@ public class ControllerServiceFactory {
 		
 		Class<?>[] parameterTypes = controllerMethod.getParameterTypes();
 		Class<?> returnType = controllerMethod.getReturnType();
+		Serializable serializable = returnType.getAnnotation(Serializable.class);
 		
 		if(!returnType.equals(Void.class) && !returnType.equals(void.class)) {
+			visitor.visitVarInsn(Opcodes.ALOAD, 2);
+			
 			// Prepared for call to sendXXXMessage method to handle result, must be on the stack before result object
 			visitor.visitVarInsn(Opcodes.ALOAD, 0);
 		}
 		
+		Message message = controllerMethod.getAnnotation(Message.class);
 		String controllerMethodSignature = createWebSocketTextMessageMethodSignature(controllerClazz, controllerMethod);
 		visitor.visitVarInsn(Opcodes.ALOAD, 0);
 		visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "getController", "()Ljava/lang/Object;");
@@ -545,12 +560,36 @@ public class ControllerServiceFactory {
 				visitor.visitVarInsn(Opcodes.ALOAD, 2);
 			} else if(parameterType.equals(WebSocketTextMessage.class)) {
 				visitor.visitVarInsn(Opcodes.ALOAD, 1);
+			} else if(parameterType.equals(SerializerFactory.class)) {
+				visitor.visitVarInsn(Opcodes.ALOAD, 0);
+				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", 
+						"getSerializerFactory", "()Lcom/nginious/http/serialize/SerializerFactory;");
+			} else if(parameterType.equals(DeserializerFactory.class)) {
+				visitor.visitVarInsn(Opcodes.ALOAD, 0);
+				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", 
+						"getDeserializerFactory", "()Lcom/nginious/http/serialize/DeserializerFactory;");				
+			} else if(parameterType.isAnnotationPresent(Serializable.class)) {
+				String contentType = message.contentType();
+				
+				if(contentType == null || contentType.equals("")) {
+					contentType = "application/xml";
+				}
+				
+				visitor.visitVarInsn(Opcodes.ALOAD, 0);
+				visitor.visitLdcInsn(parameterType.getName());
+				visitor.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;");
+				visitor.visitVarInsn(Opcodes.ALOAD, 1);
+				visitor.visitLdcInsn(contentType);
+				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "deserialize", "(Ljava/lang/Class;Lcom/nginious/http/websocket/WebSocketTextMessage;Ljava/lang/String;)Ljava/lang/Object;");
+				String parameterClazzName = createInternalClassName(parameterType);
+				visitor.visitTypeInsn(Opcodes.CHECKCAST, parameterClazzName);
+				clazzes.add(parameterType);
 			} else if(parameterType.isAnnotationPresent(Service.class)) {
 				Service mapping = parameterType.getAnnotation(Service.class);
 				visitor.visitVarInsn(Opcodes.ALOAD, 0);
-				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "getApplication", "()Lcom/nginious/http/application/ApplicationImpl;");
+				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "getApplication", "()Lcom/nginious/http/application/Application;");
 				visitor.visitLdcInsn(mapping.name());
-				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ApplicationImpl", "getService", "(Ljava/lang/String;)Ljava/lang/Object;");
+				visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, "com/nginious/http/application/Application", "getService", "(Ljava/lang/String;)Ljava/lang/Object;");
 				String parameterClazzName = createInternalClassName(parameterType);
 				visitor.visitTypeInsn(Opcodes.CHECKCAST, parameterClazzName);				
 			} else {
@@ -563,11 +602,35 @@ public class ControllerServiceFactory {
 		if(returnType.equals(String.class)) {
 			visitor.visitVarInsn(Opcodes.ALOAD, 2);
 			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "sendTextMessage",
-					"(Ljava/lang/String;Lcom/nginious/http/websocket/WebSocketSession;)V)");
+					"(Ljava/lang/String;Lcom/nginious/http/websocket/WebSocketSession;)V");
 		} else if(returnType.equals(byte[].class)) {
 			visitor.visitVarInsn(Opcodes.ALOAD, 2);
 			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "sendBinaryMessage", 
-			 		"([B;Lcom/nginious/http/websocket/WebSocketSession;)V");
+			 		"([BLcom/nginious/http/websocket/WebSocketSession;)V");
+		} else if(serializable != null) {
+			Class<?> collectionType = getCollectionParameterType(controllerMethod, returnType);
+			String contentType = message.contentType();
+			
+			if(contentType == null || contentType.equals("")) {
+				contentType = "application/xml";
+			}
+			
+			if(collectionType != null) {
+				visitor.visitLdcInsn(collectionType.getName());
+				visitor.visitLdcInsn(contentType);
+				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "serialize", 
+						"(Ljava/util/Collection;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
+				clazzes.add(collectionType);
+				
+				visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, "com/nginious/http/websocket/WebSocketSession", "sendTextData", "(Ljava/langString;)Z");				
+			} else {
+				visitor.visitLdcInsn(contentType);
+				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "serialize", 
+						"(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;");
+				clazzes.add(returnType);
+				
+				visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, "com/nginious/http/websocket/WebSocketSession", "sendTextData", "(Ljava/lang/String;)Z");
+			}			
 		}
 		
 		visitor.visitInsn(Opcodes.RETURN);
@@ -600,12 +663,20 @@ public class ControllerServiceFactory {
 				visitor.visitVarInsn(Opcodes.ALOAD, 2);
 			} else if(parameterType.equals(WebSocketBinaryMessage.class)) {
 				visitor.visitVarInsn(Opcodes.ALOAD, 1);
+			} else if(parameterType.equals(SerializerFactory.class)) {
+				visitor.visitVarInsn(Opcodes.ALOAD, 0);
+				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", 
+						"getSerializerFactory", "()Lcom/nginious/http/serialize/SerializerFactory;");
+			} else if(parameterType.equals(DeserializerFactory.class)) {
+				visitor.visitVarInsn(Opcodes.ALOAD, 0);
+				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", 
+						"getDeserializerFactory", "()Lcom/nginious/http/serialize/DeserializerFactory;");				
 			} else if(parameterType.isAnnotationPresent(Service.class)) {
 				Service mapping = parameterType.getAnnotation(Service.class);
 				visitor.visitVarInsn(Opcodes.ALOAD, 0);
-				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "getApplication", "()Lcom/nginious/http/application/ApplicationImpl;");
+				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "getApplication", "()Lcom/nginious/http/application/Application;");
 				visitor.visitLdcInsn(mapping.name());
-				visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ApplicationImpl", "getService", "(Ljava/lang/String;)Ljava/lang/Object;");
+				visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, "com/nginious/http/application/Application", "getService", "(Ljava/lang/String;)Ljava/lang/Object;");
 				String parameterClazzName = createInternalClassName(parameterType);
 				visitor.visitTypeInsn(Opcodes.CHECKCAST, parameterClazzName);				
 			} else {
@@ -618,11 +689,11 @@ public class ControllerServiceFactory {
 		if(returnType.equals(String.class)) {
 			visitor.visitVarInsn(Opcodes.ALOAD, 2);
 			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "sendTextMessage",
-					"(Ljava/lang/String;Lcom/nginious/http/websocket/WebSocketSession;)V)");
+					"(Ljava/lang/String;Lcom/nginious/http/websocket/WebSocketSession;)V");
 		} else if(returnType.equals(byte[].class)) {
 			visitor.visitVarInsn(Opcodes.ALOAD, 2);
 			visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/nginious/http/application/ControllerService", "sendBinaryMessage", 
-			 		"([B;Lcom/nginious/http/websocket/WebSocketSession;)V");
+			 		"([BLcom/nginious/http/websocket/WebSocketSession;)V");
 		}
 		
 		visitor.visitInsn(Opcodes.RETURN);
@@ -717,6 +788,15 @@ public class ControllerServiceFactory {
 				signature.append("Lcom/nginious/http/websocket/WebSocketSession;");
 			} else if(parameterType.equals(WebSocketTextMessage.class)) {
 				signature.append("Lcom/nginious/http/websocket/WebSocketTextMessage;");
+			} else if(parameterType.equals(SerializerFactory.class)) {
+				signature.append("Lcom/nginious/http/serialize/SerializerFactory;");
+			} else if(parameterType.equals(DeserializerFactory.class)) {
+				signature.append("Lcom/nginious/http/serialize/DeserializerFactory;");
+			} else if(parameterType.isAnnotationPresent(Serializable.class)) {
+				String intReturnName = createInternalClassName(parameterType);
+				signature.append("L");
+				signature.append(intReturnName);
+				signature.append(";");				
 			} else if(parameterType.isAnnotationPresent(Service.class)) {
 				String intReturnName = createInternalClassName(parameterType);
 				signature.append("L");
@@ -736,6 +816,13 @@ public class ControllerServiceFactory {
 			signature.append("V");
 		} else if(returnType.equals(Void.class)) {
 			signature.append("Ljava/lang/Void;");
+		} else if(returnType.equals(String.class)) {
+			signature.append("Ljava/lang/String;");
+		} else if(returnType.isAnnotationPresent(Serializable.class)) {
+			String intReturnName = createInternalClassName(returnType);
+			signature.append("L");
+			signature.append(intReturnName);
+			signature.append(";");							
 		} else if(returnType.equals(WebSocketTextMessage.class)) {
 			signature.append("Lcom/nginious/http/websocket/WebSocketTextMessage;");
 		} else if(returnType.equals(WebSocketBinaryMessage.class)) {
@@ -776,6 +863,8 @@ public class ControllerServiceFactory {
 			signature.append("V");
 		} else if(returnType.equals(Void.class)) {
 			signature.append("Ljava/lang/Void;");
+		} else if(returnType.equals(byte[].class)) {
+			signature.append("[B");
 		} else if(returnType.equals(WebSocketTextMessage.class)) {
 			signature.append("Lcom/nginious/http/websocket/WebSocketTextMessage;");
 		} else if(returnType.equals(WebSocketBinaryMessage.class)) {

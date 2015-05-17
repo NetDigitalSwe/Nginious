@@ -157,6 +157,16 @@
 										contains the value <code>WebSocketOperation.TEXT</code>.
 									</td>
 								</tr>
+								<tr>
+									<td class="nowrap">Object</td>
+									<td>
+										An object annotated with the <a href="api/com/nginious/http/annotation/Serializable.html">Serializable</a>
+										annotation. Only valid for methods that handle text messages. The server deserializes the bean from content in the web socket test message based on the
+										<code>contentType</code> value in the <a href="api/com/nginious/http/annotation/Message.html">Message</a>
+										annotation.
+									</td>
+								</tr>
+
 							</tbody>
 						</table>
 					</div>					
@@ -239,7 +249,7 @@ public class EchoWebSocketController {
   @Message(operations = { WebSocketOperation.TEXT })
   public String executeTextMessage(WebSocketTextMessage message, WebSocketSession session) throws WebSocketException, IOException {
     String messagePayload = message.getMessage();
-	return messagePayload;
+    return messagePayload;
   }
   
   @Message(operations = { WebSocketOperation.CLOSE })

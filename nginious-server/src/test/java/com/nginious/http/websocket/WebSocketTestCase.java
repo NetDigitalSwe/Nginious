@@ -22,6 +22,8 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import org.json.JSONObject;
+
 import com.nginious.http.application.Application;
 import com.nginious.http.application.ApplicationManager;
 import com.nginious.http.common.StringUtils;
@@ -31,6 +33,8 @@ import com.nginious.http.server.HttpServerFactory;
 import com.nginious.http.server.HttpTestConnection;
 import com.nginious.http.service.TestServerWebSocketController;
 import com.nginious.http.service.TestWebSocketController;
+import com.nginious.http.service.TestWebSocketDeserializeController;
+import com.nginious.http.service.TestWebSocketSerializeController;
 
 public class WebSocketTestCase extends TestCase {
 	
@@ -57,6 +61,8 @@ public class WebSocketTestCase extends TestCase {
 		Application application = manager.createApplication("test");
 		application.addController(new TestWebSocketController());
 		application.addController(new TestServerWebSocketController());
+		application.addController(new TestWebSocketSerializeController());
+		application.addController(new TestWebSocketDeserializeController());
 		manager.publish(application);
 		server.start();
 	}
@@ -486,6 +492,84 @@ public class WebSocketTestCase extends TestCase {
 				String respStr = new String(respFrame, 2, len);
 				assertEquals(str, respStr);
 			}
+		} finally {
+			if(wsConn != null) {
+				wsConn.close();
+			}
+		}		
+	}
+	
+	public void testDeserializableBeans() throws Exception {
+		WebSocketTestConnection wsConn = null;
+		
+		try {
+			wsConn = handshake("wsdeserialize");
+			
+			byte[] mask = generateRandomBytes(4);
+			String str = "{ \"testBean1\": { \"first\": \"true\" } }"; 
+			byte len = (byte)(0x80 + str.length());
+			byte[] payload = generateMaskedString(str, mask);
+			byte[] header = { (byte)0x81, len, mask[0], mask[1], mask[2], mask[3] };
+			
+			byte[] frame = new byte[header.length + payload.length];
+			System.arraycopy(header, 0, frame, 0, header.length);
+			System.arraycopy(payload, 0, frame, header.length, payload.length);
+			wsConn.write(frame);
+				
+			// Check response frame
+			byte[] respFrame = wsConn.readFrame();
+			assertNotNull(respFrame);
+			
+			byte flags = respFrame[0];
+			assertTrue((flags & 0x80) > 0); // Check for final frame flag set
+			assertTrue("i=" + str.length() + ", flags=" + flags, (flags & 0x0F) == 0x01); // Check for opcode text message
+			len = respFrame[1];
+			
+			String respStr = new String(respFrame, 2, len);
+			JSONObject testBean = new JSONObject(respStr);
+			assertTrue(testBean.has("testBean1"));
+			JSONObject testBean2 = testBean.getJSONObject("testBean1");
+			assertNotNull(testBean2);
+			assertTrue(testBean2.getBoolean("first"));
+		} finally {
+			if(wsConn != null) {
+				wsConn.close();
+			}
+		}			
+	}
+	
+	public void testSerializableBeans() throws Exception {
+		WebSocketTestConnection wsConn = null;
+		
+		try {
+			wsConn = handshake("wsserialize");
+			
+			byte[] mask = generateRandomBytes(4);
+			String str = "{ \"testBean1\": { \"first\": \"true\" } }"; 
+			byte len = (byte)(0x80 + str.length());
+			byte[] payload = generateMaskedString(str, mask);
+			byte[] header = { (byte)0x81, len, mask[0], mask[1], mask[2], mask[3] };
+			
+			byte[] frame = new byte[header.length + payload.length];
+			System.arraycopy(header, 0, frame, 0, header.length);
+			System.arraycopy(payload, 0, frame, header.length, payload.length);
+			wsConn.write(frame);
+				
+			// Check response frame
+			byte[] respFrame = wsConn.readFrame();
+			assertNotNull(respFrame);
+			
+			byte flags = respFrame[0];
+			assertTrue((flags & 0x80) > 0); // Check for final frame flag set
+			assertTrue("i=" + str.length() + ", flags=" + flags, (flags & 0x0F) == 0x01); // Check for opcode text message
+			len = respFrame[1];
+			
+			String respStr = new String(respFrame, 2, len);
+			JSONObject testBean = new JSONObject(respStr);
+			assertTrue(testBean.has("testBean1"));
+			JSONObject testBean2 = testBean.getJSONObject("testBean1");
+			assertNotNull(testBean2);
+			assertTrue(testBean2.getBoolean("first"));
 		} finally {
 			if(wsConn != null) {
 				wsConn.close();

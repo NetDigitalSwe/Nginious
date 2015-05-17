@@ -27,28 +27,28 @@ import com.nginious.http.websocket.WebSocketOperation;
  * Maps one or more methods in a controller to web socket operations. Each annotated method is called
  * for the specific type of websocket operation it is annotated for. See {@link com.nginious.http.websocket.WebSocketOperation}
  * for possible operations. Below is an example controller that accepts open, close and text operations.
- * 
+ *
  * <pre>
  * &#64;Controller(path = "/test")
  * public class Test {
- *   
+ *
  *   &#64;Message(operations = { WebSocketOperation.OPEN })
  *   public void doOpen(HttpRequest request, HttpResponse response, WebSocketSession session) throws HttpException, IOException {
  *     ...
  *   }
- *   
+ *
  *   &#64;Message(operations = { WebSocketOperation.TEXT })
  *   public void doText(WebSocketTextMessage message, WebSocketSession session) throws WebSocketException, IOException {
  *     ...
  *   }
- *   
+ *
  *   &#64;Message(operations = { WebSocketOperation.CLOSE })
  *   public void doClose(WebSocketSession session) throws WebSockewtException, IOException {
  *     ...
  *   }
  * }
  * </pre>
- * 
+ *
  * @see com.nginious.http.websocket.WebSocketOperation
  * @see com.nginious.http.websocket.WebSocketSession
  * @see com.nginious.http.websocket.WebSocketTextMessage
@@ -58,11 +58,17 @@ import com.nginious.http.websocket.WebSocketOperation;
 @Target(value = {ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Message {
-	
+
 	/**
 	 * Returns list of web socket operations supported by the class method annotated with this annotation.
 	 * 
 	 * @return list of web socket operations
 	 */
 	WebSocketOperation[] operations() default {};
+
+	/**
+	 * Returns content type expected in received message for class method annotated wit this annotation.
+	 * @return
+	 */
+	String contentType() default "";
 }
