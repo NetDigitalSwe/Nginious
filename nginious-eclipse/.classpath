@@ -5,9 +5,9 @@
 	<classpathentry exported="true" kind="lib" path="libs/nginious-api.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/nginious-server.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/json.jar"/>
-	<classpathentry exported="true" kind="lib" path="libs/asm-3.3.1.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry exported="true" kind="lib" path="libs/asm-3.3.1.jar"/>	
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+        <classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="output" path="build/classes/main"/>
 </classpath>
