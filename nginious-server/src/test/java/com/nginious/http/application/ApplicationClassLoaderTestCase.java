@@ -19,16 +19,18 @@ package com.nginious.http.application;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Properties;
-
-import com.nginious.http.TestUtils;
-import com.nginious.http.application.ApplicationClassLoader;
-import com.nginious.http.common.FileUtils;
+import java.util.concurrent.CountDownLatch;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+
+import com.nginious.http.TestUtils;
+import com.nginious.http.common.FileUtils;
 
 public class ApplicationClassLoaderTestCase extends TestCase {
 	
@@ -51,8 +53,8 @@ public class ApplicationClassLoaderTestCase extends TestCase {
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		FileUtils.deleteDir("build/test-webapps");
-	}
-	
+	}	
+
 	public void testClassLoading() throws Exception {
 		File webappDir = new File("build/test-webapps/classload");
 		ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
@@ -261,12 +263,97 @@ public class ApplicationClassLoaderTestCase extends TestCase {
 		resources = loader.getResources("test.properties");
 		assertFalse(resources.hasMoreElements());
 	}
-	
+
+	public void testMultithreadClassLoading() throws Exception {
+		File srcFile = TestUtils.findFile("build/libs", "testload1");
+		File destFile = new File("build/test-webapps/classload/WEB-INF/lib/nginious-loader.jar");
+		FileUtils.copyFile(srcFile.getAbsolutePath(), destFile.getAbsolutePath());
+
+		for (int i = 0; i < 1000; i++) {
+			List<ApplicationClassLoaderTest> tests = new ArrayList<>();
+			CountDownLatch startLatch = new CountDownLatch(1);
+			CountDownLatch stopLatch = new CountDownLatch(50);
+
+			File webappDir = new File("build/test-webapps/classload");
+			ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
+			
+			ApplicationClassLoader loader = new ApplicationClassLoader(contextLoader, webappDir);
+			
+			for (int j = 0; j < 50; j++) {
+				String clazzName = j % 2 == 0 ? "com.nginious.http.loader.ClassReferenceTest1" : "com.nginious.http.loader.ClassReferenceTest2";
+				String expectedToString = j % 2 == 0 ? "ClassLoader1-ClassReferenceTest1" : "ClassLoader1-ClassReferenceTest2";
+				ApplicationClassLoaderTest test = new ApplicationClassLoaderTest(loader,
+						startLatch,
+						stopLatch,
+						clazzName,
+						expectedToString);
+				tests.add(test);
+				Thread testThread = new Thread(test);
+				testThread.start();
+			}
+
+			startLatch.countDown();
+			stopLatch.await();
+
+			for (ApplicationClassLoaderTest test : tests) {
+				assertTrue(test.isSuccess());
+			}
+		}
+	}
+
 	public static Test suite() {
 		return new TestSuite(ApplicationClassLoaderTestCase.class);
 	}
 
 	public static void main(String[] argv) {
 		junit.textui.TestRunner.run(suite());
+	}
+
+	private class ApplicationClassLoaderTest implements Runnable {
+
+		private ApplicationClassLoader loader;
+
+		private CountDownLatch startLatch;
+
+		private CountDownLatch stopLatch;
+
+		private String clazzName;
+
+		private String expectedToString;
+
+		private boolean success;
+
+		private ApplicationClassLoaderTest(ApplicationClassLoader loader,
+				CountDownLatch startLatch,
+				CountDownLatch stopLatch,
+				String clazzName,
+				String expectedToString) {
+			super();
+			this.loader = loader;
+			this.startLatch = startLatch;
+			this.stopLatch = stopLatch;
+			this.clazzName = clazzName;
+			this.expectedToString = expectedToString;
+		}
+
+		private boolean isSuccess() {
+			return success;
+		}
+
+		public void run() {
+			try {
+				startLatch.await();
+
+				Class<?> clazz = loader.loadClass(clazzName);
+				Object obj = clazz.newInstance();
+				assertEquals(expectedToString, obj.toString());
+
+				success = true;
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				stopLatch.countDown();
+			}
+		}
 	}
 }

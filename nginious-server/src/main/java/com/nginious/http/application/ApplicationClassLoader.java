@@ -18,13 +18,10 @@ package com.nginious.http.application;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -54,8 +51,8 @@ import com.nginious.http.common.IteratorEnumeration;
  */
 public class ApplicationClassLoader extends ClassLoader {
 	
-	private ConcurrentHashMap<File, SubAppClassLoader> subClassLoaders;
-	
+	private ConcurrentHashMap<File, SubApplicationClassLoader> subClassLoaders;
+
 	private ClassLoader parent;
 	
 	private File webAppDir;
@@ -80,7 +77,7 @@ public class ApplicationClassLoader extends ClassLoader {
 	public ApplicationClassLoader(ClassLoader parent, File webAppDir) {
 		super(parent);
 		this.parent = parent;
-		this.subClassLoaders = new ConcurrentHashMap<File, SubAppClassLoader>();
+		this.subClassLoaders = new ConcurrentHashMap<File, SubApplicationClassLoader>();
 		setWebAppDir(webAppDir);
 	}
 	
@@ -123,7 +120,7 @@ public class ApplicationClassLoader extends ClassLoader {
 		
 		ClassLoader loader = clazz.getClassLoader();
 		
-		for(SubAppClassLoader subClassLoader : subClassLoaders.values()) {
+		for(SubApplicationClassLoader subClassLoader : subClassLoaders.values()) {
 			if(loader.equals(subClassLoader)) {
 				boolean modified = subClassLoader.isModified(clazz.getName(), true);
 				
@@ -168,10 +165,10 @@ public class ApplicationClassLoader extends ClassLoader {
 	 * @param name the resource name
 	 * @return a URL for reading the resource or <code>null</code> if the resource could not be found
 	 */
-	private URL getResourceInternal(String name) {
-		Collection<SubAppClassLoader> classLoaders = subClassLoaders.values();
+	URL getResourceInternal(String name) {
+		Collection<SubApplicationClassLoader> classLoaders = subClassLoaders.values();
 		
-		for(SubAppClassLoader classLoader : classLoaders) {
+		for(SubApplicationClassLoader classLoader : classLoaders) {
 			classLoader = reloadIfModified(classLoader, name, false);
 			
 			if(classLoader != null) {
@@ -186,7 +183,7 @@ public class ApplicationClassLoader extends ClassLoader {
 		if(this.webAppDir != null) {
 			classLoaders = checkNewSubClassLoaders(this.webAppDir);
 			
-			for(SubAppClassLoader classLoader : classLoaders) {
+			for(SubApplicationClassLoader classLoader : classLoaders) {
 				URL resource = classLoader.getResourceInternal(name);
 				
 				if(resource != null) {
@@ -219,12 +216,12 @@ public class ApplicationClassLoader extends ClassLoader {
 	 * @return An enumeration over all URLs for the resource or an empty enumeration if no resources found
 	 * @throws IOException if unable to load a resource
 	 */
-	private Enumeration<URL> getResourcesInternal(String name) throws IOException {
-		Collection<SubAppClassLoader> classLoaders = subClassLoaders.values();
+	Enumeration<URL> getResourcesInternal(String name) throws IOException {
+		Collection<SubApplicationClassLoader> classLoaders = subClassLoaders.values();
 		
 		HashSet<URL> outResources = new HashSet<URL>();
 		
-		for(SubAppClassLoader classLoader : classLoaders) {
+		for(SubApplicationClassLoader classLoader : classLoaders) {
 			classLoader = reloadIfModified(classLoader, name, false);
 			
 			if(classLoader != null) {
@@ -241,7 +238,7 @@ public class ApplicationClassLoader extends ClassLoader {
 		if(outResources.size() == 0 && this.webAppDir != null) {
 			classLoaders = checkNewSubClassLoaders(this.webAppDir);
 			
-			for(SubAppClassLoader classLoader : classLoaders) {
+			for(SubApplicationClassLoader classLoader : classLoaders) {
 				Enumeration<URL> resources = classLoader.getResourcesInternal(name);
 				
 				if(resources != null) {
@@ -295,9 +292,9 @@ public class ApplicationClassLoader extends ClassLoader {
 	 * @throws ClassNotFoundException if the class could not be found
 	 */
 	protected Class<?> loadClassInternal(String name, boolean resolve) throws ClassNotFoundException {
-		Collection<SubAppClassLoader> classLoaders = subClassLoaders.values();
+		Collection<SubApplicationClassLoader> classLoaders = subClassLoaders.values();
 		
-		for(SubAppClassLoader classLoader : classLoaders) {
+		for(SubApplicationClassLoader classLoader : classLoaders) {
 			classLoader = reloadIfModified(classLoader, name, true);
 			
 			if(classLoader != null) {
@@ -310,7 +307,7 @@ public class ApplicationClassLoader extends ClassLoader {
 		if(this.webAppDir != null) {
 			classLoaders = checkNewSubClassLoaders(this.webAppDir);
 			
-			for(SubAppClassLoader classLoader : classLoaders) {
+			for(SubApplicationClassLoader classLoader : classLoaders) {
 				try {
 					return classLoader.loadClassInternal(name, resolve);
 				} catch(ClassNotFoundException e) {}
@@ -329,12 +326,12 @@ public class ApplicationClassLoader extends ClassLoader {
 	 * @param className whether or not the resource name is a binary class name
 	 * @return the new sub class loader or <code>null</code> if resource not modified
 	 */
-	private SubAppClassLoader reloadIfModified(SubAppClassLoader classLoader, String name, boolean className) {
+	private SubApplicationClassLoader reloadIfModified(SubApplicationClassLoader classLoader, String name, boolean className) {
 		if(classLoader.isModified(name, className)) {
 			File jarOrClassDir = classLoader.getJarOrClassDir();
 			
 			if(jarOrClassDir.exists()) {
-				classLoader = new SubAppClassLoader(jarOrClassDir, this.parent);
+				classLoader = new SubApplicationClassLoader(this, jarOrClassDir, this.parent);
 				subClassLoaders.put(jarOrClassDir, classLoader);
 			} else {
 				subClassLoaders.remove(jarOrClassDir);
@@ -353,16 +350,16 @@ public class ApplicationClassLoader extends ClassLoader {
 	 * @param webAppDir the web application directory to check
 	 * @return all newly created sub class loaders
 	 */
-	private Collection<SubAppClassLoader> checkNewSubClassLoaders(File webAppDir) {
+	private Collection<SubApplicationClassLoader> checkNewSubClassLoaders(File webAppDir) {
 		File webInfDir = new File(webAppDir, "WEB-INF");
 		File libDir = new File(webInfDir, "lib");
 		File[] possibleLibs = libDir.listFiles();
-		ArrayList<SubAppClassLoader> newClassLoaders = new ArrayList<SubAppClassLoader>();
+		ArrayList<SubApplicationClassLoader> newClassLoaders = new ArrayList<SubApplicationClassLoader>();
 		
 		if(possibleLibs != null) {
 			for(File possibleLib : possibleLibs) {
 				if(!subClassLoaders.containsKey(possibleLib)) {
-					SubAppClassLoader classLoader = new SubAppClassLoader(possibleLib, this.parent);
+					SubApplicationClassLoader classLoader = new SubApplicationClassLoader(this, possibleLib, this.parent);
 					subClassLoaders.put(possibleLib, classLoader);
 					newClassLoaders.add(classLoader);
 				}
@@ -391,7 +388,7 @@ public class ApplicationClassLoader extends ClassLoader {
 		
 		if(initial) {
 			File classesDir = new File(webInfDir, "classes");
-			SubAppClassLoader classLoader = new SubAppClassLoader(classesDir, this.parent);
+			SubApplicationClassLoader classLoader = new SubApplicationClassLoader(this, classesDir, this.parent);
 			subClassLoaders.put(classesDir, classLoader);
 		}
 
@@ -403,182 +400,10 @@ public class ApplicationClassLoader extends ClassLoader {
 				String name = possibleLib.getName();
 				
 				if(possibleLib.isFile() && name.endsWith(".jar") && !subClassLoaders.containsKey(possibleLib)) {
-					SubAppClassLoader classLoader = new SubAppClassLoader(possibleLib, this.parent);
+					SubApplicationClassLoader classLoader = new SubApplicationClassLoader(this, possibleLib, this.parent);
 					subClassLoaders.put(possibleLib, classLoader);
 				}
 			}
 		}    	
     }
-    
-    /**
-     * A sub app class loader loads classes from a single jar library or a single classes directory for a
-     * web application.
-     * 
-     * @author Bojan Pisler, NetDigital Sweden AB
-     *
-     */
-    private class SubAppClassLoader extends URLClassLoader {
-		
-		private File jarOrClassDir;
-		
-		private boolean isJar;
-		
-		private long lastModified;
-		
-		private HashMap<String, Long> classTstmps;
-		
-		/**
-		 * Constructs a new sub app class loader for the specified jar library or classes directory.
-		 * 
-		 * @param jarOrClassDir the jar library file or classes directory
-		 * @param parent the parent class loader
-		 */
-		private SubAppClassLoader(File jarOrClassDir, ClassLoader parent) {
-			super(new URL[0], null);
-			this.jarOrClassDir = jarOrClassDir;
-			this.isJar = jarOrClassDir.isFile();
-			this.lastModified = jarOrClassDir.lastModified();
-			this.classTstmps = new HashMap<String, Long>();
-			
-			try {
-				URL url = jarOrClassDir.toURI().toURL();
-				
-				// Prevents Java from caching Jars which could lead to stale resources being returned in case
-				// Jar file is updated in file system.
-				try { url.openConnection().setDefaultUseCaches(false); } catch(IOException e) {}
-				
-				
-				addURL(url);
-			} catch(MalformedURLException e) {
-				throw new RuntimeException("Creating class loader failed", e);
-			}
-		}
-		
-		/**
-		 * Returns the jar library file or classes directory from which this class loader loads classes
-		 * and resources.
-		 * 
-		 * @return the jar library file or classes directory
-		 */
-		private File getJarOrClassDir() {
-			return this.jarOrClassDir;
-		}
-		
-		/**
-		 * Returns whether or not any of the classes or resources that this sub class loader
-		 * has loaded are changed.
-		 * 
-		 * <p>
-		 * The following defines the rules.
-		 * 
-		 * <ul>
-		 * <li>If this sub class loader loads classes and resources from a jar file a check is made to
-		 *  verify if the jar library file has changed since this sub class loader was created.</li>
-		 * <li>If this sub class loader loads classes and resources from a classes directory a check
-		 * 	is made if the resource or class with the specified name has been changed since this sub
-		 * 	class loader was created.</li>
-		 * </ul>
-		 * </p>
-		 * 
-		 * @param name the resource or binary class name
-		 * @param className whether or not the name is a binary class name
-		 * @return <code>true</code> if modified, <code>false</code> otherwise
-		 */
-		private boolean isModified(String name, boolean className) {
-			if(this.isJar) {
-				if(!jarOrClassDir.exists()) {
-					return true;
-				}
-				
-				return jarOrClassDir.lastModified() > this.lastModified;
-			}
-			
-			File resourceFile = null;
-			
-			if(className) {
-				String subPath = name.replaceAll("\\.", File.separator) + ".class";
-				resourceFile = new File(this.jarOrClassDir, subPath);
-				
-				if(!resourceFile.exists()) {
-					if(classTstmps.containsKey(name)) {
-						return true;
-					}
-					
-					return false;
-				}
-			} else {
-				resourceFile = new File(this.jarOrClassDir, name);
-				
-				if(!resourceFile.exists()) {
-					return false;
-				}
-			}
-			
-			long lastModified = 0L;
-			
-			if(classTstmps.containsKey(name)) {
-				lastModified = classTstmps.get(name);
-			}
-			
-			if(resourceFile.exists() && lastModified > 0L && resourceFile.lastModified() > lastModified) {
-				return true;
-			}
-			
-			return false;
-		}
-		
-		private long getLastModified(String name) {
-			if(this.isJar) {
-				return jarOrClassDir.lastModified();
-			}
-			
-			String subPath = name.replaceAll("\\.", File.separator) + ".class";
-			File resourceFile = new File(this.jarOrClassDir, subPath);
-			return resourceFile.lastModified();
-		}
-		
-		public URL getResource(String name) {
-			return ApplicationClassLoader.this.getResourceInternal(name);
-		}
-		
-		private URL getResourceInternal(String name) {
-			return super.getResource(name);
-		}
-		
-		public Enumeration<URL> getResources(String name) throws IOException {
-			return ApplicationClassLoader.this.getResourcesInternal(name);
-		}
-		
-		private Enumeration<URL> getResourcesInternal(String name) throws IOException {
-			return super.getResources(name);
-		}
-		
-
-	    public Class<?> loadClass(String name) throws ClassNotFoundException {
-	        return loadClass(name, false);
-	    }
-		
-	    protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-			return ApplicationClassLoader.this.loadClassInternal(name, resolve);
-		}
-		
-		private Class<?> loadClassInternal(String name, boolean resolve) throws ClassNotFoundException {
-			Class<?> clazz = findLoadedClass(name);
-			
-			if(clazz == null) {
-				clazz = findClass(name);
-				
-				if(resolve) {
-					resolveClass(clazz);
-				}
-			}
-			
-			if(clazz != null) {
-				long lastModified = getLastModified(name);
-				classTstmps.put(name, lastModified);
-			}
-			
-			return clazz;
-		}
-	}
 }
