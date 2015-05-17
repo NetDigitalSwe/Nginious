@@ -376,7 +376,7 @@ public abstract class Server implements Runnable {
 			connector.write();
 		} catch(IOException e) {
 			logger.warn("I/O exception on write", e);
-			connector.close();
+			connector.close(true);
 		}
 	}
 	
@@ -408,7 +408,8 @@ public abstract class Server implements Runnable {
 			try {
 				connector.read();
 			} catch(IOException e) {
-				// TODO, Key should be canceled here and connection closed.
+				logger.warn("I/O exception on read", e);
+				connector.close(true);
 			}
 		}
 	}
