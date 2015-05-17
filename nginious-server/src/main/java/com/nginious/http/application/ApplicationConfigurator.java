@@ -112,7 +112,7 @@ class ApplicationConfigurator {
 			while(entries.hasMoreElements()) {
 				JarEntry entry = entries.nextElement();
 				String name = entry.getName();
-				
+
 				if(!entry.isDirectory()) {
 					writeEntry(jar, entry, tmpDir);
 					
@@ -199,16 +199,23 @@ class ApplicationConfigurator {
 	private void findJarClasses(File appDir, String jarName, HashSet<ClassInfo> classes) throws IOException {
 		File jarFile = new File(appDir, jarName);
 		JarFile jar = new JarFile(jarFile);
-		Enumeration<JarEntry> entries = jar.entries();
 		
-		while(entries.hasMoreElements()) {
-			JarEntry entry = entries.nextElement();
-			String name = entry.getName();
+		try {
+			Enumeration<JarEntry> entries = jar.entries();
 			
-			if(name.endsWith(".class")) {
-				String className = name.substring(0, name.length() - 6).replace('/', '.');
-				ClassInfo classFile = new ClassInfo(className, null);
-				classes.add(classFile);
+			while(entries.hasMoreElements()) {
+				JarEntry entry = entries.nextElement();
+				String name = entry.getName();
+
+				if(name.endsWith(".class")) {
+					String className = name.substring(0, name.length() - 6).replace('/', '.');
+					ClassInfo classFile = new ClassInfo(className, null);
+					classes.add(classFile);
+				}
+			}
+		} finally {
+			if(jar != null) {
+				jar.close();
 			}
 		}
 	}
