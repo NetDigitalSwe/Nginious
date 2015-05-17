@@ -85,7 +85,7 @@ class ControllerChain extends HttpService {
 	
 	/**
 	 * Executes HTTP GET for all controller HTTP services in this chain in order until a service returns {@link HttpServiceResult#DONE}
-	 * pr the end of the chain is reached.
+	 * or the end of the chain is reached.
 	 * 
 	 * @param request the HTTP request
 	 * @param response the HTTP response
